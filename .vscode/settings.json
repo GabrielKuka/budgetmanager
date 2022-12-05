@@ -4,5 +4,6 @@
   ],
   "editor.formatOnSave": true,
   "prettier.tabWidth": 4,
-  "editor.tabSize": 4
+  "editor.tabSize": 4,
+  "git.ignoreLimitWarning": true
 }

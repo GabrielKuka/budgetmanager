@@ -1,5 +1,5 @@
 from django.contrib import admin
 
-from .models import DimAccount
+from .models import Account
 
-admin.site.register(DimAccount)
+admin.site.register(Account)

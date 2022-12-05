@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 
 
-class DimAccount(models.Model):
+class Account(models.Model):
 
     account_types = [(0, "Bank Account"), (1, "Investment Account"), (2, 'Hard Cash')]
 

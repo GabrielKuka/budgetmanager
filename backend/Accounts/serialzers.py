@@ -1,8 +1,8 @@
-from .models import DimAccount
+from .models import Account
 from rest_framework import serializers
 
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
-        model = DimAccount
+        model = Account
         fields = "__all__"

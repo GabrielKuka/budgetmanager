@@ -1,37 +1,40 @@
 from rest_framework import serializers
 
-from .models import FactTransaction, DimExpenseCategory, DimIncomeCategory
+from .models import ExpenseCategory, IncomeCategory, Income, Expense, Transfer
 from Users.serializers import UserSerializer
 from Users.models import User
 
 
-class TransactionSerializer(serializers.ModelSerializer):
+
+class IncomeSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
 
     class Meta:
-        model = FactTransaction
+        model = Income 
         fields = "__all__"
 
-    def create(self, validated_data):
-        print(validated_data)
-        user_id = validated_data.pop("user_id")
-        t = FactTransaction(**validated_data)
-        t.user = User.objects.get(id=user_id)
-        t.save()
-        return t
+class ExpenseSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
 
-    def to_representaion(self, instance):
-        response = super().to_representation(instance)
-        response["user"] = UserSerializer(instance.user).data
+    class Meta:
+        model = Expense 
+        fields = "__all__"
+
+class TransferSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+
+    class Meta:
+        model = Transfer 
+        fields = "__all__"
 
 
 class ExpenseCategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = DimExpenseCategory
+        model = ExpenseCategory
         fields = "__all__"
 
 
 class IncomeCategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = DimIncomeCategory
+        model = IncomeCategory
         fields = "__all__"

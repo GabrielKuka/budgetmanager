@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.authtoken.models import Token
 
-from .models import DimAccount
+from .models import Account
 from .serialzers import AccountSerializer
 
 
@@ -17,7 +17,7 @@ def create_account(request):
     p["user_id"] = user_id
 
     try:
-        DimAccount(**p).save()
+        Account(**p).save()
         return Response(
             {"message": "Account created."}, status=status.HTTP_201_CREATED
         )
@@ -35,7 +35,7 @@ def get_all_accounts(request):
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
-    accounts = DimAccount.objects.filter(user=user_id)
+    accounts = Account.objects.filter(user=user_id)
 
     serializer = AccountSerializer(accounts, many=True)
 
