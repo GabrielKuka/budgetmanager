@@ -10,6 +10,7 @@ class Account(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE
     )
     type = models.IntegerField(choices=account_types, default=account_types[0])
+    currency = models.CharField(max_length=4, default='EUR')
     name = models.CharField(max_length=100, default="")
     amount = models.FloatField(default=0.0)
     created_on = models.DateTimeField(auto_now_add=True)
