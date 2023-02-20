@@ -1,0 +1,21 @@
+@import "../mixins";
+
+.navbar-wrapper {
+  position: fixed;
+  top: 0;
+  width: 100%;
+
+  background-color: cadetblue;
+  &__loggedin {
+    @include flex(row, flex-start, center);
+    gap: 10px;
+
+    padding: 20px;
+    color: black;
+
+    .currency-converter-form {
+      @include flex(row, flex-start, center);
+      gap: 5px;
+    }
+  }
+}
