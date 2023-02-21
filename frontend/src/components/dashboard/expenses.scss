@@ -1,0 +1,18 @@
+@import "../../mixins";
+
+.expenses-wrapper {
+  margin-top: 50px;
+  height: 100%;
+
+  &__enter-expense {
+    border: 1px solid #dadada;
+    border-radius: 10px;
+    width: fit-content;
+    padding: 10px;
+
+    .form {
+      @include flex(column, flex-start, flex-start);
+      gap: 10px;
+    }
+  }
+}

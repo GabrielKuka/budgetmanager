@@ -34,7 +34,7 @@ const GlobalProvider = ({ children }) => {
       setauthToken(data.token);
       setUser(localUser);
 
-      localStorage.setItem("authToken", JSON.stringify(data));
+      localStorage.setItem("authToken", JSON.stringify(data.token));
       localStorage.setItem("user", JSON.stringify(localUser));
 
       navigate("/dashboard");

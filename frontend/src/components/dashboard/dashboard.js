@@ -2,14 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useGlobalContext } from "../../context/GlobalContext";
 import { Navigate } from "react-router-dom";
 import "./dashboard.scss";
+import Expenses from "./expenses";
+import Incomes from "./incomes";
+import Transfers from "./transfers";
 
 const Dashboard = () => {
   const global = useGlobalContext();
   const [page, setPage] = useState("expenses");
-
-  useEffect(() => {
-    console.log(page);
-  }, [page]);
 
   if (!global.authToken) {
     return <Navigate push to="/login" />;
@@ -18,6 +17,9 @@ const Dashboard = () => {
   return (
     <div className={"dashboard-wrapper"}>
       <Toolbar setPage={setPage} />
+      {page === "expenses" && <Expenses />}
+      {page === "incomes" && <Incomes />}
+      {page === "transfers" && <Transfers />}
     </div>
   );
 };
