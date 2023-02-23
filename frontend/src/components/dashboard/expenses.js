@@ -34,11 +34,13 @@ const Expenses = () => {
   return (
     <div className={"expenses-wrapper"}>
       <AddExpense accounts={accounts} categories={categories} />
-      <ExpensesList
-        expenses={expenses}
-        accounts={accounts}
-        categories={categories}
-      />
+      {expenses?.length > 0 && (
+        <ExpensesList
+          expenses={expenses}
+          accounts={accounts}
+          categories={categories}
+        />
+      )}
     </div>
   );
 };
@@ -106,67 +108,78 @@ const ExpensesList = ({ expenses, accounts, categories }) => {
     new Date(new Date().getFullYear(), new Date().getMonth(), 1)
   );
 
+  useEffect(filterExpenses, [date]);
+  useEffect(filterExpenses, []);
+
   function filterExpenses() {
+    console.log(expenses);
     const selectedAccount = document.getElementById("account").value;
     const selectedCategory = document.getElementById("category").value;
     const selectedDate = date;
 
     const accountFilter =
       selectedAccount >= 0
-        ? expenses.filter((e) => e.account == selectedAccount)
+        ? expenses.filter((e) => e.account === selectedAccount)
         : expenses;
 
     const categoryFilter =
       selectedCategory >= 0
-        ? expenses.filter((e) => e.expense_category == selectedCategory)
+        ? expenses.filter((e) => e.expense_category === selectedCategory)
         : expenses;
 
     const dateFilter = expenses.filter(
       (e) =>
-        parseInt(e.date.split("-")[0]) === selectedDate.getFullYear() &&
-        parseInt(e.date.split("-")[1]) === selectedDate.getMonth() + 1 &&
+        parseInt(e.date.split("-")[0]) >= selectedDate.getFullYear() &&
+        parseInt(e.date.split("-")[1]) >= selectedDate.getMonth() + 1 &&
         parseInt(e.date.split("-")[2]) >= selectedDate.getDay()
     );
 
     const filteredExpenses = accountFilter
       .filter((e) => categoryFilter.includes(e))
-      .filter((e) => dateFilter.includes(e));
+      .filter((e) => dateFilter.includes(e))
+      .sort((a, b) => (a.date > b.date ? -1 : 1));
     setShownExpenses(filteredExpenses);
   }
 
   return (
     <div className={"expenses-wrapper__expenses-list"}>
       <div className={"header"}>
-        <DatePicker
-          className="datepicker"
-          selected={date}
-          onChange={(date) => {
-            setDate(date);
-            filterExpenses();
-          }}
-          showMonthDropdown
-          dateFormat={"yyyy-MM-dd"}
-        />
+        <div>
+          <label>Date:</label>
+          <DatePicker
+            className="datepicker"
+            selected={date}
+            onChange={(date) => setDate(date)}
+            showMonthDropdown
+            dateFormat={"yyyy-MM-dd"}
+          />
+        </div>
         <label>Description</label>
-        <select id="account" defaultValue={"-1"} onChange={filterExpenses}>
-          <option value="-1">All</option>
-          {accounts &&
-            accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-        </select>
+        <div>
+          <label>Account:</label>
+          <select id="account" defaultValue={"-1"} onChange={filterExpenses}>
+            <option value="-1">All</option>
+            {accounts &&
+              accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+          </select>
+        </div>
         <label>Amount</label>
-        <select id="category" defaultValue="-1" onChange={filterExpenses}>
-          <option value="-1">All</option>
-          {categories &&
-            categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.category_type}
-              </option>
-            ))}
-        </select>
+        <div>
+          <label>Category:</label>
+          <select id="category" defaultValue="-1" onChange={filterExpenses}>
+            <option value="-1">All</option>
+            {categories &&
+              categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.category_type}
+                </option>
+              ))}
+          </select>
+        </div>
       </div>
       <div className={"expenses"}>
         {shownExpenses?.length > 0 &&
