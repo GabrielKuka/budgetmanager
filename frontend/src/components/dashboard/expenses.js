@@ -11,29 +11,33 @@ const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
 
   useEffect(() => {
-    async function getCategories() {
-      const categories = await transactionService.getAllExpenseCategories();
-      setCategories(categories);
-    }
-
-    async function getAccounts() {
-      const accounts = await transactionService.getAllUserAccounts();
-      setAccounts(accounts);
-    }
-
-    async function getExpenses() {
-      const expenses = await transactionService.getAllUserExpenses();
-      setExpenses(expenses);
-    }
-
     getCategories();
     getAccounts();
     getExpenses();
   }, []);
 
+  async function getCategories() {
+    const categories = await transactionService.getAllExpenseCategories();
+    setCategories(categories);
+  }
+
+  async function getAccounts() {
+    const accounts = await transactionService.getAllUserAccounts();
+    setAccounts(accounts);
+  }
+
+  async function getExpenses() {
+    const expenses = await transactionService.getAllUserExpenses();
+    setExpenses(expenses);
+  }
+
   return (
     <div className={"expenses-wrapper"}>
-      <AddExpense accounts={accounts} categories={categories} />
+      <AddExpense
+        accounts={accounts}
+        categories={categories}
+        refreshExpenses={getExpenses}
+      />
       {expenses?.length > 0 && (
         <ExpensesList
           expenses={expenses}
@@ -45,7 +49,7 @@ const Expenses = () => {
   );
 };
 
-const AddExpense = ({ accounts, categories }) => {
+const AddExpense = ({ accounts, categories, refreshExpenses }) => {
   return (
     <div className={"expenses-wrapper__enter-expense"}>
       <Formik
@@ -53,22 +57,28 @@ const AddExpense = ({ accounts, categories }) => {
           amount: "",
           description: "",
           date: new Date().toISOString().slice(0, 10),
+          account: "",
+          expense_category: "",
         }}
-        onSubmit={(values) => {
-          console.log(values);
+        onSubmit={async (values, { setSubmitting, resetForm }) => {
+          values["type"] = 1;
+          await transactionService.addExpense(values);
+          await refreshExpenses();
+          setSubmitting(false);
+          resetForm();
         }}
       >
         {() => (
           <Form className={"form"}>
             <label>Enter expense</label>
             <Field type="text" name="date" placeholder="Enter date" />
-            <Field as="select" name="account" defaultValue="">
+            <Field as="select" name="account">
               <option value="" disabled hidden>
                 Select account
               </option>
               {accounts &&
                 accounts.map((a) => (
-                  <option key={a.id} value={a.name}>
+                  <option key={a.id} value={a.id}>
                     {a.name} {parseFloat(a.amount).toFixed(2)} €
                   </option>
                 ))}
@@ -83,13 +93,13 @@ const AddExpense = ({ accounts, categories }) => {
               name="description"
               placeholder="Enter a description"
             />
-            <Field as="select" name="category" defaultValue="">
+            <Field as="select" name="expense_category">
               <option value="" disabled hidden>
                 Expense category
               </option>
               {categories &&
                 categories.map((c) => (
-                  <option key={c.id} value={c.category_type}>
+                  <option key={c.id} value={c.id}>
                     {c.category_type}
                   </option>
                 ))}
@@ -108,11 +118,10 @@ const ExpensesList = ({ expenses, accounts, categories }) => {
     new Date(new Date().getFullYear(), new Date().getMonth(), 1)
   );
 
-  useEffect(filterExpenses, [date]);
+  useEffect(filterExpenses, [date, expenses]);
   useEffect(filterExpenses, []);
 
   function filterExpenses() {
-    console.log(expenses);
     const selectedAccount = document.getElementById("account").value;
     const selectedCategory = document.getElementById("category").value;
     const selectedDate = date;

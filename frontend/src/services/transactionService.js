@@ -50,8 +50,29 @@ async function getAllUserAccounts() {
   }
 }
 
+async function addExpense(payload) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.post(
+    `${BASE_URL}/transactions/add`,
+    payload,
+    config
+  );
+  if (response.status === 201) {
+    return response.data;
+  } else {
+    alert("Error adding expense.");
+  }
+}
+
 export default {
   getAllExpenseCategories,
   getAllUserAccounts,
   getAllUserExpenses,
+  addExpense,
 };

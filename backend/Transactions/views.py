@@ -22,7 +22,7 @@ def add_transaction(request):
     # Retrieve Token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
-
+    
     p = request.data
     p["user_id"] = user_id
 
@@ -51,7 +51,7 @@ def add_transaction(request):
             # Update account balance
             selected_account = Account.objects.filter(pk=p["account_id"])
             selected_account.update(
-                amount=selected_account.first().amount - p["amount"]
+                amount=selected_account.first().amount - float(p["amount"])
             )
             p.pop('type') 
             Expense(**p).save()
