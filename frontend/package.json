@@ -10,6 +10,7 @@
     "dart-sass": "^1.25.0",
     "formik": "^2.2.9",
     "react": "^18.2.0",
+    "react-datepicker": "^4.10.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.1",
     "react-scripts": "5.0.1",

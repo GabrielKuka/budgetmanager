@@ -1,6 +1,8 @@
 import { Formik, Form, Field } from "formik";
 import React, { useEffect, useState } from "react";
 import transactionService from "../../services/transactionService";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import "./expenses.scss";
 
 const Expenses = () => {
@@ -65,7 +67,7 @@ const AddExpense = ({ accounts, categories }) => {
               {accounts &&
                 accounts.map((a) => (
                   <option key={a.id} value={a.name}>
-                    {a.name} {parseInt(a.amount).toFixed(2)} €
+                    {a.name} {parseFloat(a.amount).toFixed(2)} €
                   </option>
                 ))}
             </Field>
@@ -100,15 +102,71 @@ const AddExpense = ({ accounts, categories }) => {
 
 const ExpensesList = ({ expenses, accounts, categories }) => {
   const [shownExpenses = expenses, setShownExpenses] = useState();
+  const [date, setDate] = useState(
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  );
+
+  function filterExpenses() {
+    const selectedAccount = document.getElementById("account").value;
+    const selectedCategory = document.getElementById("category").value;
+    const selectedDate = date;
+
+    const accountFilter =
+      selectedAccount >= 0
+        ? expenses.filter((e) => e.account == selectedAccount)
+        : expenses;
+
+    const categoryFilter =
+      selectedCategory >= 0
+        ? expenses.filter((e) => e.expense_category == selectedCategory)
+        : expenses;
+
+    const dateFilter = expenses.filter(
+      (e) =>
+        parseInt(e.date.split("-")[0]) === selectedDate.getFullYear() &&
+        parseInt(e.date.split("-")[1]) === selectedDate.getMonth() + 1 &&
+        parseInt(e.date.split("-")[2]) >= selectedDate.getDay()
+    );
+
+    const filteredExpenses = accountFilter
+      .filter((e) => categoryFilter.includes(e))
+      .filter((e) => dateFilter.includes(e));
+    setShownExpenses(filteredExpenses);
+  }
 
   return (
     <div className={"expenses-wrapper__expenses-list"}>
       <div className={"header"}>
-        <label>Date</label>
+        <DatePicker
+          className="datepicker"
+          selected={date}
+          onChange={(date) => {
+            setDate(date);
+            filterExpenses();
+          }}
+          showMonthDropdown
+          dateFormat={"yyyy-MM-dd"}
+        />
         <label>Description</label>
-        <label>Account</label>
+        <select id="account" defaultValue={"-1"} onChange={filterExpenses}>
+          <option value="-1">All</option>
+          {accounts &&
+            accounts.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
+        </select>
         <label>Amount</label>
-        <label>Category</label>
+        <select id="category" defaultValue="-1" onChange={filterExpenses}>
+          <option value="-1">All</option>
+          {categories &&
+            categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.category_type}
+              </option>
+            ))}
+        </select>
       </div>
       <div className={"expenses"}>
         {shownExpenses?.length > 0 &&
@@ -147,7 +205,7 @@ const ExpenseItem = ({ expense, accounts, categories }) => {
       <label id="date">{expense.date}</label>
       <label id="description">{expense.description}</label>
       <label id="account">{getAccountName(expense.account)}</label>
-      <label id="amount">{parseInt(expense.amount).toFixed(2)} €</label>
+      <label id="amount">{parseFloat(expense.amount).toFixed(2)} €</label>
       <label id="category">
         {getExpenseCategory(expense.expense_category)}
       </label>
