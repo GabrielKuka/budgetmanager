@@ -14,6 +14,26 @@ async function getAllExpenseCategories() {
   }
 }
 
+async function getAllUserExpenses() {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.get(
+    `${BASE_URL}/transactions/allexpenses`,
+    config
+  );
+
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    alert("Error retrieving expenses.");
+  }
+}
+
 async function getAllUserAccounts() {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
@@ -30,4 +50,8 @@ async function getAllUserAccounts() {
   }
 }
 
-export default { getAllExpenseCategories, getAllUserAccounts };
+export default {
+  getAllExpenseCategories,
+  getAllUserAccounts,
+  getAllUserExpenses,
+};

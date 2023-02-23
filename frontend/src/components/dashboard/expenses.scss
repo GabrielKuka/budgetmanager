@@ -1,18 +1,64 @@
 @import "../../mixins";
 
 .expenses-wrapper {
+  position: relative;
   margin-top: 50px;
-  height: 100%;
 
   &__enter-expense {
+    position: fixed;
     border: 1px solid #dadada;
-    border-radius: 10px;
+    box-shadow: 2px 2px 10px #dadada;
+    border-radius: 7px;
     width: fit-content;
-    padding: 10px;
+    padding: 30px;
 
     .form {
       @include flex(column, flex-start, flex-start);
       gap: 10px;
+    }
+  }
+
+  &__expenses-list {
+    position: absolute;
+    left: 300px;
+    width: 900px;
+    @include flex(column, flex-start, flex-start);
+    .header {
+      display: grid;
+      grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+      grid-gap: 10px;
+      width: 800px;
+      padding: 20px;
+      border-bottom: 1px solid black;
+      margin-bottom: 10px;
+    }
+    .expenses {
+      @include flex(column, flex-start, flex-start);
+      gap: 15px;
+      height: calc(100vh - 210px);
+      width: 100%;
+      overflow-x: hidden;
+      overflow-y: scroll;
+
+      /* hide scrollbar */
+      &::-webkit-scrollbar {
+        display: none;
+      }
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+      overflow: -moz-scrollbars-none; /* Firefox */
+
+      .expense-item {
+        border: 1px solid #dadada;
+        box-shadow: 1px 1px 3px #dadada;
+        border-radius: 5px;
+        width: 800px;
+        padding: 20px;
+
+        display: grid;
+        grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+        grid-gap: 10px;
+      }
     }
   }
 }
