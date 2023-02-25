@@ -36,5 +36,46 @@
     left: 400px;
     width: 900px;
     @include flex(column, flex-start, flex-start);
+    .header {
+      display: grid;
+      grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+      grid-gap: 10px;
+      width: 800px;
+      padding: 20px;
+      border-bottom: 1px solid black;
+      margin-bottom: 10px;
+
+      .datepicker {
+        width: 80px;
+      }
+    }
+    .incomes {
+      @include flex(column, flex-start, flex-start);
+      gap: 15px;
+      height: calc(100vh - 230px);
+      width: 100%;
+      overflow-x: hidden;
+      overflow-y: scroll;
+
+      /* hide scrollbar */
+      &::-webkit-scrollbar {
+        display: none;
+      }
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+      overflow: -moz-scrollbars-none; /* Firefox */
+
+      .income-item {
+        border: 1px solid #dadada;
+        box-shadow: 1px 1px 3px #dadada;
+        border-radius: 5px;
+        width: 800px;
+        padding: 20px;
+
+        display: grid;
+        grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+        grid-gap: 10px;
+      }
+    }
   }
 }
