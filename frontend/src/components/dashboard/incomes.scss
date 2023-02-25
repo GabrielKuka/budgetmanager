@@ -1,0 +1,40 @@
+@import "../../mixins";
+
+.incomes-wrapper {
+  position: relative;
+  margin-top: 50px;
+
+  &__sidebar {
+    position: fixed;
+    width: 350px;
+    @include flex(column, center, flex-start);
+    gap: 10px;
+
+    .enter-income {
+      border: 1px solid #dadada;
+      box-shadow: 1px 1px 5px #dadada;
+      border-radius: 3px;
+      width: 270px;
+      padding: 30px;
+
+      .form {
+        @include flex(column, flex-start, flex-start);
+        gap: 10px;
+        input,
+        select {
+          width: 270px;
+        }
+        label {
+          font-weight: bold;
+        }
+      }
+    }
+  }
+
+  &__incomes-list {
+    position: absolute;
+    left: 400px;
+    width: 900px;
+    @include flex(column, flex-start, flex-start);
+  }
+}
