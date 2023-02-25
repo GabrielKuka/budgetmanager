@@ -128,20 +128,17 @@ const ExpensesList = ({ expenses, accounts, categories }) => {
 
     const accountFilter =
       selectedAccount >= 0
-        ? expenses.filter((e) => e.account === selectedAccount)
+        ? expenses.filter((e) => e.account == selectedAccount)
         : expenses;
 
     const categoryFilter =
       selectedCategory >= 0
-        ? expenses.filter((e) => e.expense_category === selectedCategory)
+        ? expenses.filter((e) => e.expense_category == selectedCategory)
         : expenses;
 
-    const dateFilter = expenses.filter(
-      (e) =>
-        parseInt(e.date.split("-")[0]) >= selectedDate.getFullYear() &&
-        parseInt(e.date.split("-")[1]) >= selectedDate.getMonth() + 1 &&
-        parseInt(e.date.split("-")[2]) >= selectedDate.getDay()
-    );
+    console.log(categoryFilter);
+
+    const dateFilter = expenses.filter((e) => new Date(e.date) >= selectedDate);
 
     const filteredExpenses = accountFilter
       .filter((e) => categoryFilter.includes(e))
