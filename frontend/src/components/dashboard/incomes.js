@@ -71,8 +71,12 @@ const AddIncome = ({ accounts, categories, refreshIncomes }) => {
           date: new Date().toISOString().slice(0, 10),
         }}
         onSubmit={async (values, { resetForm, setSubmitting }) => {
+          values["type"] = 0;
           console.log(values);
-          refreshIncomes();
+          await transactionService.addIncome(values);
+          await refreshIncomes();
+          setSubmitting(false);
+          resetForm();
         }}
       >
         {() => (

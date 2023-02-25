@@ -62,7 +62,7 @@ def add_transaction(request):
 
             selected_account = Account.objects.filter(pk=p["account_id"])
             selected_account.update(
-                amount=p["amount"] + selected_account.first().amount
+                amount=float(p["amount"]) + selected_account.first().amount
             )
             p.pop('type') 
             Income(**p).save()

@@ -98,11 +98,32 @@ async function addExpense(payload) {
   }
 }
 
+async function addIncome(payload) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.post(
+    `${BASE_URL}/transactions/add`,
+    payload,
+    config
+  );
+  if (response.status === 201) {
+    return response.data;
+  } else {
+    alert("Error adding income.");
+  }
+}
+
 export default {
   getAllIncomeCategories,
   getAllExpenseCategories,
   getAllUserAccounts,
   getAllUserExpenses,
   addExpense,
+  addIncome,
   getAllUserIncomes,
 };
