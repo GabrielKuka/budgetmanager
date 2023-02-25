@@ -10,6 +10,8 @@ const Expenses = () => {
   const [accounts, setAccounts] = useState([]);
   const [expenses, setExpenses] = useState([]);
 
+  const [total, setTotal] = useState(0);
+
   useEffect(() => {
     getCategories();
     getAccounts();
@@ -33,25 +35,42 @@ const Expenses = () => {
 
   return (
     <div className={"expenses-wrapper"}>
-      <AddExpense
+      <Sidebar
         accounts={accounts}
         categories={categories}
         refreshExpenses={getExpenses}
+        total={total}
       />
       {expenses?.length > 0 && (
         <ExpensesList
           expenses={expenses}
           accounts={accounts}
           categories={categories}
+          setTotal={setTotal}
         />
       )}
     </div>
   );
 };
 
+const Sidebar = (props) => {
+  return (
+    <div className={"expenses-wrapper__sidebar"}>
+      <AddExpense
+        accounts={props.accounts}
+        categories={props.categories}
+        refreshExpenses={props.refreshExpenses}
+      />
+      <div className={"summary"}>
+        Total money spent: <b>{props.total.toFixed(2)}€</b>.
+      </div>
+    </div>
+  );
+};
+
 const AddExpense = ({ accounts, categories, refreshExpenses }) => {
   return (
-    <div className={"expenses-wrapper__enter-expense"}>
+    <div className={"enter-expense"}>
       <Formik
         initialValues={{
           amount: "",
@@ -70,7 +89,7 @@ const AddExpense = ({ accounts, categories, refreshExpenses }) => {
       >
         {() => (
           <Form className={"form"}>
-            <label>Enter expense</label>
+            <label>Enter Expense</label>
             <Field type="text" name="date" placeholder="Enter date" />
             <Field as="select" name="account">
               <option value="" disabled hidden>
@@ -112,7 +131,7 @@ const AddExpense = ({ accounts, categories, refreshExpenses }) => {
   );
 };
 
-const ExpensesList = ({ expenses, accounts, categories }) => {
+const ExpensesList = ({ expenses, accounts, categories, setTotal }) => {
   const [shownExpenses = expenses, setShownExpenses] = useState();
   const [date, setDate] = useState(
     new Date(new Date().getFullYear(), new Date().getMonth(), 1)
@@ -136,8 +155,6 @@ const ExpensesList = ({ expenses, accounts, categories }) => {
         ? expenses.filter((e) => e.expense_category == selectedCategory)
         : expenses;
 
-    console.log(categoryFilter);
-
     const dateFilter = expenses.filter((e) => new Date(e.date) >= selectedDate);
 
     const filteredExpenses = accountFilter
@@ -145,6 +162,13 @@ const ExpensesList = ({ expenses, accounts, categories }) => {
       .filter((e) => dateFilter.includes(e))
       .sort((a, b) => (a.date > b.date ? -1 : 1));
     setShownExpenses(filteredExpenses);
+
+    // Calculate total
+    const total = filteredExpenses.reduce(
+      (t, curr) => (t += parseFloat(curr.amount)),
+      0
+    );
+    setTotal(total);
   }
 
   return (
@@ -165,12 +189,11 @@ const ExpensesList = ({ expenses, accounts, categories }) => {
           <label>Account:</label>
           <select id="account" defaultValue={"-1"} onChange={filterExpenses}>
             <option value="-1">All</option>
-            {accounts &&
-              accounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
+            {accounts?.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
           </select>
         </div>
         <label>Amount</label>
