@@ -62,6 +62,26 @@ async function getAllUserIncomes() {
   }
 }
 
+async function getAllUserTransfers() {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.get(
+    `${BASE_URL}/transactions/alltransfers`,
+    config
+  );
+
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    alert("Error retrieving expenses.");
+  }
+}
+
 async function getAllUserAccounts() {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
@@ -118,12 +138,34 @@ async function addIncome(payload) {
   }
 }
 
+async function addTransfer(payload) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.post(
+    `${BASE_URL}/transactions/add`,
+    payload,
+    config
+  );
+  if (response.status === 201) {
+    return response.data;
+  } else {
+    alert("Error adding transfer.");
+  }
+}
+
 export default {
   getAllIncomeCategories,
   getAllExpenseCategories,
   getAllUserAccounts,
   getAllUserExpenses,
+  getAllUserTransfers,
   addExpense,
   addIncome,
+  addTransfer,
   getAllUserIncomes,
 };

@@ -38,9 +38,9 @@ def add_transaction(request):
             to_account = Account.objects.filter(pk=p["to_account_id"])
 
             from_account.update(
-                amount=from_account.first().amount - p["amount"]
+                amount=from_account.first().amount - float(p["amount"])
             )
-            to_account.update(amount=p["amount"] + to_account.first().amount)
+            to_account.update(amount=float(p["amount"]) + to_account.first().amount)
             p.pop('type') 
             Transfer(**p).save()
         elif p["type"] == 1:  # This is an expense
