@@ -72,6 +72,17 @@
         display: grid;
         grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
         grid-gap: 10px;
+
+        button {
+          justify-self: end;
+          background-color: red;
+          color: white;
+          width: fit-content;
+          padding: 0 15px 0 15px;
+          font-weight: bold;
+          border: 1px solid red;
+          border-radius: 5px;
+        }
       }
     }
   }

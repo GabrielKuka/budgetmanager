@@ -27,6 +27,22 @@ def create_account(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+@api_view(["DELETE"])
+def delete_account(request, id):
+    # Retrieve user token
+    token = request.headers["Authorization"]
+    user_id = Token.objects.get(key=token).user_id
+
+    try:
+        account = Account.objects.filter(pk=id).delete()
+        return Response(
+            {"message": "Account deleted."}, status=status.HTTP_200_OK
+        )
+    except:
+        return Response(
+            {"error": "Error deleting account."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 @api_view(["GET"])
 def get_all_accounts(request):

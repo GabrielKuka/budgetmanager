@@ -4,7 +4,7 @@ import transactionService from "../services/transactionService";
 import "./accounts.scss";
 
 const Accounts = () => {
-  const [accounts, setAccounts] = useState();
+  const [accounts, setAccounts] = useState([]);
 
   useEffect(() => {
     getAccounts();
@@ -14,10 +14,11 @@ const Accounts = () => {
     const accounts = await transactionService.getAllUserAccounts();
     setAccounts(accounts);
   }
+
   return (
     <div className={"accounts-wrapper"}>
-      <Sidebar refreshAccounts={getAccounts()} />
-      <AccountsList accounts={accounts} />
+      <Sidebar refreshAccounts={getAccounts} />
+      <AccountsList accounts={accounts} refreshAccounts={getAccounts} />
     </div>
   );
 };
@@ -42,9 +43,10 @@ const CreateAccount = ({ refreshAccounts }) => {
           type: "",
         }}
         onSubmit={async (values, { setSubmitting, resetForm }) => {
-          console.log(values);
           await transactionService.addAccount(values);
           await refreshAccounts();
+          setSubmitting(false);
+          resetForm();
         }}
       >
         {() => (
@@ -76,13 +78,7 @@ const CreateAccount = ({ refreshAccounts }) => {
   );
 };
 
-const AccountsList = ({ accounts }) => {
-  const [shownAccounts = accounts, setShownAccounts] = useState();
-
-  useEffect(filterAccounts, [accounts]);
-
-  function filterAccounts() {}
-
+const AccountsList = ({ accounts, refreshAccounts }) => {
   return (
     <div className={"accounts-wrapper__accounts-list"}>
       <div className={"header"}>
@@ -92,23 +88,34 @@ const AccountsList = ({ accounts }) => {
         <label>Type</label>
       </div>
       <div className={"accounts"}>
-        {shownAccounts?.length > 0 &&
-          shownAccounts.map((account) => (
-            <AccountItem key={account.id} account={account} />
+        {accounts?.length > 0 &&
+          accounts.map((account) => (
+            <AccountItem
+              key={account.id}
+              account={account}
+              refreshAccounts={refreshAccounts}
+            />
           ))}
       </div>
     </div>
   );
 };
 
-const AccountItem = ({ account }) => {
+const AccountItem = ({ account, refreshAccounts }) => {
   const accountTypes = ["Bank Account", "Investment Account", "Hard Cash"];
+
+  async function deleteAccount() {
+    await transactionService.deleteAccount(account.id);
+    await refreshAccounts();
+  }
+
   return (
     <div className="account-item">
       <label id="date">{new Date(account.created_on).toDateString()}</label>
       <label id="name">{account.name}</label>
       <label id="amount">{parseFloat(account.amount).toFixed(2)} €</label>
       <label id="type">{accountTypes[account.type]}</label>
+      <button onClick={deleteAccount}>X</button>
     </div>
   );
 };

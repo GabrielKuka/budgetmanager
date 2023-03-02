@@ -178,6 +178,25 @@ async function addAccount(payload) {
   }
 }
 
+async function deleteAccount(payload) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.delete(
+    `${BASE_URL}/accounts/delete/${payload}`,
+    config
+  );
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    alert("Error creating account.");
+  }
+}
+
 export default {
   getAllIncomeCategories,
   getAllExpenseCategories,
@@ -188,5 +207,6 @@ export default {
   addIncome,
   addTransfer,
   addAccount,
+  deleteAccount,
   getAllUserIncomes,
 };
