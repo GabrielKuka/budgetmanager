@@ -1,0 +1,78 @@
+@import "../mixins";
+
+.accounts-wrapper {
+  margin-top: 80px;
+  padding-left: 20px;
+
+  &__sidebar {
+    position: fixed;
+    width: 350px;
+    @include flex(column, flex-start, flex-start);
+    gap: 10px;
+
+    .add-account {
+      border: 1px solid #dadada;
+      box-shadow: 1px 1px 5px #dadada;
+      border-radius: 3px;
+      width: 270px;
+      padding: 30px;
+
+      .form {
+        @include flex(column, flex-start, flex-start);
+        gap: 10px;
+        input,
+        select {
+          width: 270px;
+        }
+        label {
+          font-weight: bold;
+        }
+      }
+    }
+  }
+
+  &__accounts-list {
+    left: 400px;
+    position: absolute;
+
+    width: 900px;
+    @include flex(column, flex-start, flex-start);
+    .header {
+      display: grid;
+      grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+      grid-gap: 10px;
+      width: 800px;
+      padding: 20px;
+      border-bottom: 1px solid black;
+      margin-bottom: 10px;
+    }
+    .accounts {
+      @include flex(column, flex-start, flex-start);
+      gap: 15px;
+      height: calc(100vh - 230px);
+      width: 100%;
+      overflow-x: hidden;
+      overflow-y: scroll;
+
+      /* hide scrollbar */
+      &::-webkit-scrollbar {
+        display: none;
+      }
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+      overflow: -moz-scrollbars-none; /* Firefox */
+
+      .account-item {
+        border: 1px solid #dadada;
+        box-shadow: 1px 1px 3px #dadada;
+        border-radius: 5px;
+        width: 800px;
+        padding: 20px;
+
+        display: grid;
+        grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+        grid-gap: 10px;
+      }
+    }
+  }
+}

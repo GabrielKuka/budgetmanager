@@ -158,6 +158,26 @@ async function addTransfer(payload) {
   }
 }
 
+async function addAccount(payload) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.post(
+    `${BASE_URL}/accounts/create`,
+    payload,
+    config
+  );
+  if (response.status === 201) {
+    return response.data;
+  } else {
+    alert("Error creating account.");
+  }
+}
+
 export default {
   getAllIncomeCategories,
   getAllExpenseCategories,
@@ -167,5 +187,6 @@ export default {
   addExpense,
   addIncome,
   addTransfer,
+  addAccount,
   getAllUserIncomes,
 };
