@@ -24,12 +24,32 @@ const Dashboard = () => {
   );
 };
 
-const Toolbar = ({ setPage }) => {
+const Toolbar = ({ page, setPage }) => {
+  const buttons = ["incomes", "expenses", "transfers"];
+
+  function handlePage(e) {
+    const result = e.target.innerText.toLowerCase();
+    setPage(result);
+    buttons.forEach((button) => {
+      if (result == button) {
+        document.getElementById(button).style.fontWeight = "bold";
+      } else {
+        document.getElementById(button).style.fontWeight = "normal";
+      }
+    });
+  }
+
   return (
     <div className={"dashboard-wrapper__toolbar"}>
-      <button onClick={() => setPage("incomes")}>Incomes</button>
-      <button onClick={() => setPage("expenses")}>Expenses</button>
-      <button onClick={() => setPage("transfers")}>Transfers</button>
+      <button id="incomes" onClick={(e) => handlePage(e)}>
+        Incomes
+      </button>
+      <button id="expenses" onClick={(e) => handlePage(e)}>
+        Expenses
+      </button>
+      <button id="transfers" onClick={(e) => handlePage(e)}>
+        Transfers
+      </button>
     </div>
   );
 };
