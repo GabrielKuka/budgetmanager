@@ -37,6 +37,8 @@
     width: 900px;
     @include flex(column, flex-start, flex-start);
     .header {
+      font-weight: bold;
+      text-transform: uppercase;
       display: grid;
       grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
       grid-gap: 10px;
