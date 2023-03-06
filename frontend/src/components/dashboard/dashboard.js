@@ -16,7 +16,7 @@ const Dashboard = () => {
 
   return (
     <div className={"dashboard-wrapper"}>
-      <Toolbar setPage={setPage} />
+      <Toolbar setPage={setPage} page={page} />
       {page === "expenses" && <Expenses />}
       {page === "incomes" && <Incomes />}
       {page === "transfers" && <Transfers />}
@@ -27,15 +27,17 @@ const Dashboard = () => {
 const Toolbar = ({ page, setPage }) => {
   const buttons = ["incomes", "expenses", "transfers"];
 
+  useEffect(() => {
+    document.getElementById(page).style.fontWeight = "bold";
+  }, []);
+
   function handlePage(e) {
-    const result = e.target.innerText.toLowerCase();
-    setPage(result);
+    const selected = e.target.innerText.toLowerCase();
+    setPage(selected);
+
     buttons.forEach((button) => {
-      if (result == button) {
-        document.getElementById(button).style.fontWeight = "bold";
-      } else {
-        document.getElementById(button).style.fontWeight = "normal";
-      }
+      document.getElementById(button).style.fontWeight =
+        selected == button ? "bold" : "normal";
     });
   }
 
