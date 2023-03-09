@@ -17,16 +17,22 @@ const Accounts = () => {
 
   return (
     <div className={"accounts-wrapper"}>
-      <Sidebar refreshAccounts={getAccounts} />
+      <Sidebar accounts={accounts} refreshAccounts={getAccounts} />
       <AccountsList accounts={accounts} refreshAccounts={getAccounts} />
     </div>
   );
 };
 
-const Sidebar = ({ refreshAccounts }) => {
+const Sidebar = ({ accounts, refreshAccounts }) => {
+  const total = parseFloat(
+    accounts.reduce((t, curr) => (t += parseFloat(curr.amount)), 0)
+  ).toFixed(2);
   return (
     <div className={"accounts-wrapper__sidebar"}>
       <CreateAccount refreshAccounts={refreshAccounts} />
+      <label>
+        Total: <b>{total} €</b>
+      </label>
     </div>
   );
 };
