@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useGlobalContext } from "../context/GlobalContext";
 import { useNavigate } from "react-router-dom";
 import "./navbar.scss";
@@ -23,11 +23,33 @@ const LoggedInNavbar = () => {
     global.logoutUser();
   };
 
+  const buttons = ["dashboard", "accounts", "profile"];
+
+  useEffect(() => {
+    document.getElementById("dashboard").style.fontWeight = "bold";
+  }, []);
+
+  function handlePage(e) {
+    const selected = e.target.innerText.toLowerCase();
+    navigate(selected);
+
+    buttons.forEach((button) => {
+      document.getElementById(button).style.fontWeight =
+        selected == button ? "bold" : "normal";
+    });
+  }
+
   return (
     <div className={"navbar-wrapper__loggedin"}>
-      <button onClick={() => navigate("/dashboard")}>Dashboard</button>
-      <button onClick={() => navigate("/accounts")}>Accounts</button>
-      <button onClick={() => navigate("/profile")}>Profile</button>
+      <button id="dashboard" onClick={(e) => handlePage(e)}>
+        Dashboard
+      </button>
+      <button id="accounts" onClick={(e) => handlePage(e)}>
+        Accounts
+      </button>
+      <button id="profile" onClick={(e) => handlePage(e)}>
+        Profile
+      </button>
       <button onClick={handleLogout}>Log out</button>
       <CurrencyConverter />
     </div>
