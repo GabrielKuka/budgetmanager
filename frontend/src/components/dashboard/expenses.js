@@ -4,13 +4,18 @@ import transactionService from "../../services/transactionService";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./expenses.scss";
+import { Bar, BarChart, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 
 const Expenses = () => {
   const [categories, setCategories] = useState([]);
   const [accounts, setAccounts] = useState([]);
-  const [expenses, setExpenses] = useState([]);
 
-  const [total, setTotal] = useState(0);
+  const [expenses, setExpenses] = useState([]);
+  const [shownExpenses, setShownExpenses] = useState([]);
+
+  const [date, setDate] = useState(
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  );
 
   useEffect(() => {
     getCategories();
@@ -38,15 +43,20 @@ const Expenses = () => {
       <Sidebar
         accounts={accounts}
         categories={categories}
+        expenses={expenses}
+        shownExpenses={shownExpenses}
         refreshExpenses={getExpenses}
-        total={total}
+        date={date}
       />
       {expenses?.length > 0 && (
         <ExpensesList
           expenses={expenses}
+          shownExpenses={shownExpenses}
+          setShownExpenses={setShownExpenses}
           accounts={accounts}
           categories={categories}
-          setTotal={setTotal}
+          date={date}
+          setDate={setDate}
         />
       )}
     </div>
@@ -54,6 +64,31 @@ const Expenses = () => {
 };
 
 const Sidebar = (props) => {
+  function getExpensesPerCategory() {
+    const data = [];
+
+    props.categories.forEach((c) => {
+      let result = props.shownExpenses
+        .filter((e) => e.expense_category == c.id)
+        .reduce((t, obj) => (t += parseFloat(obj.amount)), 0)
+        .toFixed(2);
+      data.push({
+        category: c.category_type,
+        amount: result,
+      });
+    });
+
+    return data;
+  }
+
+  function getTotal() {
+    const total = props.shownExpenses
+      .reduce((t, obj) => (t += parseFloat(obj.amount)), 0)
+      .toFixed(2);
+
+    return total;
+  }
+
   return (
     <div className={"expenses-wrapper__sidebar"}>
       <AddExpense
@@ -62,9 +97,29 @@ const Sidebar = (props) => {
         refreshExpenses={props.refreshExpenses}
       />
       <div className={"summary"}>
-        Total money spent: <b>{props.total.toFixed(2)}€</b>.
+        Total money spent: <b>{getTotal()}€</b> since{" "}
+        {props.date.toDateString()}.
       </div>
+      <Chart data={getExpensesPerCategory()} />
     </div>
+  );
+};
+
+const Chart = (props) => {
+  const yMaxValue = Math.max(...props.data.map((o) => o.amount));
+  return (
+    <BarChart
+      margin={{ left: 0, right: 0 }}
+      width={330}
+      height={250}
+      data={props.data}
+      barSize={20}
+    >
+      <XAxis dataKey="category" />
+      <YAxis type="number" tickSize={2} domain={[0, yMaxValue]} />
+      <Tooltip />
+      <Bar dataKey="amount" fill="#8884d8" />
+    </BarChart>
   );
 };
 
@@ -131,44 +186,34 @@ const AddExpense = ({ accounts, categories, refreshExpenses }) => {
   );
 };
 
-const ExpensesList = ({ expenses, accounts, categories, setTotal }) => {
-  const [shownExpenses = expenses, setShownExpenses] = useState();
-  const [date, setDate] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  );
-
-  useEffect(filterExpenses, [date, expenses]);
+const ExpensesList = (props) => {
   useEffect(filterExpenses, []);
+  useEffect(filterExpenses, [props.date]);
 
   function filterExpenses() {
     const selectedAccount = document.getElementById("account").value;
     const selectedCategory = document.getElementById("category").value;
-    const selectedDate = date;
+    const selectedDate = props.date;
 
     const accountFilter =
       selectedAccount >= 0
-        ? expenses.filter((e) => e.account == selectedAccount)
-        : expenses;
+        ? props.expenses.filter((e) => e.account == selectedAccount)
+        : props.expenses;
 
     const categoryFilter =
       selectedCategory >= 0
-        ? expenses.filter((e) => e.expense_category == selectedCategory)
-        : expenses;
+        ? props.expenses.filter((e) => e.expense_category == selectedCategory)
+        : props.expenses;
 
-    const dateFilter = expenses.filter((e) => new Date(e.date) >= selectedDate);
+    const dateFilter = props.expenses.filter(
+      (e) => new Date(e.date) >= selectedDate
+    );
 
     const filteredExpenses = accountFilter
       .filter((e) => categoryFilter.includes(e))
       .filter((e) => dateFilter.includes(e))
       .sort((a, b) => (a.date > b.date ? -1 : 1));
-    setShownExpenses(filteredExpenses);
-
-    // Calculate total
-    const total = filteredExpenses.reduce(
-      (t, curr) => (t += parseFloat(curr.amount)),
-      0
-    );
-    setTotal(total);
+    props.setShownExpenses(filteredExpenses);
   }
 
   return (
@@ -178,8 +223,8 @@ const ExpensesList = ({ expenses, accounts, categories, setTotal }) => {
           <label>Date:</label>
           <DatePicker
             className="datepicker"
-            selected={date}
-            onChange={(date) => setDate(date)}
+            selected={props.date}
+            onChange={(date) => props.setDate(date)}
             showMonthDropdown
             dateFormat={"yyyy-MM-dd"}
           />
@@ -189,7 +234,7 @@ const ExpensesList = ({ expenses, accounts, categories, setTotal }) => {
           <label>Account:</label>
           <select id="account" defaultValue={"-1"} onChange={filterExpenses}>
             <option value="-1">All</option>
-            {accounts?.map((a) => (
+            {props.accounts?.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
               </option>
@@ -201,8 +246,8 @@ const ExpensesList = ({ expenses, accounts, categories, setTotal }) => {
           <label>Category:</label>
           <select id="category" defaultValue="-1" onChange={filterExpenses}>
             <option value="-1">All</option>
-            {categories &&
-              categories.map((c) => (
+            {props.categories &&
+              props.categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.category_type}
                 </option>
@@ -211,13 +256,13 @@ const ExpensesList = ({ expenses, accounts, categories, setTotal }) => {
         </div>
       </div>
       <div className={"expenses"}>
-        {shownExpenses?.length > 0 &&
-          shownExpenses.map((expense) => (
+        {props.shownExpenses?.length > 0 &&
+          props.shownExpenses.map((expense) => (
             <ExpenseItem
               key={expense.id}
               expense={expense}
-              accounts={accounts}
-              categories={categories}
+              accounts={props.accounts}
+              categories={props.categories}
             />
           ))}
       </div>
