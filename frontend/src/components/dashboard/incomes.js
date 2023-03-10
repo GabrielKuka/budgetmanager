@@ -3,12 +3,18 @@ import transactionService from "../../services/transactionService";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Formik, Form, Field } from "formik";
+import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import "./incomes.scss";
 
 const Incomes = () => {
-  const [incomes, setIncomes] = useState([]);
   const [categories, setCategories] = useState([]);
   const [accounts, setAccounts] = useState([]);
+
+  const [incomes, setIncomes] = useState([]);
+  const [shownIncomes = incomes, setShownIncomes] = useState();
+  const [date, setDate] = useState(
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  );
 
   useEffect(() => {
     getAccounts();
@@ -35,27 +41,69 @@ const Incomes = () => {
         accounts={accounts}
         categories={categories}
         refreshIncomes={getIncomes}
+        shownIncomes={shownIncomes}
+        date={date}
       />
       {incomes?.length > 0 && (
         <IncomesList
           incomes={incomes}
+          shownIncomes={shownIncomes}
+          setShownIncomes={setShownIncomes}
           categories={categories}
           accounts={accounts}
+          date={date}
+          setDate={setDate}
         />
       )}
     </div>
   );
 };
 
-const Sidebar = ({ accounts, categories, refreshIncomes }) => {
+const Sidebar = (props) => {
+  function getIncomesPerCategory() {
+    const data = [];
+
+    props.categories.forEach((c) => {
+      let result = props.shownIncomes
+        .filter((e) => e.income_category == c.id)
+        .reduce((t, obj) => (t += parseFloat(obj.amount)), 0)
+        .toFixed(2);
+      data.push({
+        category: c.category_type,
+        amount: result,
+      });
+    });
+
+    return data;
+  }
+
   return (
     <div className={"incomes-wrapper__sidebar"}>
       <AddIncome
-        accounts={accounts}
-        categories={categories}
-        refreshIncomes={refreshIncomes}
+        accounts={props.accounts}
+        categories={props.categories}
+        refreshIncomes={props.refreshIncomes}
       />
+      <Chart data={getIncomesPerCategory()} />
     </div>
+  );
+};
+
+const Chart = (props) => {
+  const yMaxValue = Math.max(...props.data.map((o) => o.amount));
+  return (
+    <BarChart
+      margin={{ left: 0, right: 0 }}
+      width={330}
+      height={250}
+      data={props.data}
+      barSize={20}
+    >
+      <XAxis dataKey="category" />
+      <YAxis type="number" tickSize={2} domain={[0, yMaxValue]} />
+      <Tooltip />
+      <Bar dataKey="amount" fill="#8884d8" />
+    </BarChart>
   );
 };
 
@@ -123,37 +171,34 @@ const AddIncome = ({ accounts, categories, refreshIncomes }) => {
   );
 };
 
-const IncomesList = ({ accounts, categories, incomes }) => {
-  const [shownIncomes = incomes, setShownIncomes] = useState();
-  const [date, setDate] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  );
-
-  useEffect(filterIncomes, [date, incomes]);
+const IncomesList = (props) => {
+  useEffect(filterIncomes, [props.date]);
   useEffect(filterIncomes, []);
 
   function filterIncomes() {
     const selectedAccount = document.getElementById("account").value;
     const selectedCategory = document.getElementById("category").value;
-    const selectedDate = date;
+    const selectedDate = props.date;
 
     const accountFilter =
       selectedAccount >= 0
-        ? incomes.filter((e) => e.account == selectedAccount)
-        : incomes;
+        ? props.incomes.filter((e) => e.account == selectedAccount)
+        : props.incomes;
 
     const categoryFilter =
       selectedCategory >= 0
-        ? incomes.filter((e) => e.income_category == selectedCategory)
-        : incomes;
+        ? props.incomes.filter((e) => e.income_category == selectedCategory)
+        : props.incomes;
 
-    const dateFilter = incomes.filter((e) => new Date(e.date) >= selectedDate);
+    const dateFilter = props.incomes.filter(
+      (e) => new Date(e.date) >= selectedDate
+    );
 
     const filteredincomes = accountFilter
       .filter((e) => categoryFilter.includes(e))
       .filter((e) => dateFilter.includes(e))
       .sort((a, b) => (a.date > b.date ? -1 : 1));
-    setShownIncomes(filteredincomes);
+    props.setShownIncomes(filteredincomes);
   }
 
   return (
@@ -163,8 +208,8 @@ const IncomesList = ({ accounts, categories, incomes }) => {
           <label>Date:</label>
           <DatePicker
             className="datepicker"
-            selected={date}
-            onChange={(date) => setDate(date)}
+            selected={props.date}
+            onChange={(date) => props.setDate(date)}
             showMonthDropdown
             dateFormat={"yyyy-MM-dd"}
           />
@@ -174,7 +219,7 @@ const IncomesList = ({ accounts, categories, incomes }) => {
           <label>Account:</label>
           <select id="account" defaultValue={"-1"} onChange={filterIncomes}>
             <option value="-1">All</option>
-            {accounts?.map((a) => (
+            {props.accounts?.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
               </option>
@@ -186,8 +231,8 @@ const IncomesList = ({ accounts, categories, incomes }) => {
           <label>Category:</label>
           <select id="category" defaultValue="-1" onChange={filterIncomes}>
             <option value="-1">All</option>
-            {categories &&
-              categories.map((c) => (
+            {props.categories &&
+              props.categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.category_type}
                 </option>
@@ -196,13 +241,13 @@ const IncomesList = ({ accounts, categories, incomes }) => {
         </div>
       </div>
       <div className={"incomes"}>
-        {shownIncomes?.length > 0 &&
-          shownIncomes.map((income) => (
+        {props.shownIncomes?.length > 0 &&
+          props.shownIncomes.map((income) => (
             <IncomeItem
               key={income.id}
               income={income}
-              accounts={accounts}
-              categories={categories}
+              accounts={props.accounts}
+              categories={props.categories}
             />
           ))}
       </div>

@@ -4,7 +4,7 @@ import transactionService from "../../services/transactionService";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./expenses.scss";
-import { Bar, BarChart, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
+import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 
 const Expenses = () => {
   const [categories, setCategories] = useState([]);
