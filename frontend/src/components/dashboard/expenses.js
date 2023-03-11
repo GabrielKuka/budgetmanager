@@ -144,8 +144,10 @@ const AddExpense = ({ accounts, categories, refreshExpenses }) => {
       >
         {() => (
           <Form className={"form"}>
-            <label>Enter Expense</label>
-            <Field type="text" name="date" placeholder="Enter date" />
+            <label onClick={() => document.getElementById("date").focus()}>
+              Enter Expense
+            </label>
+            <Field type="text" id="date" name="date" placeholder="Enter date" />
             <Field as="select" name="account">
               <option value="" disabled hidden>
                 Select account
