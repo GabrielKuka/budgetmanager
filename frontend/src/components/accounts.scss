@@ -16,6 +16,17 @@
       border-radius: 3px;
       width: 270px;
       padding: 30px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+
+      label {
+        background-color: cadetblue;
+        color: white;
+        padding: 5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: padding-left 0.3s;
+      }
 
       .form {
         @include flex(column, flex-start, flex-start);
@@ -29,6 +40,13 @@
         }
       }
     }
+    .add-account:hover {
+      border-color: cadetblue;
+      box-shadow: 1px 1px 5px cadetblue;
+      label {
+        padding-left: 15px;
+      }
+    }
   }
 
   &__accounts-list {
@@ -38,13 +56,23 @@
     width: 900px;
     @include flex(column, flex-start, flex-start);
     .header {
+      text-transform: uppercase;
+      font-weight: bold;
       display: grid;
-      grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+      grid-template-columns: 0.7fr 1.5fr 1fr 1fr 0.7fr;
       grid-gap: 10px;
       width: 800px;
       padding: 20px;
       border-bottom: 1px solid black;
       margin-bottom: 10px;
+
+      label {
+        width: fit-content;
+      }
+      label:hover {
+        cursor: pointer;
+        @include title-decoration($height: 3px, $width: 100%, $bottom: -1px);
+      }
     }
     .accounts {
       @include flex(column, flex-start, flex-start);
@@ -63,25 +91,45 @@
       overflow: -moz-scrollbars-none; /* Firefox */
 
       .account-item {
+        cursor: pointer;
         border: 1px solid #dadada;
         box-shadow: 1px 1px 3px #dadada;
         border-radius: 5px;
         width: 800px;
         padding: 20px;
+        transition: border-color 0.1s ease-in-out;
 
         display: grid;
-        grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+        grid-template-columns: 0.7fr 1.5fr 1fr 1fr 0.7fr;
         grid-gap: 10px;
 
         button {
           justify-self: end;
-          background-color: red;
+          background-color: #ffcccb;
           color: white;
           width: fit-content;
+          height: 30px;
           padding: 0 15px 0 15px;
           font-weight: bold;
-          border: 1px solid red;
+          border: 1px solid #ffcccb;
           border-radius: 5px;
+          transition: background-color 0.2s ease-in-out, border 0.2s;
+        }
+        label {
+          cursor: pointer;
+        }
+        #date {
+          color: gray;
+        }
+      }
+      .account-item:hover {
+        border-color: cadetblue;
+        #amount {
+          font-weight: bold;
+        }
+        button {
+          background-color: rgb(208, 65, 65);
+          border: 1px solid rgb(208, 65, 65);
         }
       }
     }

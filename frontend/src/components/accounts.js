@@ -57,8 +57,15 @@ const CreateAccount = ({ refreshAccounts }) => {
       >
         {() => (
           <Form className={"form"}>
-            <label>Add an account</label>
-            <Field type="text" name="name" placeholder="Name of the account" />
+            <label onClick={() => document.getElementById("name").focus()}>
+              Add an account
+            </label>
+            <Field
+              type="text"
+              id="name"
+              name="name"
+              placeholder="Name of the account"
+            />
             <Field
               type="text"
               name="currency"
@@ -88,9 +95,9 @@ const AccountsList = ({ accounts, refreshAccounts }) => {
   return (
     <div className={"accounts-wrapper__accounts-list"}>
       <div className={"header"}>
-        <label>Date:</label>
+        <label>Date</label>
         <label>Name</label>
-        <label>Amount:</label>
+        <label>Amount</label>
         <label>Type</label>
       </div>
       <div className={"accounts"}>
@@ -117,7 +124,9 @@ const AccountItem = ({ account, refreshAccounts }) => {
 
   return (
     <div className="account-item">
-      <label id="date">{new Date(account.created_on).toDateString()}</label>
+      <label id="date">
+        {new Date(account.created_on).toISOString().slice(0, 10)}
+      </label>
       <label id="name">{account.name}</label>
       <label id="amount">{parseFloat(account.amount).toFixed(2)} €</label>
       <label id="type">{accountTypes[account.type]}</label>

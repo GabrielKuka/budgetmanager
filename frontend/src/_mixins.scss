@@ -10,3 +10,37 @@
   justify-content: $justify;
   align-items: $align;
 }
+
+// Title decoration
+@mixin title-decoration(
+  $color: cadetblue,
+  $width: 50%,
+  $height: 24px,
+  $bottom: 8px
+) {
+  position: relative;
+  transform-style: preserve-3d;
+
+  &::before {
+    content: "";
+    position: absolute;
+    background: $color;
+    left: 0;
+    bottom: $bottom;
+    width: $width;
+    height: $height;
+    transform-origin: left;
+    animation: animateTitle 1s 1;
+    animation-fill-mode: forwards;
+  }
+}
+
+@keyframes animateTitle {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
