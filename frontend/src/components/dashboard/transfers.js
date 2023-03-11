@@ -62,8 +62,10 @@ const AddTransfer = ({ accounts, refreshTransfers }) => {
       >
         {() => (
           <Form className={"form"}>
-            <label>Enter Tranfer</label>
-            <Field type="text" name="date" placeholder="Enter date" />
+            <label onClick={() => document.getElementById("date").focus()}>
+              Enter Tranfer
+            </label>
+            <Field type="text" id="date" name="date" placeholder="Enter date" />
             <Field as="select" name="from_account">
               <option value="" disabled hidden>
                 From account
