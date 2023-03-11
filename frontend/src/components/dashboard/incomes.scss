@@ -16,6 +16,7 @@
       border-radius: 3px;
       width: 270px;
       padding: 30px;
+      transition: box-shadow 0.3s, border 0.3s;
 
       .form {
         @include flex(column, flex-start, flex-start);
@@ -25,8 +26,22 @@
           width: 270px;
         }
         label {
+          text-transform: uppercase;
           font-weight: bold;
+          background-color: cadetblue;
+          color: white;
+          padding: 5px;
+          border-radius: 2px;
+          cursor: pointer;
+          transition: padding-left 0.3s;
         }
+      }
+    }
+    .enter-income:hover {
+      border: 1px solid cadetblue;
+      box-shadow: 1px 1px 5px cadetblue;
+      label {
+        padding-left: 15px;
       }
     }
   }
@@ -50,6 +65,16 @@
       .datepicker {
         width: 80px;
       }
+
+      label {
+        cursor: pointer;
+        width: fit-content;
+        height: fit-content;
+      }
+
+      label:hover {
+        @include title-decoration($height: 3px, $width: 100%, $bottom: -1px);
+      }
     }
     .incomes {
       @include flex(column, flex-start, flex-start);
@@ -68,15 +93,31 @@
       overflow: -moz-scrollbars-none; /* Firefox */
 
       .income-item {
+        cursor: pointer;
         border: 1px solid #dadada;
         box-shadow: 1px 1px 3px #dadada;
         border-radius: 5px;
         width: 800px;
         padding: 20px;
+        transition: border-color 0.3s;
 
         display: grid;
         grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
         grid-gap: 10px;
+
+        label {
+          cursor: pointer;
+        }
+
+        #date {
+          color: gray;
+        }
+      }
+      .income-item:hover {
+        border-color: cadetblue;
+        #amount {
+          font-weight: bold;
+        }
       }
     }
   }

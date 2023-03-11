@@ -129,8 +129,10 @@ const AddIncome = ({ accounts, categories, refreshIncomes }) => {
       >
         {() => (
           <Form className={"form"}>
-            <label>Enter Income</label>
-            <Field type="text" name="date" placeholder="Enter date" />
+            <label onClick={() => document.getElementById("date").focus()}>
+              Enter Income
+            </label>
+            <Field type="text" id="date" name="date" placeholder="Eter date" />
             <Field as="select" name="account">
               <option value="" disabled hidden>
                 Select account
