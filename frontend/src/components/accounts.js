@@ -18,7 +18,11 @@ const Accounts = () => {
   return (
     <div className={"accounts-wrapper"}>
       <Sidebar accounts={accounts} refreshAccounts={getAccounts} />
-      <AccountsList accounts={accounts} refreshAccounts={getAccounts} />
+      <AccountsList
+        accounts={accounts}
+        refreshAccounts={getAccounts}
+        setAccounts={setAccounts}
+      />
     </div>
   );
 };
@@ -91,13 +95,21 @@ const CreateAccount = ({ refreshAccounts }) => {
   );
 };
 
-const AccountsList = ({ accounts, refreshAccounts }) => {
+const AccountsList = ({ accounts, refreshAccounts, setAccounts }) => {
+  function sortByAmount() {
+    let sortedAccounts = accounts.sort((a, b) =>
+      a.amount <= b.amount ? 1 : -1
+    );
+    console.log(sortedAccounts);
+    setAccounts([...sortedAccounts]);
+  }
+
   return (
     <div className={"accounts-wrapper__accounts-list"}>
       <div className={"header"}>
         <label>Date</label>
         <label>Name</label>
-        <label>Amount</label>
+        <label onClick={sortByAmount}>Amount</label>
         <label>Type</label>
       </div>
       <div className={"accounts"}>

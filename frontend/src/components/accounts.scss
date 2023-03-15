@@ -77,7 +77,7 @@
     .accounts {
       @include flex(column, flex-start, flex-start);
       gap: 15px;
-      height: calc(100vh - 230px);
+      height: calc(100vh - 160px);
       width: 100%;
       overflow-x: hidden;
       overflow-y: scroll;
