@@ -83,7 +83,12 @@ const CurrencyConverter = () => {
       >
         {() => (
           <Form className={"currency-converter-form"}>
-            <Field type="text" name="amount" placeholder="Enter amount value" />
+            <Field
+              type="text"
+              name="amount"
+              id="amount_field"
+              placeholder="Enter amount value"
+            />
             <Field as="select" name="from_currency">
               {currencies &&
                 currencies.map((c) => (
