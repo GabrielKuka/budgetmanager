@@ -14,8 +14,12 @@
     color: black;
 
     .currency-converter-form {
+      margin-left: 50px;
       @include flex(row, flex-start, center);
       gap: 5px;
+      #amount_field {
+        width: 70px;
+      }
     }
   }
 }
