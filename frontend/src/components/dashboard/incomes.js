@@ -120,7 +120,6 @@ const AddIncome = ({ accounts, categories, refreshIncomes }) => {
         }}
         onSubmit={async (values, { resetForm, setSubmitting }) => {
           values["type"] = 0;
-          console.log(values);
           await transactionService.addIncome(values);
           await refreshIncomes();
           setSubmitting(false);
@@ -174,7 +173,7 @@ const AddIncome = ({ accounts, categories, refreshIncomes }) => {
 };
 
 const IncomesList = (props) => {
-  useEffect(filterIncomes, [props.date]);
+  useEffect(filterIncomes, [props.date, props.incomes]);
   useEffect(filterIncomes, []);
 
   function filterIncomes() {

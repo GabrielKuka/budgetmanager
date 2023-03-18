@@ -190,7 +190,7 @@ const AddExpense = ({ accounts, categories, refreshExpenses }) => {
 
 const ExpensesList = (props) => {
   useEffect(filterExpenses, []);
-  useEffect(filterExpenses, [props.date]);
+  useEffect(filterExpenses, [props.date, props.expenses]);
 
   function filterExpenses() {
     const selectedAccount = document.getElementById("account").value;
