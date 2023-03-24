@@ -100,7 +100,7 @@
         border-radius: 5px;
         width: 800px;
         padding: 20px;
-        transition: border-color 0.3s;
+        transition: border-color 0.3s, padding 0.3s ease-in-out, font-size 0.3s;
 
         display: grid;
         grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
@@ -119,6 +119,10 @@
         #amount {
           font-weight: bold;
         }
+      }
+      .expense-item:active {
+        padding: 25px 20px 25px 20px;
+        font-size: 17px;
       }
     }
   }

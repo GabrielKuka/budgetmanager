@@ -97,7 +97,8 @@
         border-radius: 5px;
         width: 800px;
         padding: 20px;
-        transition: border-color 0.1s ease-in-out;
+        transition: border-color 0.1s ease-in-out, padding 0.2s ease-in-out,
+          font-size 0.3s;
 
         display: grid;
         grid-template-columns: 0.7fr 1.5fr 1fr 1fr 0.7fr;
@@ -133,6 +134,10 @@
           border: 1px solid rgb(208, 65, 65);
           transform: translateX(-20px);
         }
+      }
+      .account-item:active {
+        padding: 25px 20px 25px 20px;
+        font-size: 17px;
       }
     }
   }
