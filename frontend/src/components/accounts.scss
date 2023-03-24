@@ -113,7 +113,8 @@
           font-weight: bold;
           border: 1px solid #ffcccb;
           border-radius: 5px;
-          transition: background-color 0.2s ease-in-out, border 0.2s;
+          transition: background-color 0.2s ease-in-out, border 0.2s,
+            transform 0.2s ease-in-out;
         }
         label {
           cursor: pointer;
@@ -130,6 +131,7 @@
         button {
           background-color: rgb(208, 65, 65);
           border: 1px solid rgb(208, 65, 65);
+          transform: translateX(-20px);
         }
       }
     }
