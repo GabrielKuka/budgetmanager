@@ -118,8 +118,13 @@ const AccountItem = ({ account, refreshAccounts }) => {
   const accountTypes = ["Bank Account", "Investment Account", "Hard Cash"];
 
   async function deleteAccount() {
-    await transactionService.deleteAccount(account.id);
-    await refreshAccounts();
+    const answer = window.confirm(
+      `Are you sure you want to remove ${account.name} account?`
+    );
+    if (answer) {
+      await transactionService.deleteAccount(account.id);
+      await refreshAccounts();
+    }
   }
 
   return (
