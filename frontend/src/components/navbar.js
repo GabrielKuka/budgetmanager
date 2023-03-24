@@ -27,7 +27,9 @@ const LoggedInNavbar = () => {
 
   useEffect(() => {
     let location = window.location.pathname.replace('/', '')
-    document.getElementById(location).style.fontWeight = "bold";
+    const activeButton = location ? document.getElementById(location) : document.getElementById("dashboard")
+    activeButton.style.fontWeight = "bold";
+    
   }, []);
 
   function handlePage(e) {

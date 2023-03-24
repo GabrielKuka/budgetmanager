@@ -7,8 +7,11 @@
   &__sidebar {
     position: fixed;
     width: 350px;
-    @include flex(column, center, flex-start);
+    height: 85%;
+    @include flex(column, flex-start, center);
     gap: 10px;
+    //overflow-x: hidden;
+    //overflow-y: scroll;
 
     .enter-expense {
       //position: fixed;

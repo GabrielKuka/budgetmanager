@@ -4,7 +4,7 @@ import transactionService from "../../services/transactionService";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./expenses.scss";
-import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, Tooltip, XAxis, YAxis, Pie, PieChart, Cell, Legend } from "recharts";
 
 const Expenses = () => {
   const [categories, setCategories] = useState([]);
@@ -88,6 +88,7 @@ const Sidebar = (props) => {
 
     return total;
   }
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   return (
     <div className={"expenses-wrapper__sidebar"}>
