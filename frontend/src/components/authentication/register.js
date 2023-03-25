@@ -34,15 +34,32 @@ const Register = () => {
         }}
       >
         {({ props }) => (
-          <Form>
-            <Field type="text" name="name" placeholder="Full name" />
-            <br />
-            <Field type="email" name="email" placeholder="Email" />
-            <br />
-            <Field type="text" name="phone" placeholder="Phone number" />
-            <br />
-            <Field type="password" name="password" placeholder="Password" />
-            <br />
+          <Form className={"register-wrapper__form"}>
+            <label>Register</label>
+            <Field
+              type="text"
+              name="name"
+              className={"field_name"}
+              placeholder="Full name"
+            />
+            <Field
+              type="email"
+              name="email"
+              className={"field_email"}
+              placeholder="Email"
+            />
+            <Field
+              type="text"
+              name="phone"
+              className={"field_phone"}
+              placeholder="Phone number"
+            />
+            <Field
+              type="password"
+              name="password"
+              className={"field_password"}
+              placeholder="Password"
+            />
             <button type="submit">Register</button>
             <Link to="/login">Log in</Link>
           </Form>

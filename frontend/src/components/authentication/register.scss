@@ -1,3 +1,56 @@
+@import "../../mixins";
+
 .register-wrapper {
   padding-top: 20px;
+
+  &__form {
+    @include flex(column, center, flex-start);
+    gap: 15px;
+    margin-top: 15%;
+    margin-left: 42%;
+    border: 1px solid #dadada;
+    box-shadow: 2px 2px 7px #dadada;
+    width: fit-content;
+    border-radius: 3px;
+    padding: 20px;
+    transition: box-shadow 0.3s, border 0.3s;
+
+    .field_name,
+    .field_email,
+    .field_password,
+    .field_phone {
+      width: 250px;
+      height: 25px;
+      transition: width 0.3s ease-in-out, height 0.3s ease-in-out,
+        font-size 0.3s ease-in-out;
+    }
+
+    .field_name:focus,
+    .field_email:focus,
+    .field_password:focus,
+    .field_phone:focus {
+      width: 270px;
+      height: 30px;
+      font-size: 17px;
+    }
+
+    label {
+      text-transform: uppercase;
+      font-weight: bold;
+      background-color: cadetblue;
+      color: white;
+      padding: 5px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: padding-left 0.3s;
+    }
+  }
+
+  &__form:hover {
+    border: 1px solid cadetblue;
+    box-shadow: 1px 1px 10px cadetblue;
+    label {
+      padding-left: 15px;
+    }
+  }
 }
