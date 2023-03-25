@@ -7,16 +7,16 @@
   &__sidebar {
     position: fixed;
     width: 350px;
-    height: 85%;
-    @include flex(column, flex-start, center);
-    gap: 10px;
-    //overflow-x: hidden;
-    //overflow-y: scroll;
+    border: 1px solid #dadada;
+    box-shadow: 1px 1px 2px #dadada;
+    border-radius: 3px;
+    padding: 20px 20px 20px 20px;
+    @include flex(column, center, center);
+    gap: 20px;
 
     .enter-expense {
-      //position: fixed;
       border: 1px solid #dadada;
-      box-shadow: 1px 1px 5px #dadada;
+      box-shadow: 1px 1px 10px #dadada;
       border-radius: 3px;
       width: 270px;
       padding: 30px;
@@ -41,6 +41,7 @@
         }
       }
     }
+
     .enter-expense:hover {
       border: 1px solid cadetblue;
       box-shadow: 1px 1px 5px cadetblue;
@@ -48,13 +49,24 @@
         padding-left: 15px;
       }
     }
+
+    .bar-chart {
+      border: 1px solid #dadada;
+      box-shadow: 1px 1px 10px #dadada;
+      border-radius: 3px;
+      padding-top: 20px;
+      padding-bottom: 20px;
+    }
   }
 
   &__expenses-list {
     position: absolute;
-    left: 400px;
+    border: 1px solid #dadada;
+    box-shadow: 1px 1px 2px #dadada;
+    border-radius: 3px;
+    left: 450px;
     width: 900px;
-    @include flex(column, flex-start, flex-start);
+    @include flex(column, flex-start, center);
     .header {
       font-weight: bold;
       text-transform: uppercase;
@@ -81,10 +93,11 @@
       }
     }
     .expenses {
-      @include flex(column, flex-start, flex-start);
+      @include flex(column, flex-start, center);
       gap: 15px;
-      height: calc(100vh - 230px);
+      height: calc(100vh - 245px);
       width: 100%;
+      padding-bottom: 10px;
       overflow-x: hidden;
       overflow-y: scroll;
 

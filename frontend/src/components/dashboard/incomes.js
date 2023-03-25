@@ -93,6 +93,7 @@ const Chart = (props) => {
   const yMaxValue = Math.max(...props.data.map((o) => o.amount));
   return (
     <BarChart
+      className={"bar-chart"}
       margin={{ left: 0, right: 0 }}
       width={330}
       height={250}

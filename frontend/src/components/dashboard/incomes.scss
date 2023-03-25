@@ -7,12 +7,16 @@
   &__sidebar {
     position: fixed;
     width: 350px;
-    @include flex(column, center, flex-start);
+    border: 1px solid #dadada;
+    box-shadow: 1px 1px 2px #dadada;
+    border-radius: 3px;
+    padding: 20px 20px 20px 20px;
+    @include flex(column, center, center);
     gap: 10px;
 
     .enter-income {
       border: 1px solid #dadada;
-      box-shadow: 1px 1px 5px #dadada;
+      box-shadow: 1px 1px 10px #dadada;
       border-radius: 3px;
       width: 270px;
       padding: 30px;
@@ -44,13 +48,23 @@
         padding-left: 15px;
       }
     }
+    .bar-chart {
+      border: 1px solid #dadada;
+      box-shadow: 1px 1px 10px #dadada;
+      border-radius: 3px;
+      padding-top: 20px;
+      padding-bottom: 20px;
+    }
   }
 
   &__incomes-list {
     position: absolute;
-    left: 400px;
+    border: 1px solid #dadada;
+    box-shadow: 1px 1px 2px #dadada;
+    border-radius: 3px;
+    left: 450px;
     width: 900px;
-    @include flex(column, flex-start, flex-start);
+    @include flex(column, flex-start, center);
     .header {
       font-weight: bold;
       text-transform: uppercase;
@@ -77,12 +91,13 @@
       }
     }
     .incomes {
-      @include flex(column, flex-start, flex-start);
+      @include flex(column, flex-start, center);
       gap: 15px;
-      height: calc(100vh - 230px);
+      height: calc(100vh - 250px);
       width: 100%;
       overflow-x: hidden;
       overflow-y: scroll;
+      padding-bottom: 10px;
 
       /* hide scrollbar */
       &::-webkit-scrollbar {
