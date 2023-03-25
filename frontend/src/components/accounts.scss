@@ -7,12 +7,16 @@
   &__sidebar {
     position: fixed;
     width: 350px;
-    @include flex(column, flex-start, flex-start);
+    border: 1px solid #dadada;
+    box-shadow: 1px 1px 2px #dadada;
+    border-radius: 3px;
+    padding: 20px 20px 20px 20px;
+    @include flex(column, center, center);
     gap: 10px;
 
     .add-account {
       border: 1px solid #dadada;
-      box-shadow: 1px 1px 5px #dadada;
+      box-shadow: 1px 1px 10px #dadada;
       border-radius: 3px;
       width: 270px;
       padding: 30px;
@@ -50,11 +54,14 @@
   }
 
   &__accounts-list {
-    left: 400px;
+    left: 450px;
     position: absolute;
+    border: 1px solid #dadada;
+    box-shadow: 1px 1px 2px #dadada;
+    border-radius: 3px;
 
     width: 900px;
-    @include flex(column, flex-start, flex-start);
+    @include flex(column, flex-start, center);
     .header {
       text-transform: uppercase;
       font-weight: bold;
@@ -75,7 +82,7 @@
       }
     }
     .accounts {
-      @include flex(column, flex-start, flex-start);
+      @include flex(column, flex-start, center);
       gap: 15px;
       height: calc(100vh - 230px);
       width: 100%;
