@@ -241,30 +241,36 @@ const ExpensesList = (props) => {
             <div className={"header"}>
                 <div>
                     <label>Date:</label>
-                    <DatePicker
-                        className='datepicker'
-                        selected={props.dateRange.from}
-                        onChange={(date) =>
-                            props.setDateRange((prev) => ({
-                                ...prev,
-                                from: date,
-                            }))
-                        }
-                        showMonthDropdown
-                        dateFormat={"yyyy-MM-dd"}
-                    />
-                    <DatePicker
-                        className='datepicker'
-                        selected={props.dateRange.to}
-                        onChange={(date) =>
-                            props.setDateRange((prev) => ({
-                                ...prev,
-                                to: date,
-                            }))
-                        }
-                        showMonthDropdown
-                        dateFormat={"yyyy-MM-dd"}
-                    />
+                    <div className={"fromDatePicker"}>
+                        <span className={"tooltip"}>From: </span>
+                        <DatePicker
+                            className='datepicker'
+                            selected={props.dateRange.from}
+                            onChange={(date) =>
+                                props.setDateRange((prev) => ({
+                                    ...prev,
+                                    from: date,
+                                }))
+                            }
+                            showMonthDropdown
+                            dateFormat={"yyyy-MM-dd"}
+                        />
+                    </div>
+                    <div className={"toDatePicker"}>
+                        <span className={"tooltip"}>To:</span>
+                        <DatePicker
+                            className='datepicker'
+                            selected={props.dateRange.to}
+                            onChange={(date) =>
+                                props.setDateRange((prev) => ({
+                                    ...prev,
+                                    to: date,
+                                }))
+                            }
+                            showMonthDropdown
+                            dateFormat={"yyyy-MM-dd"}
+                        />
+                    </div>
                 </div>
                 <label>Description</label>
                 <div>
