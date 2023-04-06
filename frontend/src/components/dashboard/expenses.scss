@@ -1,145 +1,152 @@
 @import "../../mixins";
 
 .expenses-wrapper {
-  position: relative;
-  margin-top: 50px;
+    position: relative;
+    margin-top: 50px;
 
-  &__sidebar {
-    position: fixed;
-    width: 350px;
-    border: 1px solid #dadada;
-    box-shadow: 1px 1px 2px #dadada;
-    border-radius: 3px;
-    padding: 20px 20px 20px 20px;
-    @include flex(column, center, center);
-    gap: 20px;
-
-    .enter-expense {
-      border: 1px solid #dadada;
-      box-shadow: 1px 1px 10px #dadada;
-      border-radius: 3px;
-      width: 270px;
-      padding: 30px;
-      transition: box-shadow 0.3s, border 0.3s;
-
-      .form {
-        @include flex(column, flex-start, flex-start);
-        gap: 10px;
-        input,
-        select {
-          width: 270px;
-        }
-        label {
-          text-transform: uppercase;
-          font-weight: bold;
-          background-color: cadetblue;
-          color: white;
-          padding: 5px;
-          border-radius: 2px;
-          cursor: pointer;
-          transition: padding-left 0.3s;
-        }
-      }
-    }
-
-    .enter-expense:hover {
-      border: 1px solid cadetblue;
-      box-shadow: 1px 1px 5px cadetblue;
-      label {
-        padding-left: 15px;
-      }
-    }
-
-    .bar-chart {
-      border: 1px solid #dadada;
-      box-shadow: 1px 1px 10px #dadada;
-      border-radius: 3px;
-      padding-top: 20px;
-      padding-bottom: 20px;
-    }
-  }
-
-  &__expenses-list {
-    position: absolute;
-    border: 1px solid #dadada;
-    box-shadow: 1px 1px 2px #dadada;
-    border-radius: 3px;
-    left: 450px;
-    width: 900px;
-    @include flex(column, flex-start, center);
-    .header {
-      font-weight: bold;
-      text-transform: uppercase;
-      display: grid;
-      grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
-      grid-gap: 10px;
-      width: 800px;
-      padding: 20px;
-      border-bottom: 1px solid black;
-      margin-bottom: 10px;
-
-      label {
-        cursor: pointer;
-        width: fit-content;
-        height: fit-content;
-      }
-
-      label:hover {
-        @include title-decoration($height: 3px, $width: 100%, $bottom: -1px);
-      }
-
-      .datepicker {
-        width: 80px;
-      }
-    }
-    .expenses {
-      @include flex(column, flex-start, center);
-      gap: 15px;
-      height: calc(100vh - 245px);
-      width: 100%;
-      padding-bottom: 10px;
-      overflow-x: hidden;
-      overflow-y: scroll;
-
-      /* hide scrollbar */
-      &::-webkit-scrollbar {
-        display: none;
-      }
-      -ms-overflow-style: none; /* IE and Edge */
-      scrollbar-width: none; /* Firefox */
-      overflow: -moz-scrollbars-none; /* Firefox */
-
-      .expense-item {
-        cursor: pointer;
+    &__sidebar {
+        position: fixed;
+        width: 350px;
         border: 1px solid #dadada;
-        box-shadow: 1px 1px 3px #dadada;
-        border-radius: 5px;
-        width: 800px;
-        padding: 20px;
-        transition: border-color 0.3s, padding 0.3s ease-in-out, font-size 0.3s;
+        box-shadow: 1px 1px 2px #dadada;
+        border-radius: 3px;
+        padding: 20px 20px 20px 20px;
+        @include flex(column, center, center);
+        gap: 20px;
 
-        display: grid;
-        grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
-        grid-gap: 10px;
+        .enter-expense {
+            border: 1px solid #dadada;
+            box-shadow: 1px 1px 10px #dadada;
+            border-radius: 3px;
+            width: 270px;
+            padding: 30px;
+            transition: box-shadow 0.3s, border 0.3s;
 
-        label {
-          cursor: pointer;
+            .form {
+                @include flex(column, flex-start, flex-start);
+                gap: 10px;
+                input,
+                select {
+                    width: 270px;
+                }
+                label {
+                    text-transform: uppercase;
+                    font-weight: bold;
+                    background-color: cadetblue;
+                    color: white;
+                    padding: 5px;
+                    border-radius: 2px;
+                    cursor: pointer;
+                    transition: padding-left 0.3s;
+                }
+            }
         }
 
-        #date {
-          color: gray;
+        .enter-expense:hover {
+            border: 1px solid cadetblue;
+            box-shadow: 1px 1px 5px cadetblue;
+            label {
+                padding-left: 15px;
+            }
         }
-      }
-      .expense-item:hover {
-        border-color: cadetblue;
-        #amount {
-          font-weight: bold;
+
+        .bar-chart {
+            border: 1px solid #dadada;
+            box-shadow: 1px 1px 10px #dadada;
+            border-radius: 3px;
+            padding-top: 20px;
+            padding-bottom: 20px;
         }
-      }
-      .expense-item:active {
-        padding: 25px 20px 25px 20px;
-        font-size: 17px;
-      }
     }
-  }
+
+    &__expenses-list {
+        position: absolute;
+        border: 1px solid #dadada;
+        box-shadow: 1px 1px 2px #dadada;
+        border-radius: 3px;
+        left: 450px;
+        width: 900px;
+        @include flex(column, flex-start, center);
+        .header {
+            font-weight: bold;
+            text-transform: uppercase;
+            display: grid;
+            grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+            grid-gap: 10px;
+            width: 800px;
+            padding: 20px;
+            border-bottom: 1px solid black;
+            margin-bottom: 10px;
+
+            label {
+                cursor: pointer;
+                width: fit-content;
+                height: fit-content;
+            }
+
+            label:hover {
+                @include title-decoration(
+                    $height: 3px,
+                    $width: 100%,
+                    $bottom: -1px
+                );
+            }
+
+            .datepicker {
+                width: 70px;
+                height: 13px;
+                cursor: pointer;
+            }
+        }
+        .expenses {
+            @include flex(column, flex-start, center);
+            gap: 15px;
+            height: calc(100vh - 245px);
+            width: 100%;
+            padding-bottom: 10px;
+            overflow-x: hidden;
+            overflow-y: scroll;
+
+            /* hide scrollbar */
+            &::-webkit-scrollbar {
+                display: none;
+            }
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+            overflow: -moz-scrollbars-none; /* Firefox */
+
+            .expense-item {
+                cursor: pointer;
+                border: 1px solid #dadada;
+                box-shadow: 1px 1px 3px #dadada;
+                border-radius: 5px;
+                width: 800px;
+                padding: 20px;
+                transition: border-color 0.3s, padding 0.3s ease-in-out,
+                    font-size 0.3s;
+
+                display: grid;
+                grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+                grid-gap: 10px;
+
+                label {
+                    cursor: pointer;
+                }
+
+                #date {
+                    color: gray;
+                }
+            }
+            .expense-item:hover {
+                border-color: cadetblue;
+                #amount {
+                    font-weight: bold;
+                }
+            }
+            .expense-item:active {
+                padding: 25px 20px 25px 20px;
+                font-size: 17px;
+            }
+        }
+    }
 }
