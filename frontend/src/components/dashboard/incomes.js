@@ -43,6 +43,7 @@ const Incomes = () => {
                 accounts={accounts}
                 categories={categories}
                 refreshIncomes={getIncomes}
+                refreshAccounts={getAccounts}
                 shownIncomes={shownIncomes}
                 dateRange={dateRange}
             />
@@ -85,6 +86,7 @@ const Sidebar = (props) => {
                 accounts={props.accounts}
                 categories={props.categories}
                 refreshIncomes={props.refreshIncomes}
+                refreshAccounts={props.refreshAccounts}
             />
             <Chart data={getIncomesPerCategory()} />
         </div>
@@ -110,7 +112,12 @@ const Chart = (props) => {
     );
 };
 
-const AddIncome = ({ accounts, categories, refreshIncomes }) => {
+const AddIncome = ({
+    accounts,
+    categories,
+    refreshIncomes,
+    refreshAccounts,
+}) => {
     return (
         <div className={"enter-income"}>
             <Formik
@@ -125,6 +132,7 @@ const AddIncome = ({ accounts, categories, refreshIncomes }) => {
                     values["type"] = 0;
                     await transactionService.addIncome(values);
                     await refreshIncomes();
+                    await refreshAccounts();
                     setSubmitting(false);
                     resetForm();
                 }}

@@ -43,6 +43,7 @@ const Expenses = () => {
         <div className={"expenses-wrapper"}>
             <Sidebar
                 accounts={accounts}
+                refreshAccounts={getAccounts}
                 categories={categories}
                 expenses={expenses}
                 shownExpenses={shownExpenses}
@@ -97,6 +98,7 @@ const Sidebar = (props) => {
                 accounts={props.accounts}
                 categories={props.categories}
                 refreshExpenses={props.refreshExpenses}
+                refreshAccounts={props.refreshAccounts}
             />
             <div className={"summary"}>
                 Total money spent: <b>{getTotal()}€</b> from{" "}
@@ -127,7 +129,12 @@ const Chart = (props) => {
     );
 };
 
-const AddExpense = ({ accounts, categories, refreshExpenses }) => {
+const AddExpense = ({
+    accounts,
+    categories,
+    refreshExpenses,
+    refreshAccounts,
+}) => {
     return (
         <div className={"enter-expense"}>
             <Formik
@@ -142,6 +149,7 @@ const AddExpense = ({ accounts, categories, refreshExpenses }) => {
                     values["type"] = 1;
                     await transactionService.addExpense(values);
                     await refreshExpenses();
+                    await refreshAccounts();
                     setSubmitting(false);
                     resetForm();
                 }}

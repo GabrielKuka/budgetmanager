@@ -24,7 +24,11 @@ const Transfers = () => {
 
     return (
         <div className={"transfers-wrapper"}>
-            <Sidebar accounts={accounts} refreshTransfers={getTransfers} />
+            <Sidebar
+                accounts={accounts}
+                refreshTransfers={getTransfers}
+                refreshAccounts={getAccounts}
+            />
             {transfers?.length > 0 && (
                 <TransfersList transfers={transfers} accounts={accounts} />
             )}
@@ -32,18 +36,19 @@ const Transfers = () => {
     );
 };
 
-const Sidebar = ({ accounts, refreshTransfers }) => {
+const Sidebar = ({ accounts, refreshTransfers, refreshAccounts }) => {
     return (
         <div className={"transfers-wrapper__sidebar"}>
             <AddTransfer
                 accounts={accounts}
                 refreshTransfers={refreshTransfers}
+                refreshAccounts={refreshAccounts}
             />
         </div>
     );
 };
 
-const AddTransfer = ({ accounts, refreshTransfers }) => {
+const AddTransfer = ({ accounts, refreshTransfers, refreshAccounts }) => {
     return (
         <div className={"enter-transfer"}>
             <Formik
@@ -59,6 +64,7 @@ const AddTransfer = ({ accounts, refreshTransfers }) => {
                     values["type"] = 2;
                     await transactionService.addTransfer(values);
                     await refreshTransfers();
+                    await refreshAccounts();
                     resetForm();
                     setSubmitting(false);
                 }}
