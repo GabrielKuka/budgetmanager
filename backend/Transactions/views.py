@@ -26,6 +26,8 @@ def add_transaction(request):
     p = request.data
     p["user_id"] = user_id
 
+    value = round(float(p["amount"]), 2)
+
     try:
         # If it's a transfer
         if p["type"] == 2:
@@ -38,9 +40,9 @@ def add_transaction(request):
             to_account = Account.objects.filter(pk=p["to_account_id"])
 
             from_account.update(
-                amount=from_account.first().amount - float(p["amount"])
+                amount=from_account.first().amount - value 
             )
-            to_account.update(amount=float(p["amount"]) + to_account.first().amount)
+            to_account.update(amount=round(to_account.first().amount, 2) + value)
             p.pop('type') 
             Transfer(**p).save()
         elif p["type"] == 1:  # This is an expense
@@ -51,7 +53,7 @@ def add_transaction(request):
             # Update account balance
             selected_account = Account.objects.filter(pk=p["account_id"])
             selected_account.update(
-                amount=selected_account.first().amount - float(p["amount"])
+                amount=round(selected_account.first().amount, 2) - value 
             )
             p.pop('type') 
             Expense(**p).save()
@@ -62,7 +64,7 @@ def add_transaction(request):
 
             selected_account = Account.objects.filter(pk=p["account_id"])
             selected_account.update(
-                amount=float(p["amount"]) + selected_account.first().amount
+                amount=round(selected_account.first().amount, 2) + value
             )
             p.pop('type') 
             Income(**p).save()
