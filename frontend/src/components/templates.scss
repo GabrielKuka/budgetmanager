@@ -1,0 +1,15 @@
+@import "../mixins";
+
+.add-template-wrapper {
+    margin-top: 80px;
+    margin-left: 20px;
+    padding: 10px;
+    width: fit-content;
+    border: 1px solid #dadada;
+    box-shadow: 1px 1px 2px #dadada;
+    border-radius: 3px;
+    .form {
+        @include flex(column, center, flex-start);
+        gap: 10px;
+    }
+}
