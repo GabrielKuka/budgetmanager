@@ -8,10 +8,16 @@ from .serializers import (
     IncomeCategorySerializer,
     ExpenseSerializer,
     IncomeSerializer,
-    TransferSerializer
+    TransferSerializer,
 )
 
-from .models import ExpenseCategory, IncomeCategory, Expense, Transfer, Income
+from .models import (
+    ExpenseCategory,
+    IncomeCategory,
+    Expense,
+    Transfer,
+    Income,
+)
 from Users.models import User
 from Accounts.models import Account
 
@@ -22,7 +28,7 @@ def add_transaction(request):
     # Retrieve Token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
-    
+
     p = request.data
     p["user_id"] = user_id
 
@@ -39,11 +45,11 @@ def add_transaction(request):
             from_account = Account.objects.filter(pk=p["from_account_id"])
             to_account = Account.objects.filter(pk=p["to_account_id"])
 
-            from_account.update(
-                amount=from_account.first().amount - value 
+            from_account.update(amount=from_account.first().amount - value)
+            to_account.update(
+                amount=round(to_account.first().amount, 2) + value
             )
-            to_account.update(amount=round(to_account.first().amount, 2) + value)
-            p.pop('type') 
+            p.pop("type")
             Transfer(**p).save()
         elif p["type"] == 1:  # This is an expense
 
@@ -53,9 +59,9 @@ def add_transaction(request):
             # Update account balance
             selected_account = Account.objects.filter(pk=p["account_id"])
             selected_account.update(
-                amount=round(selected_account.first().amount, 2) - value 
+                amount=round(selected_account.first().amount, 2) - value
             )
-            p.pop('type') 
+            p.pop("type")
             Expense(**p).save()
         elif p["type"] == 0:  # This is an income
 
@@ -66,7 +72,7 @@ def add_transaction(request):
             selected_account.update(
                 amount=round(selected_account.first().amount, 2) + value
             )
-            p.pop('type') 
+            p.pop("type")
             Income(**p).save()
 
         return Response(
@@ -88,6 +94,7 @@ def get_all_transactions(request):
     user_id = Token.objects.get(key=token).user_id
 
     pass
+
 
 @api_view(["GET"])
 def get_income_categories(request):
@@ -118,6 +125,7 @@ def get_all_expenses(request):
 
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 @api_view(["GET"])
 def get_all_incomes(request):
 
@@ -130,6 +138,7 @@ def get_all_incomes(request):
     serializer = IncomeSerializer(results, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 @api_view(["GET"])
 def get_all_transfers(request):
