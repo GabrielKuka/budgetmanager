@@ -5,8 +5,10 @@ import "react-datepicker/dist/react-datepicker.css";
 import { Formik, Form, Field } from "formik";
 import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import "./incomes.scss";
+import NoDataCard from "../core/nodata";
 
 const Incomes = () => {
+    const [isLoading, setIsLoading] = useState(true);
     const [categories, setCategories] = useState([]);
     const [accounts, setAccounts] = useState([]);
 
@@ -33,7 +35,9 @@ const Incomes = () => {
         setCategories(categories);
     }
     async function getIncomes() {
-        const incomes = await transactionService.getAllUserIncomes();
+        const incomes = await transactionService
+            .getAllUserIncomes()
+            .finally(() => setIsLoading(false));
         setIncomes(incomes);
     }
 
@@ -47,16 +51,26 @@ const Incomes = () => {
                 shownIncomes={shownIncomes}
                 dateRange={dateRange}
             />
-            {incomes?.length > 0 && (
-                <IncomesList
-                    incomes={incomes}
-                    shownIncomes={shownIncomes}
-                    setShownIncomes={setShownIncomes}
-                    categories={categories}
-                    accounts={accounts}
-                    dateRange={dateRange}
-                    setDateRange={setDateRange}
-                />
+            {!isLoading && (
+                <>
+                    {!incomes.length ? (
+                        <NoDataCard
+                            header={"No incomes found."}
+                            label={"Add an income."}
+                            focusOn={"date"}
+                        />
+                    ) : (
+                        <IncomesList
+                            incomes={incomes}
+                            shownIncomes={shownIncomes}
+                            setShownIncomes={setShownIncomes}
+                            categories={categories}
+                            accounts={accounts}
+                            dateRange={dateRange}
+                            setDateRange={setDateRange}
+                        />
+                    )}
+                </>
             )}
         </div>
     );

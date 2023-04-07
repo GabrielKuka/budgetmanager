@@ -5,8 +5,10 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./expenses.scss";
 import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
+import NoDataCard from "../core/nodata";
 
 const Expenses = () => {
+    const [isLoading, setIsLoading] = useState(true);
     const [categories, setCategories] = useState([]);
     const [accounts, setAccounts] = useState([]);
 
@@ -35,7 +37,9 @@ const Expenses = () => {
     }
 
     async function getExpenses() {
-        const expenses = await transactionService.getAllUserExpenses();
+        const expenses = await transactionService
+            .getAllUserExpenses()
+            .finally(() => setIsLoading(false));
         setExpenses(expenses);
     }
 
@@ -50,16 +54,26 @@ const Expenses = () => {
                 refreshExpenses={getExpenses}
                 dateRange={dateRange}
             />
-            {expenses?.length > 0 && (
-                <ExpensesList
-                    expenses={expenses}
-                    shownExpenses={shownExpenses}
-                    setShownExpenses={setShownExpenses}
-                    accounts={accounts}
-                    categories={categories}
-                    dateRange={dateRange}
-                    setDateRange={setDateRange}
-                />
+            {!isLoading && (
+                <>
+                    {!expenses.length ? (
+                        <NoDataCard
+                            header={"No expenses found."}
+                            label={"Add an expense"}
+                            focusOn={"date"}
+                        />
+                    ) : (
+                        <ExpensesList
+                            expenses={expenses}
+                            shownExpenses={shownExpenses}
+                            setShownExpenses={setShownExpenses}
+                            accounts={accounts}
+                            categories={categories}
+                            dateRange={dateRange}
+                            setDateRange={setDateRange}
+                        />
+                    )}
+                </>
             )}
         </div>
     );
