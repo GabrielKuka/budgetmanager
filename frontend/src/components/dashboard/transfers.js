@@ -3,8 +3,10 @@ import { Formik, Form, Field } from "formik";
 import transactionService from "../../services/transactionService";
 import DatePicker from "react-datepicker";
 import "./transfers.scss";
+import NoDataCard from "../core/nodata";
 
 const Transfers = () => {
+    const [isLoading, setIsLoading] = useState(true);
     const [transfers, setTransfers] = useState([]);
     const [accounts, setAccounts] = useState([]);
 
@@ -18,7 +20,9 @@ const Transfers = () => {
         setAccounts(accounts);
     }
     async function getTransfers() {
-        const transfers = await transactionService.getAllUserTransfers();
+        const transfers = await transactionService
+            .getAllUserTransfers()
+            .finally(() => setIsLoading(false));
         setTransfers(transfers);
     }
 
@@ -29,8 +33,21 @@ const Transfers = () => {
                 refreshTransfers={getTransfers}
                 refreshAccounts={getAccounts}
             />
-            {transfers?.length > 0 && (
-                <TransfersList transfers={transfers} accounts={accounts} />
+            {!isLoading && (
+                <>
+                    {!transfers.length ? (
+                        <NoDataCard
+                            header={"No transfers found."}
+                            label={"Add a transfer"}
+                            focusOn={"date"}
+                        />
+                    ) : (
+                        <TransfersList
+                            transfers={transfers}
+                            accounts={accounts}
+                        />
+                    )}
+                </>
             )}
         </div>
     );

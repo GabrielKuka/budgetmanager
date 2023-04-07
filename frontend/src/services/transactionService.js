@@ -3,210 +3,212 @@ import axios from "axios";
 const BASE_URL = "http://localhost:8000";
 
 async function getAllExpenseCategories() {
-  const response = await axios.get(
-    `${BASE_URL}/transactions/expensecategories`
-  );
+    const response = await axios.get(
+        `${BASE_URL}/transactions/expensecategories`
+    );
 
-  if (response.status === 200) {
-    return response.data;
-  } else {
-    alert("Error fetching categories");
-  }
+    if (response.status === 200) {
+        return response.data;
+    } else {
+        alert("Error fetching categories");
+    }
 }
 
 async function getAllIncomeCategories() {
-  const response = await axios.get(`${BASE_URL}/transactions/incomecategories`);
+    const response = await axios.get(
+        `${BASE_URL}/transactions/incomecategories`
+    );
 
-  if (response.status === 200) {
-    return response.data;
-  } else {
-    alert("Error fetching categories.");
-  }
+    if (response.status === 200) {
+        return response.data;
+    } else {
+        alert("Error fetching categories.");
+    }
 }
 
 async function getAllUserExpenses() {
-  const token = JSON.parse(localStorage.getItem("authToken"));
-  const config = {
-    headers: {
-      Authorization: token,
-    },
-  };
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
 
-  const response = await axios.get(
-    `${BASE_URL}/transactions/allexpenses`,
-    config
-  );
+    const response = await axios.get(
+        `${BASE_URL}/transactions/allexpenses`,
+        config
+    );
 
-  if (response.status === 200) {
-    return response.data;
-  } else {
-    alert("Error retrieving expenses.");
-  }
+    if (response.status === 200) {
+        return response.data;
+    } else {
+        return "no data";
+    }
 }
 
 async function getAllUserIncomes() {
-  const token = JSON.parse(localStorage.getItem("authToken"));
-  const config = {
-    headers: {
-      Authorization: token,
-    },
-  };
-  const response = await axios.get(
-    `${BASE_URL}/transactions/allincomes`,
-    config
-  );
-  if (response.status === 200) {
-    return response.data;
-  } else {
-    alert("Error retrieving incomes.");
-  }
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
+    const response = await axios.get(
+        `${BASE_URL}/transactions/allincomes`,
+        config
+    );
+    if (response.status === 200) {
+        return response.data;
+    } else {
+        return "no data";
+    }
 }
 
 async function getAllUserTransfers() {
-  const token = JSON.parse(localStorage.getItem("authToken"));
-  const config = {
-    headers: {
-      Authorization: token,
-    },
-  };
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
 
-  const response = await axios.get(
-    `${BASE_URL}/transactions/alltransfers`,
-    config
-  );
+    const response = await axios.get(
+        `${BASE_URL}/transactions/alltransfers`,
+        config
+    );
 
-  if (response.status === 200) {
-    return response.data;
-  } else {
-    alert("Error retrieving expenses.");
-  }
+    if (response.status === 200) {
+        return response.data;
+    } else {
+        return "no data";
+    }
 }
 
 async function getAllUserAccounts() {
-  const token = JSON.parse(localStorage.getItem("authToken"));
-  const config = {
-    headers: {
-      Authorization: token,
-    },
-  };
-  const response = await axios.get(`${BASE_URL}/accounts/all`, config);
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
+    const response = await axios.get(`${BASE_URL}/accounts/all`, config);
 
-  if (response.status === 200) {
-    return response.data;
-  } else {
-    alert("Error fetchign user accounts.");
-  }
+    if (response.status === 200) {
+        return response.data;
+    } else {
+        return "no data";
+    }
 }
 
 async function addExpense(payload) {
-  const token = JSON.parse(localStorage.getItem("authToken"));
-  const config = {
-    headers: {
-      Authorization: token,
-    },
-  };
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
 
-  const response = await axios.post(
-    `${BASE_URL}/transactions/add`,
-    payload,
-    config
-  );
-  if (response.status === 201) {
-    return response.data;
-  } else {
-    alert("Error adding expense.");
-  }
+    const response = await axios.post(
+        `${BASE_URL}/transactions/add`,
+        payload,
+        config
+    );
+    if (response.status === 201) {
+        return response.data;
+    } else {
+        alert("Error adding expense.");
+    }
 }
 
 async function addIncome(payload) {
-  const token = JSON.parse(localStorage.getItem("authToken"));
-  const config = {
-    headers: {
-      Authorization: token,
-    },
-  };
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
 
-  const response = await axios.post(
-    `${BASE_URL}/transactions/add`,
-    payload,
-    config
-  );
-  if (response.status === 201) {
-    return response.data;
-  } else {
-    alert("Error adding income.");
-  }
+    const response = await axios.post(
+        `${BASE_URL}/transactions/add`,
+        payload,
+        config
+    );
+    if (response.status === 201) {
+        return response.data;
+    } else {
+        alert("Error adding income.");
+    }
 }
 
 async function addTransfer(payload) {
-  const token = JSON.parse(localStorage.getItem("authToken"));
-  const config = {
-    headers: {
-      Authorization: token,
-    },
-  };
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
 
-  const response = await axios.post(
-    `${BASE_URL}/transactions/add`,
-    payload,
-    config
-  );
-  if (response.status === 201) {
-    return response.data;
-  } else {
-    alert("Error adding transfer.");
-  }
+    const response = await axios.post(
+        `${BASE_URL}/transactions/add`,
+        payload,
+        config
+    );
+    if (response.status === 201) {
+        return response.data;
+    } else {
+        alert("Error adding transfer.");
+    }
 }
 
 async function addAccount(payload) {
-  const token = JSON.parse(localStorage.getItem("authToken"));
-  const config = {
-    headers: {
-      Authorization: token,
-    },
-  };
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
 
-  const response = await axios.post(
-    `${BASE_URL}/accounts/create`,
-    payload,
-    config
-  );
-  if (response.status === 201) {
-    return response.data;
-  } else {
-    alert("Error creating account.");
-  }
+    const response = await axios.post(
+        `${BASE_URL}/accounts/create`,
+        payload,
+        config
+    );
+    if (response.status === 201) {
+        return response.data;
+    } else {
+        alert("Error creating account.");
+    }
 }
 
 async function deleteAccount(payload) {
-  const token = JSON.parse(localStorage.getItem("authToken"));
-  const config = {
-    headers: {
-      Authorization: token,
-    },
-  };
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
 
-  const response = await axios.delete(
-    `${BASE_URL}/accounts/delete/${payload}`,
-    config
-  );
-  if (response.status === 200) {
-    return response.data;
-  } else {
-    alert("Error creating account.");
-  }
+    const response = await axios.delete(
+        `${BASE_URL}/accounts/delete/${payload}`,
+        config
+    );
+    if (response.status === 200) {
+        return response.data;
+    } else {
+        alert("Error creating account.");
+    }
 }
 
 export default {
-  getAllIncomeCategories,
-  getAllExpenseCategories,
-  getAllUserAccounts,
-  getAllUserExpenses,
-  getAllUserTransfers,
-  addExpense,
-  addIncome,
-  addTransfer,
-  addAccount,
-  deleteAccount,
-  getAllUserIncomes,
+    getAllIncomeCategories,
+    getAllExpenseCategories,
+    getAllUserAccounts,
+    getAllUserExpenses,
+    getAllUserTransfers,
+    addExpense,
+    addIncome,
+    addTransfer,
+    addAccount,
+    deleteAccount,
+    getAllUserIncomes,
 };
