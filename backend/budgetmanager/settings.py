@@ -31,7 +31,7 @@ INSTALLED_APPS = [
     "Users",
     "Accounts",
     "Transactions",
-    "Templates"
+    "Templates",
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True

@@ -1,14 +1,22 @@
-from views import add_template, delete_template, update_template, get_templates
+from . import views
 from django.urls import path
 
 urlpatterns = [
-    path("add-template", add_template, name="add-template"),
+    path("add-template", views.add_template, name="add-template"),
     path(
         "delete-template/<int:id>",
-        delete_template,
+        views.delete_template,
         name="delete-template",
     ),
-    path("update-template", update_template, name="update-template"),
-    path("get-templates", get_templates, name="get-templates"),
+    path("update-template", views.update_template, name="update-template"),
+    path("get-templates", views.get_templates, name="get-templates"),
+    path(
+        "get-template-groups", views.get_templates, name="get-template-groups"
+    ),
+    path("add-template-group", views.get_templates, name="add-template-group"),
+    path(
+        "delete-template-group/<int:id>",
+        views.delete_template_group,
+        name="delete-template-group",
+    ),
 ]
-

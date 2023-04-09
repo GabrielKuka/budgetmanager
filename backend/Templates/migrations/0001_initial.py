@@ -15,19 +15,58 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Template',
+            name="Template",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('type', models.IntegerField(choices=[(0, 'Income'), (1, 'Expense'), (2, 'Transfer')], default=(0, 'Income'))),
-                ('created_on', models.DateTimeField(auto_now_add=True)),
-                ('amount', models.FloatField(default=0.0)),
-                ('description', models.CharField(blank=True, max_length=100, null=True)),
-                ('from_account', models.CharField(blank=True, max_length=100, null=True)),
-                ('to_account', models.CharField(blank=True, max_length=100, null=True)),
-                ('account', models.CharField(blank=True, max_length=100, null=True)),
-                ('category', models.CharField(blank=True, max_length=100, null=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField()),
+                (
+                    "type",
+                    models.IntegerField(
+                        choices=[
+                            (0, "Income"),
+                            (1, "Expense"),
+                            (2, "Transfer"),
+                        ],
+                        default=(0, "Income"),
+                    ),
+                ),
+                ("created_on", models.DateTimeField(auto_now_add=True)),
+                ("amount", models.FloatField(default=0.0)),
+                (
+                    "description",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "from_account",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "to_account",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "account",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "category",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

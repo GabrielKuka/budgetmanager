@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Formik, Form, Field } from "formik";
 import "./templates.scss";
 import transactionService from "../services/transactionService";
+import axios from "axios";
 
 const Template = () => {
     const types = ["Income", "Expense", "Transfer"];
@@ -38,6 +39,20 @@ const Template = () => {
         setExpenseCategories(response);
     }
 
+    async function addTemplate(payload) {
+        const url = "http://localhost:8000/templates/add-template";
+
+        const token = JSON.parse(localStorage.getItem("authToken"));
+        const config = {
+            headers: {
+                Authorization: token,
+            },
+        };
+
+        const response = await axios.post(url, payload, config);
+        console.log(response.data);
+    }
+
     return (
         <div className={"add-template-wrapper"}>
             <Formik
@@ -48,12 +63,12 @@ const Template = () => {
                     account: "",
                     from_account: "",
                     to_account: "",
-                    income_category: "",
-                    expense_category: "",
+                    category: "",
                     type: "",
                 }}
                 onSubmit={async (values, { setSubmitting, resetForm }) => {
                     console.log(values);
+                    await addTemplate(values);
                     setSubmitting(false);
                     resetForm();
                 }}
@@ -92,7 +107,7 @@ const Template = () => {
                                         </option>
                                     ))}
                                 </Field>
-                                <Field as='select' name='income_category'>
+                                <Field as='select' name='category'>
                                     <option value='' disabled hidden>
                                         Income category
                                     </option>
@@ -118,7 +133,7 @@ const Template = () => {
                                         </option>
                                     ))}
                                 </Field>
-                                <Field as='select' name='expense_category'>
+                                <Field as='select' name='category'>
                                     <option value='' disabled hidden>
                                         Expense category
                                     </option>
