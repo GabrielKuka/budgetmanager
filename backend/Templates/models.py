@@ -24,7 +24,7 @@ class Template(models.Model):
         (2, "Transfer"),
     ]
 
-    templateGroup = models.ForeignKey(
+    template_group = models.ForeignKey(
         TemplateGroup,
         on_delete=models.CASCADE,
         null=True,

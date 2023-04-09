@@ -2,6 +2,78 @@ import axios from "axios";
 
 const BASE_URL = "http://localhost:8000";
 
+async function addTemplate(payload) {
+    const url = `${BASE_URL}/templates/add-template`;
+
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
+
+    const response = await axios.post(url, payload, config);
+    if (response.status == 201) {
+        return response.data;
+    } else {
+        alert("Error adding template");
+    }
+}
+
+async function addTemplateGroup(payload) {
+    const url = `${BASE_URL}/templates/add-template-group`;
+
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
+
+    const response = await axios.post(url, payload, config);
+    if (response.status == 201) {
+        return response.data;
+    } else {
+        alert("Error adding template");
+    }
+}
+
+async function getTemplateGroups() {
+    const url = `${BASE_URL}/templates/get-template-groups`;
+
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
+
+    const response = await axios.get(url, config);
+    if (response.status == 200) {
+        return response.data;
+    } else {
+        alert("Error adding template group");
+    }
+}
+
+async function getTemplates() {
+    const url = `${BASE_URL}/templates/get-templates`;
+
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
+
+    const response = await axios.get(url, config);
+    if (response.status == 200) {
+        return response.data;
+    } else {
+        alert("Error getting templates");
+    }
+}
+
 async function getAllExpenseCategories() {
     const response = await axios.get(
         `${BASE_URL}/transactions/expensecategories`
@@ -211,4 +283,8 @@ export default {
     addAccount,
     deleteAccount,
     getAllUserIncomes,
+    getTemplateGroups,
+    addTemplateGroup,
+    addTemplate,
+    getTemplates,
 };

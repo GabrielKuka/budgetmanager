@@ -1,15 +1,32 @@
 @import "../mixins";
 
-.add-template-wrapper {
+.template-wrapper {
     margin-top: 80px;
     margin-left: 20px;
-    padding: 10px;
-    width: fit-content;
-    border: 1px solid #dadada;
-    box-shadow: 1px 1px 2px #dadada;
-    border-radius: 3px;
-    .form {
-        @include flex(column, center, flex-start);
-        gap: 10px;
+    @include flex(row, flex-start, flex-start);
+    gap: 20px;
+
+    &__sidebar {
+        padding: 20px;
+        width: fit-content;
+        border: 1px solid #dadada;
+        box-shadow: 1px 1px 2px #dadada;
+        border-radius: 1px;
+        @include flex(column, flex-start, flex-start);
+        gap: 20px;
+
+        .add-template,
+        .add-template_group {
+            padding: 10px;
+            width: fit-content;
+            border: 1px solid #dadada;
+            box-shadow: 1px 1px 8px #dadada;
+            border-radius: 5px;
+
+            .form {
+                @include flex(column, center, flex-start);
+                gap: 10px;
+            }
+        }
     }
 }

@@ -29,6 +29,7 @@ def add_template_group(request):
     user_id = Token.objects.get(key=token).user_id
 
     p = request.data
+    p["user_id"] = user_id
 
     try:
         TemplateGroup(**p).save()
@@ -73,6 +74,9 @@ def add_template(request):
 
     p["type"] = int(p["type"])
     p["amount"] = round(float(p["amount"]), 2)
+    p["template_group"] = TemplateGroup.objects.get(
+        pk=int(p["template_group"])
+    )
 
     try:
         if p["type"] in {0, 1}:  # <- Income or Expense
