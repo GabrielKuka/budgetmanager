@@ -13,21 +13,13 @@ const Template = () => {
     const [incomeCategories, setIncomeCategories] = useState([]);
     const [expenseCategories, setExpenseCategories] = useState([]);
 
-    const [templateList, setTemplateList] = useState([]);
-
     useEffect(() => {
         getAccounts();
         getTransfers();
         getIncomeCategories();
         getExpenseCategories();
         getTemplateGroups();
-        getTemplates();
     }, []);
-
-    async function getTemplates() {
-        const response = await transactionService.getTemplates();
-        setTemplateList(response);
-    }
 
     async function getTemplateGroups() {
         const response = await transactionService.getTemplateGroups();
@@ -63,7 +55,9 @@ const Template = () => {
                 expenseCategories={expenseCategories}
                 templateGroups={templateGroups}
             />
-            {templateList?.length > 0 && <TemplateList />}
+            {templateGroups?.length > 0 && (
+                <TemplateGroups templateGroups={templateGroups} />
+            )}
         </div>
     );
 };
@@ -92,10 +86,20 @@ const Sidebar = (props) => {
     );
 };
 
-const TemplateList = () => {
+const TemplateGroups = (props) => {
     return (
-        <div className={"template-wrapper__template_list"}>
-            <label>Template List</label>
+        <div className={"template-wrapper__template-groups"}>
+            <div className={"header"}>
+                <label>Name</label>
+            </div>
+            <div className={"template-groups"}>
+                {console.log(props.templateGroups)}
+                {props.templateGroups?.map((t) => (
+                    <div key={t.id} className={"template-group-item"}>
+                        <label>{t.name}</label>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };

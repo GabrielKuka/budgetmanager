@@ -12,7 +12,8 @@ class TemplateSerializer(serializers.ModelSerializer):
 
 class TemplateGroupSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
+    template_group = TemplateSerializer(many=True)
 
     class Meta:
         model = TemplateGroup
-        fields = "__all__"
+        fields = ('id', 'name', 'created_on', 'user', 'template_group')
