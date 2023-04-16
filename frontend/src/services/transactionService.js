@@ -38,6 +38,24 @@ async function addTemplateGroup(payload) {
     }
 }
 
+async function deleteTemplateGroup(id) {
+    const url = `${BASE_URL}/templates/delete-template-group/${id}`;
+
+    const token = JSON.parse(localStorage.getItem("authToken"));
+    const config = {
+        headers: {
+            Authorization: token,
+        },
+    };
+
+    const response = await axios.delete(url, config);
+    if (response.status == 200) {
+        return response.data;
+    } else {
+        alert("Error deleting template");
+    }
+}
+
 async function getTemplateGroups() {
     const url = `${BASE_URL}/templates/get-template-groups`;
 
@@ -287,4 +305,5 @@ export default {
     addTemplateGroup,
     addTemplate,
     getTemplates,
+    deleteTemplateGroup,
 };

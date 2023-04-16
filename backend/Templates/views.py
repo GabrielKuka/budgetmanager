@@ -54,7 +54,7 @@ def delete_template_group(request, id):
     try:
         TemplateGroup.objects.filter(pk=id).delete()
         return Response(
-            {"message": "Account deleted."}, status=status.HTTP_200_OK
+            {"message": "Template group deleted."}, status=status.HTTP_200_OK
         )
     except Exception as e:
         return Response(

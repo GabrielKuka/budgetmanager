@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import TemplateItem from "./templateItem";
+import transactionService from "../../services/transactionService";
 import "./templates.scss";
 
 const TemplateGroups = (props) => {
@@ -26,6 +27,21 @@ const TemplateGroups = (props) => {
         };
     }
 
+    async function deleteTemplateGroup() {
+        const tg = currentTemplateGroup;
+        const response = window.confirm(
+            "Are you sure you want to delete this template group?"
+        );
+        if (response) {
+            await transactionService.deleteTemplateGroup(tg.id);
+            await props.refreshTemplateGroups();
+        }
+    }
+
+    async function triggerTemplate() {
+        console.log("trigger");
+    }
+
     return (
         <div className={"template-wrapper__template-groups"}>
             <div className={"header"}>
@@ -41,6 +57,20 @@ const TemplateGroups = (props) => {
                         id={`template-group-item-${t.id}`}
                     >
                         <label>{t.name}</label>
+                        <div className={"template-group-item__buttons"}>
+                            <button
+                                onClick={triggerTemplate}
+                                className={"trigger-button"}
+                            >
+                                ▷
+                            </button>
+                            <button
+                                onClick={deleteTemplateGroup}
+                                className={"delete-button"}
+                            >
+                                x
+                            </button>
+                        </div>
                     </div>
                 ))}
             </div>

@@ -60,7 +60,7 @@
         box-shadow: 1px 1px 2px #dadada;
         border-radius: 3px;
         left: 450px;
-        width: 300px;
+        width: 400px;
         z-index: 0;
         @include flex(column, flex-start, center);
         .header {
@@ -69,7 +69,7 @@
             display: grid;
             grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
             grid-gap: 10px;
-            width: 200px;
+            width: 300px;
             padding: 20px;
             padding-bottom: 10px;
             border-bottom: 1px solid black;
@@ -108,11 +108,13 @@
             overflow: -moz-scrollbars-none; /* Firefox */
 
             .template-group-item {
-                cursor: pointer;
+                @include flex(row, flex-start, flex-start);
+                position: relative;
+                justify-content: space-between;
                 border: 1px solid #dadada;
                 box-shadow: 1px 1px 3px #dadada;
                 border-radius: 5px;
-                width: 200px;
+                width: 300px;
                 padding: 20px;
                 z-index: 0;
                 transition: border-color 0.3s, padding 0.3s ease-in-out,
@@ -121,11 +123,45 @@
                     cursor: pointer;
                     font-weight: bold;
                 }
+                .delete-button {
+                    cursor: pointer;
+                    margin-left: auto;
+                    background-color: #ffcccb;
+                    font-size: 16px;
+                    border-radius: 50%;
+                    border: 1px solid #ffcccb;
+                    padding: 2px 6px;
+                    color: white;
+                    outline: none;
+                    transition: background-color 0.2s ease;
+                }
+                &__buttons {
+                    margin-left: auto;
+                    @include flex(row, center, center);
+                    gap: 5px;
+                    .delete-button:hover {
+                        background-color: rgb(208, 65, 65);
+                        border: 1px solid rgb(208, 65, 65);
+                    }
+                    .trigger-button {
+                        cursor: pointer;
+                        margin-left: auto;
+                        background-color: #ececec;
+                        font-size: 16px;
+                        border-radius: 50%;
+                        border: 1px solid #ececec;
+                        padding: 1px 3px 2px 7px;
+                        color: black;
+                        outline: none;
+                        transition: color 0.2s ease, background-color 0.2s ease;
+                    }
+                    .trigger-button:hover {
+                        color: white;
+                        background-color: cadetblue;
+                    }
+                }
             }
-            .template-group-item:active {
-                padding: 25px 20px 25px 20px;
-                font-size: 17px;
-            }
+
             .template-group-item:hover {
                 border-color: cadetblue;
             }

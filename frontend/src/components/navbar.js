@@ -23,7 +23,7 @@ const LoggedInNavbar = () => {
         global.logoutUser();
     };
 
-    const buttons = ["dashboard", "accounts", "profile"];
+    const buttons = ["dashboard", "accounts", "profile", "templates"];
 
     useEffect(() => {
         let location = window.location.pathname.replace("/", "");
@@ -55,6 +55,9 @@ const LoggedInNavbar = () => {
             </button>
             <button id='profile' onClick={(e) => handlePage(e)}>
                 Profile
+            </button>
+            <button id='templates' onClick={(e) => handlePage(e)}>
+                Templates
             </button>
             <button onClick={handleLogout}>Log out</button>
             <CurrencyConverter />

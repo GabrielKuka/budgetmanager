@@ -31,6 +31,7 @@ const TemplateItem = (props) => {
             return res.length == 1 ? res[0].category_type : "";
         }
     }
+
     return (
         <div className={"template-item"}>
             {type() == "income" && (

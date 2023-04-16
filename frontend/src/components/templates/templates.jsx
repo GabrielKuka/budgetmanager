@@ -53,6 +53,7 @@ const Template = () => {
             {templateGroups?.length > 0 && (
                 <TemplateGroups
                     templateGroups={templateGroups}
+                    refreshTemplateGroups={getTemplateGroups}
                     accounts={accounts}
                     incomeCategories={incomeCategories}
                     expenseCategories={expenseCategories}
@@ -74,6 +75,7 @@ const Sidebar = (props) => {
                     expenseCategories={props.expenseCategories}
                     templateGroups={props.templateGroups}
                     templateGroupForm={templateGroupForm}
+                    refreshTemplateGroups={props.refreshTemplateGroups}
                     setTemplateGroupForm={setTemplateGroupForm}
                 />
             </div>

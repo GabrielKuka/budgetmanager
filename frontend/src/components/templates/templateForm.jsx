@@ -19,6 +19,7 @@ const TemplateForm = (props) => {
             }}
             onSubmit={async (values, { setSubmitting, resetForm }) => {
                 await transactionService.addTemplate(values);
+                await props.refreshTemplateGroups();
                 setSubmitting(false);
                 resetForm();
             }}
