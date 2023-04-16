@@ -1,7 +1,7 @@
 import React from "react";
 import "./templates.scss";
 import { Formik, Form, Field } from "formik";
-import transactionService from "../../services/transactionService";
+import transactionService from "../../services/transactionService/transactionService";
 
 const TemplateForm = (props) => {
     return (

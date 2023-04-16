@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./templates.scss";
 import TemplateForm from "./templateForm";
-import transactionService from "../../services/transactionService";
+import transactionService from "../../services/transactionService/transactionService";
 import TemplateGroupForm from "./templateGroupForm";
 import TemplateGroups from "./templateGroups";
 

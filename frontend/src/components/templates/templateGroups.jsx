@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import TemplateItem from "./templateItem";
-import transactionService from "../../services/transactionService";
+import transactionService from "../../services/transactionService/transactionService";
 import "./templates.scss";
 
 const TemplateGroups = (props) => {
