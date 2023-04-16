@@ -339,8 +339,10 @@ const TemplateForm = (props) => {
                                 </option>
                             ))}
                         </Field>
-                        <button
-                            type='button'
+                        <br />
+                        <a
+                            style={{ fontSize: "14px" }}
+                            href='#'
                             onClick={() =>
                                 props.setTemplateGroupForm(
                                     !props.templateGroupForm
@@ -348,7 +350,7 @@ const TemplateForm = (props) => {
                             }
                         >
                             Add Template Group
-                        </button>
+                        </a>
                     </div>
                     <Field
                         type='text'

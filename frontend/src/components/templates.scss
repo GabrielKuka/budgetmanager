@@ -22,10 +22,34 @@
             border: 1px solid #dadada;
             box-shadow: 1px 1px 8px #dadada;
             border-radius: 5px;
+            transition: box-shadow 0.3s, border 0.3s;
 
             .form {
                 @include flex(column, center, flex-start);
                 gap: 10px;
+                input,
+                select {
+                    width: 270px;
+                }
+                label {
+                    text-transform: uppercase;
+                    font-weight: bold;
+                    background-color: cadetblue;
+                    color: white;
+                    padding: 5px;
+                    border-radius: 2px;
+                    cursor: pointer;
+                    transition: padding-left 0.3s;
+                }
+            }
+        }
+
+        .add-template:hover,
+        .add-template_group:hover {
+            border: 1px solid cadetblue;
+            box-shadow: 1px 1px 5px cadetblue;
+            label {
+                padding-left: 15px;
             }
         }
     }
