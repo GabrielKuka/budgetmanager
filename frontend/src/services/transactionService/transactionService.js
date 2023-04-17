@@ -9,7 +9,7 @@ const BASE_URL = "http://localhost:8000";
 
 // Templates
 async function addTemplate(payload) {
-    await templateService.addTemplate(payload);
+    return await templateService.addTemplate(payload);
 }
 
 async function getTemplates() {
@@ -65,7 +65,7 @@ async function getAllUserIncomes() {
 }
 
 async function addIncome(payload) {
-    return await incomeService.addIncome(payload);
+    return incomeService.addIncome(payload);
 }
 
 // Transfers

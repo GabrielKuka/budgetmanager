@@ -38,11 +38,7 @@ async function addExpense(payload) {
     };
 
     const response = await axios.post(`${BASE_URL}/add`, payload, config);
-    if (response.status === 201) {
-        return response.data;
-    } else {
-        alert("Error adding expense.");
-    }
+    return response.data;
 }
 export default {
     addExpense,

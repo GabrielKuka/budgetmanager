@@ -77,7 +77,6 @@ const AddTransfer = ({ accounts, refreshTransfers, refreshAccounts }) => {
                     date: new Date().toISOString().slice(0, 10),
                 }}
                 onSubmit={async (values, { resetForm, setSubmitting }) => {
-                    console.log(values);
                     values["type"] = 2;
                     await transactionService.addTransfer(values);
                     await refreshTransfers();

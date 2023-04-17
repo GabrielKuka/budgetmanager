@@ -39,7 +39,46 @@ const TemplateGroups = (props) => {
     }
 
     async function triggerTemplate() {
-        console.log("trigger");
+        // Check if user has enough funds first!
+
+        currentTemplateGroup.template_group.forEach(async (t) => {
+            if (t.type == 0) {
+                const payload = {
+                    amount: t.amount,
+                    income_category: t.category,
+                    date: t.date,
+                    description: t.description,
+                    type: t.type,
+                    account: t.account,
+                };
+                await transactionService.addIncome(payload);
+            }
+            if (t.type == 1) {
+                const payload = {
+                    amount: t.amount,
+                    expense_category: t.category,
+                    date: t.date,
+                    description: t.description,
+                    type: t.type,
+                    account: t.account,
+                };
+
+                await transactionService.addExpense(payload);
+            }
+            if (t.type == 2) {
+                const payload = {
+                    amount: t.amount,
+                    date: t.date,
+                    description: t.description,
+                    from_account: t.from_account,
+                    to_account: t.to_account,
+                    type: t.type,
+                };
+                await transactionService.addTransfer(payload);
+            }
+        });
+
+        alert("Transactions added.");
     }
 
     return (
