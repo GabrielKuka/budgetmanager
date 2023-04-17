@@ -130,21 +130,26 @@ const TemplateGroups = (props) => {
                         className={"template-group-item"}
                         id={`template-group-item-${t.id}`}
                     >
-                        <label>{t.name}</label>
-                        <div className={"template-group-item__buttons"}>
-                            <button
-                                onClick={triggerTemplate}
-                                className={"trigger-button"}
-                            >
-                                ▷
-                            </button>
-                            <button
-                                onClick={deleteTemplateGroup}
-                                className={"delete-button"}
-                            >
-                                x
-                            </button>
+                        <div className={"template-group-item__main"}>
+                            <label>{t.name}</label>
+                            <div className={"buttons"}>
+                                <button
+                                    onClick={triggerTemplate}
+                                    className={"trigger-button"}
+                                >
+                                    ▷
+                                </button>
+                                <button
+                                    onClick={deleteTemplateGroup}
+                                    className={"delete-button"}
+                                >
+                                    x
+                                </button>
+                            </div>
                         </div>
+                        <label className={"template-group-item__created_on"}>
+                            Created on: {t.created_on.slice(0, 10)}
+                        </label>
                     </div>
                 ))}
             </div>

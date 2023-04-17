@@ -108,57 +108,69 @@
             overflow: -moz-scrollbars-none; /* Firefox */
 
             .template-group-item {
-                @include flex(row, flex-start, flex-start);
-                position: relative;
-                justify-content: space-between;
+                @include flex(column, flex-start, flex-start);
                 border: 1px solid #dadada;
                 box-shadow: 1px 1px 3px #dadada;
                 border-radius: 5px;
                 width: 300px;
                 padding: 20px;
                 z-index: 0;
+                gap: 10px;
                 transition: border-color 0.3s, padding 0.3s ease-in-out,
                     font-size 0.3s;
-                label {
-                    cursor: pointer;
-                    font-weight: bold;
-                }
-                .delete-button {
-                    cursor: pointer;
-                    margin-left: auto;
-                    background-color: #ffcccb;
-                    font-size: 16px;
-                    border-radius: 50%;
-                    border: 1px solid #ffcccb;
-                    padding: 2px 6px;
-                    color: white;
-                    outline: none;
-                    transition: background-color 0.2s ease;
-                }
-                &__buttons {
-                    margin-left: auto;
-                    @include flex(row, center, center);
-                    gap: 5px;
-                    .delete-button:hover {
-                        background-color: rgb(208, 65, 65);
-                        border: 1px solid rgb(208, 65, 65);
-                    }
-                    .trigger-button {
+                &__main {
+                    @include flex(row, space-between, flex-start);
+                    width: 300px;
+                    position: relative;
+                    label {
                         cursor: pointer;
+                        font-weight: bold;
+                    }
+                    .buttons {
+                        @include flex(row, center, center);
                         margin-left: auto;
-                        background-color: #ececec;
-                        font-size: 16px;
-                        border-radius: 50%;
-                        border: 1px solid #ececec;
-                        padding: 1px 3px 2px 7px;
-                        color: black;
-                        outline: none;
-                        transition: color 0.2s ease, background-color 0.2s ease;
+                        gap: 5px;
+                        .delete-button {
+                            cursor: pointer;
+                            margin-left: auto;
+                            background-color: #ffcccb;
+                            font-size: 16px;
+                            border-radius: 50%;
+                            border: 1px solid #ffcccb;
+                            padding: 2px 6px;
+                            color: white;
+                            outline: none;
+                            transition: background-color 0.2s ease;
+                        }
+                        .delete-button:hover {
+                            background-color: rgb(208, 65, 65);
+                            border: 1px solid rgb(208, 65, 65);
+                        }
+                        .trigger-button {
+                            cursor: pointer;
+                            margin-left: auto;
+                            background-color: #ececec;
+                            font-size: 16px;
+                            border-radius: 50%;
+                            border: 1px solid #ececec;
+                            padding: 1px 3px 2px 7px;
+                            color: black;
+                            outline: none;
+                            transition: color 0.2s ease,
+                                background-color 0.2s ease;
+                        }
+                        .trigger-button:hover {
+                            color: white;
+                            background-color: cadetblue;
+                        }
                     }
-                    .trigger-button:hover {
-                        color: white;
-                        background-color: cadetblue;
-                    }
+                }
+                &__created_on {
+                    color: #dadada;
+                    font-size: 12px;
+                }
+                &__created_on:hover {
+                    text-decoration: underline;
                 }
             }
 
