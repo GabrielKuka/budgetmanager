@@ -86,7 +86,7 @@ const TemplateGroups = (props) => {
                 const payload = {
                     amount: t.amount,
                     income_category: t.category,
-                    date: t.date,
+                    date: new Date().toISOString().slice(0, 10),
                     description: t.description,
                     type: t.type,
                     account: t.account,
@@ -97,7 +97,7 @@ const TemplateGroups = (props) => {
                 const payload = {
                     amount: t.amount,
                     expense_category: t.category,
-                    date: t.date,
+                    date: new Date().toISOString().slice(0, 10),
                     description: t.description,
                     type: t.type,
                     account: t.account,
@@ -108,7 +108,7 @@ const TemplateGroups = (props) => {
             if (t.type == 2) {
                 const payload = {
                     amount: t.amount,
-                    date: t.date,
+                    date: new Date().toISOString().slice(0, 10),
                     description: t.description,
                     from_account: t.from_account,
                     to_account: t.to_account,

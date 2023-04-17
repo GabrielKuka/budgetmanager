@@ -9,7 +9,6 @@ const TemplateForm = (props) => {
             initialValues={{
                 amount: "",
                 description: "",
-                date: new Date().toISOString().slice(0, 10),
                 account: "",
                 from_account: "",
                 to_account: "",
@@ -27,7 +26,6 @@ const TemplateForm = (props) => {
             {({ values }) => (
                 <Form className={"form"}>
                     <label>Add Template</label>
-                    <Field id='date' name='date' placeholder='Enter date' />
                     <Field as='select' name='type' id='type'>
                         <option value='' disabled hidden>
                             Select transaction type

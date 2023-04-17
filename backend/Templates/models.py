@@ -31,7 +31,6 @@ class Template(models.Model):
         blank=True,
         related_name="template_group",
     )
-    date = models.DateField()
     type = models.SmallIntegerField(
         choices=transaction_types, default=transaction_types[0]
     )
