@@ -130,6 +130,9 @@
                         @include flex(row, center, center);
                         margin-left: auto;
                         gap: 5px;
+                        button:active {
+                            @include bounce-animation;
+                        }
                         .delete-button {
                             cursor: pointer;
                             margin-left: auto;

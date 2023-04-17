@@ -71,6 +71,11 @@ const TemplateGroups = (props) => {
     }
 
     async function triggerTemplate() {
+        // Check if there are transactions registered in this template group.
+        if (currentTemplateGroup.template_group.length == 0) {
+            alert("There are no transactions added in this template.");
+            return;
+        }
         // Check if user has enough funds first!
         if (!areTransactionsValid()) {
             return;

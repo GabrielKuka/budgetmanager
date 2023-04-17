@@ -1,46 +1,63 @@
 @mixin flex(
-  $direction: row,
-  $justify: center,
-  $align: center,
-  $flex-wrap: nowrap
+    $direction: row,
+    $justify: center,
+    $align: center,
+    $flex-wrap: nowrap
 ) {
-  display: flex;
-  flex-wrap: $flex-wrap;
-  flex-direction: $direction;
-  justify-content: $justify;
-  align-items: $align;
+    display: flex;
+    flex-wrap: $flex-wrap;
+    flex-direction: $direction;
+    justify-content: $justify;
+    align-items: $align;
 }
 
 // Title decoration
 @mixin title-decoration(
-  $color: cadetblue,
-  $width: 50%,
-  $height: 24px,
-  $bottom: 8px
+    $color: cadetblue,
+    $width: 50%,
+    $height: 24px,
+    $bottom: 8px
 ) {
-  position: relative;
-  transform-style: preserve-3d;
+    position: relative;
+    transform-style: preserve-3d;
 
-  &::before {
-    content: "";
-    position: absolute;
-    background: $color;
-    left: 0;
-    bottom: $bottom;
-    width: $width;
-    height: $height;
-    transform-origin: left;
-    animation: animateTitle 1s 1;
-    animation-fill-mode: forwards;
-  }
+    &::before {
+        content: "";
+        position: absolute;
+        background: $color;
+        left: 0;
+        bottom: $bottom;
+        width: $width;
+        height: $height;
+        transform-origin: left;
+        animation: animateTitle 1s 1;
+        animation-fill-mode: forwards;
+    }
 }
 
 @keyframes animateTitle {
-  from {
-    transform: scaleX(0);
-  }
+    from {
+        transform: scaleX(0);
+    }
 
-  to {
-    transform: scaleX(1);
-  }
+    to {
+        transform: scaleX(1);
+    }
+}
+
+// Bounce animation
+@keyframes bounce {
+    0% {
+        transform: translateY(-2px);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+@mixin bounce-animation($duration: 0.2s) {
+    animation-name: bounce;
+    animation-duration: $duration;
 }
