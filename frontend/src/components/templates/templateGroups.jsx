@@ -38,8 +38,43 @@ const TemplateGroups = (props) => {
         }
     }
 
+    function areTransactionsValid() {
+        let valid = true;
+        currentTemplateGroup.template_group.forEach((t) => {
+            if (t.type == 1) {
+                const acc = props.accounts.filter((a) => a.id == t.account)[0];
+                const amount = acc.amount;
+                if (amount < t.amount) {
+                    alert(
+                        `You only have ${acc.amount}€ in ${acc.name}. You cannot spend ${t.amount}€.`
+                    );
+                    valid = false;
+                    return;
+                }
+            }
+            if (t.type == 2) {
+                const acc = props.accounts.filter(
+                    (a) => a.id == t.from_account
+                )[0];
+                const amount = acc.amount;
+                if (amount < t.amount) {
+                    alert(
+                        `You only have ${acc.amount}€ in ${acc.name}. You cannot transfer ${t.amount}€.`
+                    );
+                    valid = false;
+                    return;
+                }
+            }
+        });
+
+        return valid;
+    }
+
     async function triggerTemplate() {
         // Check if user has enough funds first!
+        if (!areTransactionsValid()) {
+            return;
+        }
 
         currentTemplateGroup.template_group.forEach(async (t) => {
             if (t.type == 0) {
