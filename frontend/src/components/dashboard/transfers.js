@@ -275,8 +275,18 @@ const TransferItem = ({ transfer, accounts }) => {
         return "Not found";
     }
 
+    function isRecent(input_datetime) {
+        const now = new Date();
+        input_datetime = new Date(input_datetime);
+        const diffInMs = now.getTime() - input_datetime.getTime();
+        const diffInHrs = diffInMs / (1000 * 60 * 60);
+        return diffInHrs <= 5;
+    }
     return (
         <div className='transfer-item'>
+            {isRecent(transfer.created_on) && (
+                <label className='new-transaction'>NEW!</label>
+            )}
             <label id='date'>{transfer.date}</label>
             <label id='description'>{transfer.description}</label>
             <label id='from_account'>
