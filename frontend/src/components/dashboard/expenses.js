@@ -360,8 +360,19 @@ const ExpenseItem = ({ expense, accounts, categories }) => {
         return "Not found.";
     }
 
+    function isRecent(input_datetime) {
+        const now = new Date();
+        input_datetime = new Date(input_datetime);
+        const diffInMs = now.getTime() - input_datetime.getTime();
+        const diffInHrs = diffInMs / (1000 * 60 * 60);
+        return diffInHrs <= 5;
+    }
+
     return (
         <div className='expense-item'>
+            {isRecent(expense.created_on) && (
+                <label className='new-transaction'>NEW!</label>
+            )}
             <label id='date'>{expense.date}</label>
             <label id='description'>{expense.description}</label>
             <label id='account'>{getAccountName(expense.account)}</label>
