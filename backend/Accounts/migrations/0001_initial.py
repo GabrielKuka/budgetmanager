@@ -7,19 +7,36 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Account',
+            name="Account",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.IntegerField(choices=[(0, 'Bank Account'), (1, 'Investment Account'), (2, 'Hard Cash')], default=(0, 'Bank Account'))),
-                ('name', models.CharField(default='', max_length=100)),
-                ('amount', models.FloatField(default=0.0)),
-                ('created_on', models.DateTimeField(auto_now_add=True)),
-                ('updated_on', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "type",
+                    models.IntegerField(
+                        choices=[
+                            (0, "Bank Account"),
+                            (1, "Investment Account"),
+                            (2, "Hard Cash"),
+                        ],
+                        default=(0, "Bank Account"),
+                    ),
+                ),
+                ("name", models.CharField(default="", max_length=100)),
+                ("amount", models.FloatField(default=0.0)),
+                ("created_on", models.DateTimeField(auto_now_add=True)),
+                ("updated_on", models.DateTimeField(auto_now=True)),
             ],
         ),
     ]

@@ -27,6 +27,7 @@ def create_account(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+
 @api_view(["DELETE"])
 def delete_account(request, id):
     # Retrieve user token
@@ -43,6 +44,7 @@ def delete_account(request, id):
             {"error": "Error deleting account."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
 
 @api_view(["GET"])
 def get_all_accounts(request):

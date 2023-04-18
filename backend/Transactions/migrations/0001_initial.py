@@ -9,54 +9,127 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('Accounts', '0001_initial'),
+        ("Accounts", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Expense',
+            name="Expense",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('created_on', models.DateTimeField(auto_now_add=True)),
-                ('amount', models.FloatField(default=0.0)),
-                ('description', models.CharField(blank=True, max_length=100, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField()),
+                ("created_on", models.DateTimeField(auto_now_add=True)),
+                ("amount", models.FloatField(default=0.0)),
+                (
+                    "description",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='ExpenseCategory',
+            name="ExpenseCategory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('category_type', models.CharField(default='', max_length=100)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "category_type",
+                    models.CharField(default="", max_length=100),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Income',
+            name="Income",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('created_on', models.DateTimeField(auto_now_add=True)),
-                ('amount', models.FloatField(default=0.0)),
-                ('description', models.CharField(blank=True, max_length=100, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField()),
+                ("created_on", models.DateTimeField(auto_now_add=True)),
+                ("amount", models.FloatField(default=0.0)),
+                (
+                    "description",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='IncomeCategory',
+            name="IncomeCategory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('category_type', models.CharField(default='', max_length=100)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "category_type",
+                    models.CharField(default="", max_length=100),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Transfer',
+            name="Transfer",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('created_on', models.DateTimeField(auto_now_add=True)),
-                ('amount', models.FloatField(default=0.0)),
-                ('description', models.CharField(blank=True, max_length=100, null=True)),
-                ('from_account', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='from_account', to='Accounts.account')),
-                ('to_account', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='to_account', to='Accounts.account')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField()),
+                ("created_on", models.DateTimeField(auto_now_add=True)),
+                ("amount", models.FloatField(default=0.0)),
+                (
+                    "description",
+                    models.CharField(blank=True, max_length=100, null=True),
+                ),
+                (
+                    "from_account",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="from_account",
+                        to="Accounts.account",
+                    ),
+                ),
+                (
+                    "to_account",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="to_account",
+                        to="Accounts.account",
+                    ),
+                ),
             ],
         ),
     ]

@@ -1,30 +1,37 @@
 from rest_framework import serializers
 
-from .models import ExpenseCategory, IncomeCategory, Income, Expense, Transfer
+from .models import (
+    ExpenseCategory,
+    IncomeCategory,
+    Income,
+    Expense,
+    Transfer,
+)
 from Users.serializers import UserSerializer
 from Users.models import User
-
 
 
 class IncomeSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
 
     class Meta:
-        model = Income 
+        model = Income
         fields = "__all__"
+
 
 class ExpenseSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
 
     class Meta:
-        model = Expense 
+        model = Expense
         fields = "__all__"
+
 
 class TransferSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
 
     class Meta:
-        model = Transfer 
+        model = Transfer
         fields = "__all__"
 
 

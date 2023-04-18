@@ -11,6 +11,7 @@ class ExpenseCategory(models.Model):
 class IncomeCategory(models.Model):
     category_type = models.CharField(max_length=100, default="")
 
+
 class Expense(models.Model):
 
     user = models.ForeignKey(
@@ -58,6 +59,7 @@ class Income(models.Model):
         null=True,
         blank=True,
     )
+
 
 class Transfer(models.Model):
     user = models.ForeignKey(
