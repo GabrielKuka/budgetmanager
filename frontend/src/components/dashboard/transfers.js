@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Formik, Form, Field } from "formik";
-import transactionService from "../../services/transactionService";
+import transactionService from "../../services/transactionService/transactionService";
 import DatePicker from "react-datepicker";
 import "./transfers.scss";
 import NoDataCard from "../core/nodata";
@@ -77,7 +77,6 @@ const AddTransfer = ({ accounts, refreshTransfers, refreshAccounts }) => {
                     date: new Date().toISOString().slice(0, 10),
                 }}
                 onSubmit={async (values, { resetForm, setSubmitting }) => {
-                    console.log(values);
                     values["type"] = 2;
                     await transactionService.addTransfer(values);
                     await refreshTransfers();
