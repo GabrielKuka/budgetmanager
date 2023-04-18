@@ -342,9 +342,19 @@ const IncomeItem = ({ income, accounts, categories }) => {
         }
         return "Not found.";
     }
+    function isRecent(input_datetime) {
+        const now = new Date();
+        input_datetime = new Date(input_datetime);
+        const diffInMs = now.getTime() - input_datetime.getTime();
+        const diffInHrs = diffInMs / (1000 * 60 * 60);
+        return diffInHrs <= 5;
+    }
 
     return (
         <div className='income-item'>
+            {isRecent(income.created_on) && (
+                <label className='new-transaction'>NEW!</label>
+            )}
             <label id='date'>{income.date}</label>
             <label id='description'>{income.description}</label>
             <label id='account'>{getAccountName(income.account)}</label>

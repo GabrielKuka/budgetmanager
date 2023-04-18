@@ -153,6 +153,7 @@
             overflow: -moz-scrollbars-none; /* Firefox */
 
             .income-item {
+                position: relative;
                 cursor: pointer;
                 border: 1px solid #dadada;
                 box-shadow: 1px 1px 3px #dadada;
@@ -173,11 +174,26 @@
                 #date {
                     color: gray;
                 }
+                .new-transaction {
+                    color: white;
+                    background-color: cadetblue;
+                    width: fit-content;
+                    padding: 3px 5px;
+                    border-top-right-radius: 5px;
+                    border-bottom-left-radius: 5px;
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    transition: padding 0.3s ease;
+                }
             }
             .income-item:hover {
                 border-color: cadetblue;
                 #amount {
                     font-weight: bold;
+                }
+                .new-transaction {
+                    padding: 3px 10px;
                 }
             }
             .income-item:active {
