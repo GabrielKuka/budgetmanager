@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import TemplateItem from "./templateItem";
 import transactionService from "../../services/transactionService/transactionService";
 import "./templates.scss";
+import { useToast } from "../../context/ToastContext";
 
 const TemplateGroups = (props) => {
     const [currentTemplateGroup, setCurrentTemplateGroup] = useState(false);
+    const showToast = useToast();
 
     function currentTemplateGroupStyle() {
         // Get the item we're hovering over
@@ -45,8 +47,9 @@ const TemplateGroups = (props) => {
                 const acc = props.accounts.filter((a) => a.id == t.account)[0];
                 const amount = acc.amount;
                 if (amount < t.amount) {
-                    alert(
-                        `You only have ${acc.amount}€ in ${acc.name}. You cannot spend ${t.amount}€.`
+                    showToast(
+                        `You only have ${acc.amount}€ in ${acc.name}. You cannot spend ${t.amount}€.`,
+                        "error"
                     );
                     valid = false;
                     return;
@@ -58,8 +61,9 @@ const TemplateGroups = (props) => {
                 )[0];
                 const amount = acc.amount;
                 if (amount < t.amount) {
-                    alert(
-                        `You only have ${acc.amount}€ in ${acc.name}. You cannot transfer ${t.amount}€.`
+                    showToast(
+                        `You only have ${acc.amount}€ in ${acc.name}. You cannot transfer ${t.amount}€.`,
+                        "error"
                     );
                     valid = false;
                     return;
@@ -73,7 +77,7 @@ const TemplateGroups = (props) => {
     async function triggerTemplate() {
         // Check if there are transactions registered in this template group.
         if (currentTemplateGroup.template_group.length == 0) {
-            alert("There are no transactions added in this template.");
+            showToast("This template has not transactions.", "error");
             return;
         }
         // Check if user has enough funds first!
@@ -118,7 +122,7 @@ const TemplateGroups = (props) => {
             }
         });
 
-        alert("Transactions added.");
+        showToast("Transactions Added", "success");
     }
 
     return (

@@ -6,11 +6,9 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./expenses.scss";
 import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import NoDataCard from "../core/nodata";
-import Toast from "../core/toast";
 import { useToast } from "../../context/ToastContext";
 
 const Expenses = () => {
-    const showToast = useToast();
     const [isLoading, setIsLoading] = useState(true);
     const [categories, setCategories] = useState([]);
     const [accounts, setAccounts] = useState([]);
@@ -152,6 +150,7 @@ const AddExpense = ({
     refreshExpenses,
     refreshAccounts,
 }) => {
+    const showToast = useToast();
     return (
         <div className={"enter-expense"}>
             <Formik
@@ -167,6 +166,7 @@ const AddExpense = ({
                     await transactionService.addExpense(values);
                     await refreshExpenses();
                     await refreshAccounts();
+                    showToast("Expense Added", "info");
                     setSubmitting(false);
                     resetForm();
                 }}

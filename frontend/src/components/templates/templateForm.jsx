@@ -2,8 +2,10 @@ import React from "react";
 import "./templates.scss";
 import { Formik, Form, Field } from "formik";
 import transactionService from "../../services/transactionService/transactionService";
+import { useToast } from "../../context/ToastContext";
 
 const TemplateForm = (props) => {
+    const showToast = useToast();
     return (
         <Formik
             initialValues={{
@@ -19,6 +21,7 @@ const TemplateForm = (props) => {
             onSubmit={async (values, { setSubmitting, resetForm }) => {
                 await transactionService.addTemplate(values);
                 await props.refreshTemplateGroups();
+                showToast(`Transaction Added in The Template`, "info");
                 setSubmitting(false);
                 resetForm();
             }}

@@ -3,6 +3,7 @@ import { Formik, Form, Field } from "formik";
 import transactionService from "../services/transactionService/transactionService";
 import NoDataCard from "./core/nodata";
 import "./accounts.scss";
+import { useToast } from "../context/ToastContext";
 
 const Accounts = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -59,6 +60,7 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
 
 const CreateAccount = ({ refreshAccounts }) => {
     const accountTypes = ["Bank Account", "Investment Account", "Hard Cash"];
+    const showToast = useToast();
     return (
         <div className={"add-account"}>
             <Formik
@@ -71,6 +73,7 @@ const CreateAccount = ({ refreshAccounts }) => {
                 onSubmit={async (values, { setSubmitting, resetForm }) => {
                     await transactionService.addAccount(values);
                     await refreshAccounts();
+                    showToast("Account Created", "success");
                     setSubmitting(false);
                     resetForm();
                 }}
@@ -152,6 +155,7 @@ const AccountsList = ({ accounts, refreshAccounts, setAccounts }) => {
 
 const AccountItem = ({ account, refreshAccounts }) => {
     const accountTypes = ["Bank Account", "Investment Account", "Hard Cash"];
+    const showToast = useToast();
 
     async function deleteAccount() {
         const answer = window.confirm(
@@ -160,6 +164,7 @@ const AccountItem = ({ account, refreshAccounts }) => {
         if (answer) {
             await transactionService.deleteAccount(account.id);
             await refreshAccounts();
+            showToast("Account Deleted", "info");
         }
     }
 

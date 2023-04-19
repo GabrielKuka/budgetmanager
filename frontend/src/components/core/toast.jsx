@@ -5,11 +5,13 @@ const Toast = (props) => {
     const [show, setShow] = useState(false);
 
     useEffect(() => {
-        setShow(true);
-        setTimeout(() => {
-            setShow(false);
-        }, 2000);
-    }, []);
+        if (props.message) {
+            setShow(true);
+            setTimeout(() => {
+                setShow(false);
+            }, 2000);
+        }
+    }, [props.message]);
 
     return (
         <div

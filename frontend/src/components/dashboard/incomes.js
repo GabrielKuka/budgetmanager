@@ -6,6 +6,7 @@ import { Formik, Form, Field } from "formik";
 import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import "./incomes.scss";
 import NoDataCard from "../core/nodata";
+import { useToast } from "../../context/ToastContext";
 
 const Incomes = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -132,6 +133,7 @@ const AddIncome = ({
     refreshIncomes,
     refreshAccounts,
 }) => {
+    const showToast = useToast();
     return (
         <div className={"enter-income"}>
             <Formik
@@ -147,6 +149,7 @@ const AddIncome = ({
                     await transactionService.addIncome(values);
                     await refreshIncomes();
                     await refreshAccounts();
+                    showToast("Income Added", "info");
                     setSubmitting(false);
                     resetForm();
                 }}

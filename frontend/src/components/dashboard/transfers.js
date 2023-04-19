@@ -4,6 +4,7 @@ import transactionService from "../../services/transactionService/transactionSer
 import DatePicker from "react-datepicker";
 import "./transfers.scss";
 import NoDataCard from "../core/nodata";
+import { useToast } from "../../context/ToastContext";
 
 const Transfers = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -66,6 +67,7 @@ const Sidebar = ({ accounts, refreshTransfers, refreshAccounts }) => {
 };
 
 const AddTransfer = ({ accounts, refreshTransfers, refreshAccounts }) => {
+    const showToast = useToast();
     return (
         <div className={"enter-transfer"}>
             <Formik
@@ -81,6 +83,7 @@ const AddTransfer = ({ accounts, refreshTransfers, refreshAccounts }) => {
                     await transactionService.addTransfer(values);
                     await refreshTransfers();
                     await refreshAccounts();
+                    showToast("Transfer Added", "info");
                     resetForm();
                     setSubmitting(false);
                 }}
