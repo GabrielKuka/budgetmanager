@@ -1,0 +1,32 @@
+@import "../../mixins";
+
+div[class^="toast-wrapper"] {
+    position: fixed;
+    width: fit-content;
+    padding: 10px 20px;
+    transform: translateY(30px);
+    left: 43%;
+    border-radius: 5px;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.toast-wrapper-info {
+    background-color: cadetblue;
+    color: white;
+}
+
+.toast-wrapper-success {
+    background-color: green;
+    color: white;
+}
+
+.toast-wrapper-error {
+    background-color: red;
+    color: white;
+}
+
+div[class$="show"] {
+    transform: translateY(70px);
+    opacity: 1;
+}

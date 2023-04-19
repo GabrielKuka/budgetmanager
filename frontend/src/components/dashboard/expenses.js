@@ -6,8 +6,11 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./expenses.scss";
 import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import NoDataCard from "../core/nodata";
+import Toast from "../core/toast";
+import { useToast } from "../../context/ToastContext";
 
 const Expenses = () => {
+    const showToast = useToast();
     const [isLoading, setIsLoading] = useState(true);
     const [categories, setCategories] = useState([]);
     const [accounts, setAccounts] = useState([]);
