@@ -7,6 +7,7 @@ import "./expenses.scss";
 import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
+import { useConfirm } from "../../context/ConfirmContext";
 
 const Expenses = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -151,8 +152,11 @@ const AddExpense = ({
     refreshAccounts,
 }) => {
     const showToast = useToast();
+    const showConfirm = useConfirm();
+
     return (
         <div className={"enter-expense"}>
+            {showConfirm("This is a test dialog.")}
             <Formik
                 initialValues={{
                     amount: "",

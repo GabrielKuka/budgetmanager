@@ -10,10 +10,12 @@ import Navbar from "./components/navbar";
 import GlobalProvider from "./context/GlobalContext";
 import Register from "./components/authentication/register";
 import ToastProvider from "./context/ToastContext";
+import ConfirmProvider from "./context/ConfirmContext";
 
 function App() {
     return (
         <GlobalProvider>
+            <ConfirmProvider>
             <ToastProvider>
                 <Navbar />
                 <Routes>
@@ -28,6 +30,7 @@ function App() {
                     <Route path='*' element={<NotFound />} />
                 </Routes>
             </ToastProvider>
+            </ConfirmProvider>
         </GlobalProvider>
     );
 }

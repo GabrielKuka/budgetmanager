@@ -4,6 +4,7 @@ import transactionService from "../services/transactionService/transactionServic
 import NoDataCard from "./core/nodata";
 import "./accounts.scss";
 import { useToast } from "../context/ToastContext";
+import ConfirmDialog from "./core/confirm";
 
 const Accounts = () => {
     const [isLoading, setIsLoading] = useState(true);
