@@ -1,24 +1,28 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "./confirm.scss";
 
 const ConfirmDialog = (props)=>{
 
-    const [show, setShow] = useState(false)
+    function handleNo(){
+        props.setShow(false)
+    }
 
-    useEffect(()=>{
-        setShow(true)
-    }, [props.message])
+    function handleYes(){
+        props.setShow(false)
+        props.onYes()
+    }
+    
 
     return (
-        <div className={show ? 'confirm-dialog__wrapper show': 'confirm-dialog'}>
+        <div className={props.show ? 'confirm-dialog__wrapper show': 'confirm-dialog'}>
             <div className={'header'}>
                 <img alt="info-icon" src={process.env.PUBLIC_URL+'/info.png'}/>
                 <label>{props.message}</label>
             </div>
             <hr />
             <div className={'action-buttons'}>
-                <button className={'no'} onClick={()=>setShow(false)}>No</button>
-                <button className={'yes'} onClick={()=>setShow(false)}>Yes</button>
+                <button className={'no'} onClick={handleNo}>No</button>
+                <button className={'yes'} onClick={handleYes}>Yes</button>
             </div>
         </div>
     )

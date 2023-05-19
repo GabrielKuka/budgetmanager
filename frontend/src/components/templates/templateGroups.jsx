@@ -3,10 +3,12 @@ import TemplateItem from "./templateItem";
 import transactionService from "../../services/transactionService/transactionService";
 import "./templates.scss";
 import { useToast } from "../../context/ToastContext";
+import { useConfirm } from "../../context/ConfirmContext";
 
 const TemplateGroups = (props) => {
     const [currentTemplateGroup, setCurrentTemplateGroup] = useState(false);
     const showToast = useToast();
+    const showConfirm = useConfirm()
 
     function currentTemplateGroupStyle() {
         // Get the item we're hovering over
@@ -31,13 +33,10 @@ const TemplateGroups = (props) => {
 
     async function deleteTemplateGroup() {
         const tg = currentTemplateGroup;
-        const response = window.confirm(
-            "Are you sure you want to delete this template group?"
-        );
-        if (response) {
+        showConfirm("Are you sure you want to delete this template group", async ()=>{
             await transactionService.deleteTemplateGroup(tg.id);
             await props.refreshTemplateGroups();
-        }
+        })
     }
 
     function areTransactionsValid() {

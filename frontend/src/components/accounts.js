@@ -5,6 +5,7 @@ import NoDataCard from "./core/nodata";
 import "./accounts.scss";
 import { useToast } from "../context/ToastContext";
 import ConfirmDialog from "./core/confirm";
+import { useConfirm } from "../context/ConfirmContext";
 
 const Accounts = () => {
     const [isLoading, setIsLoading] = useState(true);

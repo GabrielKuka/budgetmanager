@@ -152,11 +152,9 @@ const AddExpense = ({
     refreshAccounts,
 }) => {
     const showToast = useToast();
-    const showConfirm = useConfirm();
 
     return (
         <div className={"enter-expense"}>
-            {showConfirm("This is a test dialog.")}
             <Formik
                 initialValues={{
                     amount: "",

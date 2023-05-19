@@ -5,15 +5,28 @@ const ConfirmContext = createContext();
 
 const ConfirmProvider = ({ children }) => {
     const [message, setMessage] = useState("");
+    const [show, setShow] = useState(false);
+    const [action, setAction] = useState(false);
 
-    const showConfirm = (message) => {
+    const showConfirm = (message, callback) => {
+        setShow(true)
         setMessage(message);
+        setAction(()=>callback)    
     };
+
+    function onYes(){
+        if(action){
+            action()
+        } 
+    }
+
 
     return (
         <ConfirmContext.Provider value={showConfirm}>
             {children}
-            <ConfirmDialog message={message}/>
+            {show && 
+                <ConfirmDialog message={message} show={show} onYes={onYes} setShow={setShow}/>
+            }
         </ConfirmContext.Provider>
     );
 };
