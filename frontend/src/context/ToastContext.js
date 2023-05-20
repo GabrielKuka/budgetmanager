@@ -25,7 +25,7 @@ const ToastProvider = ({ children }) => {
     return (
         <ToastContext.Provider value={showToast}>
             {children}
-            {show && <Toast message={message} status={status} />}
+            {show && <Toast message={message} show={show} status={status} />}
         </ToastContext.Provider>
     );
 };
