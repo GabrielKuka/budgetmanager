@@ -1,36 +1,40 @@
 @import "../../mixins";
 
 div[class^="toast-wrapper"] {
-    position: fixed;
-    width: fit-content;
-    padding: 10px 20px;
-    transform: translateY(30px);
-    right: 48%;
-    border-radius: 5px;
-    top:40px;
-    opacity: 1;
-    animation: fadein 0.3s ease-in
+  position: fixed;
+  width: fit-content;
+  padding: 10px 20px;
+  transform: translateY(30px);
+  right: 48%;
+  border-radius: 5px;
+  top: 40px;
+  opacity: 1;
+  animation: fadein 0.3s ease-in;
 }
 
 @keyframes fadein {
-    0% { top: 30px; }
-    50% { top: 40px; }
+  0% {
+    top: 30px;
+  }
+  50% {
+    top: 40px;
+  }
 }
 
 .toast-wrapper-info {
-    box-shadow: 0 2px 4px cadetblue;
-    background-color: cadetblue;
-    color: white;
+  box-shadow: 0 2px 4px cadetblue;
+  background-color: cadetblue;
+  color: white;
 }
 
 .toast-wrapper-success {
-    box-shadow: 0 2px 4px green;
-    background-color: green;
-    color: white;
+  box-shadow: 0 2px 4px green;
+  background-color: green;
+  color: white;
 }
 
 .toast-wrapper-error {
-    box-shadow: 0 2px 4px red;
-    background-color: red;
-    color: white;
+  box-shadow: 0 2px 4px red;
+  background-color: red;
+  color: white;
 }

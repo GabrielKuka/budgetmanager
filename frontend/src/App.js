@@ -13,26 +13,26 @@ import ToastProvider from "./context/ToastContext";
 import ConfirmProvider from "./context/ConfirmContext";
 
 function App() {
-    return (
-        <GlobalProvider>
-            <ConfirmProvider>
-            <ToastProvider>
-                <Navbar />
-                <Routes>
-                    <Route path='/dashboard' element={<Dashboard />} />
-                    <Route path='/templates' element={<Template />} />
-                    <Route path='/' element={<Dashboard />} />
-                    <Route path='/accounts' element={<Accounts />} />
-                    <Route path='/profile' element={<Profile />} />
-                    <Route path='/login' element={<Login />} />
-                    <Route path='/register' element={<Register />} />
-                    <Route path='' element={<Register />} />
-                    <Route path='*' element={<NotFound />} />
-                </Routes>
-            </ToastProvider>
-            </ConfirmProvider>
-        </GlobalProvider>
-    );
+  return (
+    <GlobalProvider>
+      <ConfirmProvider>
+        <ToastProvider>
+          <Navbar />
+          <Routes>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/templates" element={<Template />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/accounts" element={<Accounts />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="" element={<Register />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </ToastProvider>
+      </ConfirmProvider>
+    </GlobalProvider>
+  );
 }
 
 export default App;
