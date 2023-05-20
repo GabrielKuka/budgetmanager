@@ -1,195 +1,189 @@
 @import "../../mixins";
 
 .template-wrapper {
-    margin-top: 80px;
-    margin-left: 20px;
-    @include flex(row, flex-start, flex-start);
+  margin-top: 80px;
+  margin-left: 20px;
+  @include flex(row, flex-start, flex-start);
+  gap: 20px;
+
+  &__sidebar {
+    padding: 20px;
+    width: fit-content;
+    border: 1px solid #dadada;
+    box-shadow: 1px 1px 2px #dadada;
+    border-radius: 1px;
+    @include flex(column, flex-start, flex-start);
     gap: 20px;
 
-    &__sidebar {
-        padding: 20px;
+    .add-template,
+    .add-template_group {
+      padding: 10px;
+      width: fit-content;
+      border: 1px solid #dadada;
+      box-shadow: 1px 1px 8px #dadada;
+      border-radius: 5px;
+      transition: box-shadow 0.3s, border 0.3s;
+
+      .form {
+        @include flex(column, center, flex-start);
+        gap: 10px;
+        input,
+        select {
+          width: 270px;
+        }
+        label {
+          text-transform: uppercase;
+          font-weight: bold;
+          background-color: cadetblue;
+          color: white;
+          padding: 5px;
+          border-radius: 2px;
+          cursor: pointer;
+          transition: padding-left 0.3s;
+        }
+      }
+    }
+
+    .add-template:hover,
+    .add-template_group:hover {
+      border: 1px solid cadetblue;
+      box-shadow: 1px 1px 5px cadetblue;
+      label {
+        padding-left: 15px;
+      }
+    }
+  }
+
+  &__template-groups {
+    position: absolute;
+    border: 1px solid #dadada;
+    box-shadow: 1px 1px 2px #dadada;
+    border-radius: 3px;
+    left: 450px;
+    width: 400px;
+    z-index: 0;
+    @include flex(column, flex-start, center);
+    .header {
+      font-weight: bold;
+      text-transform: uppercase;
+      display: grid;
+      grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+      grid-gap: 10px;
+      width: 300px;
+      padding: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid black;
+      margin-bottom: 10px;
+
+      label {
+        cursor: pointer;
         width: fit-content;
-        border: 1px solid #dadada;
-        box-shadow: 1px 1px 2px #dadada;
-        border-radius: 1px;
+        height: fit-content;
+      }
+
+      label:hover {
+        @include title-decoration($height: 3px, $width: 100%, $bottom: -1px);
+      }
+    }
+    .template-groups {
+      @include flex(column, flex-start, center);
+      gap: 15px;
+      height: calc(100vh - 260px);
+      width: 100%;
+      padding-bottom: 10px;
+      overflow-x: hidden;
+      overflow-y: scroll;
+      z-index: 0;
+
+      /* hide scrollbar */
+      &::-webkit-scrollbar {
+        display: none;
+      }
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+      overflow: -moz-scrollbars-none; /* Firefox */
+
+      .template-group-item {
         @include flex(column, flex-start, flex-start);
-        gap: 20px;
-
-        .add-template,
-        .add-template_group {
-            padding: 10px;
-            width: fit-content;
-            border: 1px solid #dadada;
-            box-shadow: 1px 1px 8px #dadada;
-            border-radius: 5px;
-            transition: box-shadow 0.3s, border 0.3s;
-
-            .form {
-                @include flex(column, center, flex-start);
-                gap: 10px;
-                input,
-                select {
-                    width: 270px;
-                }
-                label {
-                    text-transform: uppercase;
-                    font-weight: bold;
-                    background-color: cadetblue;
-                    color: white;
-                    padding: 5px;
-                    border-radius: 2px;
-                    cursor: pointer;
-                    transition: padding-left 0.3s;
-                }
-            }
-        }
-
-        .add-template:hover,
-        .add-template_group:hover {
-            border: 1px solid cadetblue;
-            box-shadow: 1px 1px 5px cadetblue;
-            label {
-                padding-left: 15px;
-            }
-        }
-    }
-
-    &__template-groups {
-        position: absolute;
         border: 1px solid #dadada;
-        box-shadow: 1px 1px 2px #dadada;
-        border-radius: 3px;
-        left: 450px;
-        width: 400px;
+        box-shadow: 1px 1px 3px #dadada;
+        border-radius: 5px;
+        width: 300px;
+        padding: 20px;
         z-index: 0;
-        @include flex(column, flex-start, center);
-        .header {
+        gap: 10px;
+        transition: border-color 0.3s, padding 0.3s ease-in-out, font-size 0.3s;
+        &__main {
+          @include flex(row, space-between, flex-start);
+          width: 300px;
+          position: relative;
+          label {
+            cursor: pointer;
             font-weight: bold;
-            text-transform: uppercase;
-            display: grid;
-            grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
-            grid-gap: 10px;
-            width: 300px;
-            padding: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid black;
-            margin-bottom: 10px;
-
-            label {
-                cursor: pointer;
-                width: fit-content;
-                height: fit-content;
+          }
+          .buttons {
+            @include flex(row, center, center);
+            margin-left: auto;
+            gap: 5px;
+            button:active {
+              @include bounce-animation;
             }
-
-            label:hover {
-                @include title-decoration(
-                    $height: 3px,
-                    $width: 100%,
-                    $bottom: -1px
-                );
+            .delete-button {
+              cursor: pointer;
+              margin-left: auto;
+              background-color: #ffcccb;
+              font-size: 16px;
+              border-radius: 50%;
+              border: 1px solid #ffcccb;
+              padding: 2px 6px;
+              color: white;
+              outline: none;
+              transition: background-color 0.2s ease;
             }
+            .delete-button:hover {
+              background-color: rgb(208, 65, 65);
+              border: 1px solid rgb(208, 65, 65);
+            }
+            .trigger-button {
+              cursor: pointer;
+              margin-left: auto;
+              background-color: #ececec;
+              font-size: 16px;
+              border-radius: 50%;
+              border: 1px solid #ececec;
+              padding: 1px 3px 2px 7px;
+              color: black;
+              outline: none;
+              transition: color 0.2s ease, background-color 0.2s ease;
+            }
+            .trigger-button:hover {
+              color: white;
+              background-color: cadetblue;
+            }
+          }
         }
-        .template-groups {
-            @include flex(column, flex-start, center);
-            gap: 15px;
-            height: calc(100vh - 260px);
-            width: 100%;
-            padding-bottom: 10px;
-            overflow-x: hidden;
-            overflow-y: scroll;
-            z-index: 0;
-
-            /* hide scrollbar */
-            &::-webkit-scrollbar {
-                display: none;
-            }
-            -ms-overflow-style: none; /* IE and Edge */
-            scrollbar-width: none; /* Firefox */
-            overflow: -moz-scrollbars-none; /* Firefox */
-
-            .template-group-item {
-                @include flex(column, flex-start, flex-start);
-                border: 1px solid #dadada;
-                box-shadow: 1px 1px 3px #dadada;
-                border-radius: 5px;
-                width: 300px;
-                padding: 20px;
-                z-index: 0;
-                gap: 10px;
-                transition: border-color 0.3s, padding 0.3s ease-in-out,
-                    font-size 0.3s;
-                &__main {
-                    @include flex(row, space-between, flex-start);
-                    width: 300px;
-                    position: relative;
-                    label {
-                        cursor: pointer;
-                        font-weight: bold;
-                    }
-                    .buttons {
-                        @include flex(row, center, center);
-                        margin-left: auto;
-                        gap: 5px;
-                        button:active {
-                            @include bounce-animation;
-                        }
-                        .delete-button {
-                            cursor: pointer;
-                            margin-left: auto;
-                            background-color: #ffcccb;
-                            font-size: 16px;
-                            border-radius: 50%;
-                            border: 1px solid #ffcccb;
-                            padding: 2px 6px;
-                            color: white;
-                            outline: none;
-                            transition: background-color 0.2s ease;
-                        }
-                        .delete-button:hover {
-                            background-color: rgb(208, 65, 65);
-                            border: 1px solid rgb(208, 65, 65);
-                        }
-                        .trigger-button {
-                            cursor: pointer;
-                            margin-left: auto;
-                            background-color: #ececec;
-                            font-size: 16px;
-                            border-radius: 50%;
-                            border: 1px solid #ececec;
-                            padding: 1px 3px 2px 7px;
-                            color: black;
-                            outline: none;
-                            transition: color 0.2s ease,
-                                background-color 0.2s ease;
-                        }
-                        .trigger-button:hover {
-                            color: white;
-                            background-color: cadetblue;
-                        }
-                    }
-                }
-                &__created_on {
-                    color: #dadada;
-                    font-size: 12px;
-                }
-                &__created_on:hover {
-                    text-decoration: underline;
-                }
-            }
-
-            .template-group-item:hover {
-                border-color: cadetblue;
-            }
+        &__created_on {
+          color: #dadada;
+          font-size: 12px;
         }
-        .current-template-group {
-            @include flex(column, center, flex-start);
-            gap: 10px;
-            .template-item {
-                padding: 10px;
-                border: 1px solid #dadada;
-                box-shadow: 1px 1px 5px #dadada;
-                border-radius: 3px;
-            }
+        &__created_on:hover {
+          text-decoration: underline;
         }
+      }
+
+      .template-group-item:hover {
+        border-color: cadetblue;
+      }
     }
+    .current-template-group {
+      @include flex(column, center, flex-start);
+      gap: 10px;
+      .template-item {
+        padding: 10px;
+        border: 1px solid #dadada;
+        box-shadow: 1px 1px 5px #dadada;
+        border-radius: 3px;
+      }
+    }
+  }
 }
