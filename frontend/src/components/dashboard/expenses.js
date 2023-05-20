@@ -7,7 +7,6 @@ import "./expenses.scss";
 import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
-import { useConfirm } from "../../context/ConfirmContext";
 
 const Expenses = () => {
   const [isLoading, setIsLoading] = useState(true);
