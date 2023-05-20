@@ -6,16 +6,26 @@ const ToastContext = createContext();
 const ToastProvider = ({ children }) => {
     const [message, setMessage] = useState("");
     const [status, setStatus] = useState("");
+    const [show, setShow] = useState(false)
 
-    const showToast = (message, status) => {
-        setMessage(message);
-        setStatus(status);
+    const showToast = (message, status="info") => {
+        if(!show){
+            setMessage(message);
+            setStatus(status);
+            setShow(true)
+
+            setTimeout(()=>{
+                setShow(false)
+                setStatus("info")
+                setMessage("")
+            },2000)
+        }
     };
 
     return (
         <ToastContext.Provider value={showToast}>
             {children}
-            <Toast message={message} status={status} />
+            {show && <Toast message={message} status={status} />}
         </ToastContext.Provider>
     );
 };
