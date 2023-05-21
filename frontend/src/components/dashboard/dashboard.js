@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useGlobalContext } from "../../context/GlobalContext";
 import { Navigate } from "react-router-dom";
 import "./dashboard.scss";
@@ -8,7 +9,18 @@ import Transfers from "./transfers";
 
 const Dashboard = () => {
   const global = useGlobalContext();
-  const [page, setPage] = useState("expenses");
+  const navigate = useNavigate();
+  const initLocation =
+    window.location.pathname.endsWith("dashboard") ||
+    window.location.pathname.endsWith("dashboard/")
+      ? "expenses"
+      : window.location.pathname.split("/").slice(-1)[0];
+  console.log(window.location.pathname);
+  const [page, setPage] = useState(initLocation);
+
+  useEffect(() => {
+    navigate(`/dashboard/${page}`);
+  }, [page]);
 
   if (!global.authToken) {
     return <Navigate push to="/login" />;
@@ -28,7 +40,9 @@ const Toolbar = ({ page, setPage }) => {
   const buttons = ["incomes", "expenses", "transfers"];
 
   useEffect(() => {
-    document.getElementById(page).style.fontWeight = "bold";
+    if (page) {
+      document.getElementById(page).style.fontWeight = "bold";
+    }
   }, []);
 
   function handlePage(e) {

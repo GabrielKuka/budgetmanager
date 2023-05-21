@@ -117,8 +117,6 @@ const CreateAccount = ({ refreshAccounts }) => {
 };
 
 const AccountsList = ({ accounts, refreshAccounts, setAccounts }) => {
-
-
   function sortByAmount() {
     let sortedAccounts = accounts.sort((a, b) =>
       a.amount <= b.amount ? 1 : -1
@@ -152,15 +150,14 @@ const AccountsList = ({ accounts, refreshAccounts, setAccounts }) => {
 const AccountItem = ({ account, refreshAccounts }) => {
   const accountTypes = ["Bank Account", "Investment Account", "Hard Cash"];
   const showToast = useToast();
-  const showConfirm = useConfirm() 
+  const showConfirm = useConfirm();
 
   async function deleteAccount() {
-    showConfirm(`Delete ${account.name}?`, async()=>{
+    showConfirm(`Delete ${account.name}?`, async () => {
       await transactionService.deleteAccount(account.id);
       await refreshAccounts();
       showToast("Account Deleted", "info");
-
-    })
+    });
   }
 
   return (
