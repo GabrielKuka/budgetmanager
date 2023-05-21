@@ -19,7 +19,7 @@ function App() {
         <ToastProvider>
           <Navbar />
           <Routes>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/templates" element={<Template />} />
             <Route path="/" element={<Dashboard />} />
             <Route path="/accounts" element={<Accounts />} />

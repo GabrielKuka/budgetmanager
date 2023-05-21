@@ -1,9 +1,8 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import { createContext, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const BASE_URL = "http://localhost:8000";
-const accountURL = `${BASE_URL}/accounts`;
 const userURL = `${BASE_URL}/users`;
 
 const GlobalContext = createContext();

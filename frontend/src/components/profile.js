@@ -1,7 +1,7 @@
 import { React, useEffect, useState } from "react";
 import userService from "../services/userService";
 import transactionService from "../services/transactionService/transactionService";
-import {Link} from 'react-router-dom'
+import {Link}  from 'react-router-dom'
 import "./profile.scss";
 
 const Profile = () => {
@@ -78,7 +78,7 @@ const RecentExpenses = (props)=>{
         <div className={'header'}>
           <label className={'main-title'}>Recent Expenses:</label>
 
-          <Link className={'more-link'} to="/dashboard">More Expenses</Link>
+          <Link className={'more-link'} to="/dashboard/expenses">More Expenses</Link>
         </div>
         {props.expenses?.length > 0 &&
           props.expenses.map((expense) => (
