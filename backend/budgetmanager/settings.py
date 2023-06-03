@@ -73,8 +73,6 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": "/home/work/budgetmanagerdb",
-        #"NAME": "/home/work/pCloudDrive/budgetmanagerdb",
-        #"NAME": "https://e.pcloud.link/publink/show?code=XZjNkuZt1YuiAmI71RQiU9yYIdFTmjiIpo7",
     }
 }
 
