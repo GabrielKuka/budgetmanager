@@ -132,7 +132,7 @@ const AddTransfer = ({ accounts, refreshTransfers, refreshAccounts }) => {
 };
 
 const TransfersList = ({ transfers, accounts }) => {
-  const [shownTransfers = transfers, setShownTransfers] = useState();
+  const [shownTransfers = transfers, setShownTransfers] = useState({});
 
   const [dateRange, setDateRange] = useState({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -143,8 +143,8 @@ const TransfersList = ({ transfers, accounts }) => {
   useEffect(filterTransfers, []);
 
   function filterTransfers() {
-    const selectedFromAccount = document.getElementById("from_account").value;
-    const selectedToAccount = document.getElementById("to_account").value;
+    const selectedFromAccount = document.getElementById("from_account")?.value;
+    const selectedToAccount = document.getElementById("to_account")?.value;
 
     const fromDate = dateRange.from;
     const toDate = dateRange.to;

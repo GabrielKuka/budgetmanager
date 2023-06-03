@@ -39,8 +39,8 @@ const Profile = () => {
 
   async function getAccounts() {
     let accounts = await transactionService.getAllUserAccounts();
-    accounts.sort((a,b)=>a.amount>b.amount? -1: 1) 
-    accounts = accounts.slice(0,5)
+    accounts.sort((a, b) => (a.amount > b.amount ? -1 : 1));
+    accounts = accounts.slice(0, 5);
     setAccounts(accounts);
   }
 
