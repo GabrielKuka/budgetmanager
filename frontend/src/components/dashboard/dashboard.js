@@ -12,7 +12,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const initLocation =
     window.location.pathname.endsWith("dashboard") ||
-    window.location.pathname.endsWith("dashboard/")
+    window.location.pathname.endsWith("dashboard/") ||
+    window.location.pathname.endsWith("/")
       ? "expenses"
       : window.location.pathname.split("/").slice(-1)[0];
   console.log(window.location.pathname);
