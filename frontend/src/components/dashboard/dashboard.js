@@ -16,7 +16,6 @@ const Dashboard = () => {
     window.location.pathname.endsWith("/")
       ? "expenses"
       : window.location.pathname.split("/").slice(-1)[0];
-  console.log(window.location.pathname);
   const [page, setPage] = useState(initLocation);
 
   useEffect(() => {

@@ -50,12 +50,58 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
   const total = parseFloat(
     accounts.reduce((t, curr) => (t += parseFloat(curr.amount)), 0)
   ).toFixed(2);
+
+  const investments = parseFloat(
+    accounts.reduce((t, curr) => {
+      if (curr.type == 1) {
+        return t + curr.amount;
+      }
+      return t;
+    }, 0)
+  ).toFixed(2);
+
+  const hardCash = parseFloat(
+    accounts.reduce((t, curr) => {
+      if (curr.type == 2) {
+        return t + curr.amount;
+      }
+      return t;
+    }, 0)
+  ).toFixed(2);
+
+  const bank_assets = parseFloat(
+    accounts.reduce((t, curr) => {
+      if (curr.type == 0) {
+        return t + curr.amount;
+      }
+      return t;
+    }, 0)
+  ).toFixed(2);
+
   return (
     <div className={"accounts-wrapper__sidebar"}>
       <CreateAccount refreshAccounts={refreshAccounts} />
-      <label>
-        Total: <b>{total} €</b>
-      </label>
+      <div className={"accounts-info"}>
+        <div className={"card-label"}>Info</div>
+        <label>
+          <span>Investments: </span>
+          <small>{investments} €</small>
+        </label>
+        <label>
+          <span>Hard cash: </span>
+          <small>{hardCash} €</small>
+        </label>
+        <label>
+          <span>Money in banks: </span>
+          <small>{bank_assets} €</small>
+        </label>
+        <label>
+          <span>
+            <b>TOTAL ASSETS:</b>{" "}
+          </span>
+          <b style={{ "border-bottom": "2px solid #5F9EA0" }}>{total} €</b>
+        </label>
+      </div>
     </div>
   );
 };
@@ -121,7 +167,6 @@ const AccountsList = ({ accounts, refreshAccounts, setAccounts }) => {
     let sortedAccounts = accounts.sort((a, b) =>
       a.amount <= b.amount ? 1 : -1
     );
-    console.log(sortedAccounts);
     setAccounts([...sortedAccounts]);
   }
 

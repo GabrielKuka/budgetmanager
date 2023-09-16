@@ -51,6 +51,49 @@
         padding-left: 15px;
       }
     }
+    .accounts-info {
+      border: 1px solid #dadada;
+      box-shadow: 1px 1px 10px #dadada;
+      border-radius: 3px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+
+      width: 270px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+
+      label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+
+        span {
+          flex: 1;
+          margin-right: 10px;
+        }
+
+      }
+
+      .card-label {
+        background-color: cadetblue;
+        color: white;
+        padding: 5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: padding-left 0.3s;
+        width: fit-content;
+        font-weight: bold;
+      }
+    }
+    .accounts-info:hover {
+      border-color: cadetblue;
+      box-shadow: 1px 1px 5px cadetblue;
+      .card-label {
+        padding-left: 15px;
+      }
+    }
   }
 
   &__accounts-list {
