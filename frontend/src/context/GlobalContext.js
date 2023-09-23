@@ -1,13 +1,14 @@
 import { createContext, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import {BASE_URL, BACKEND_PORT} from "../config";
 import axios from "axios";
-
-const BASE_URL = "http://localhost:8001";
-const userURL = `${BASE_URL}/users`;
 
 const GlobalContext = createContext();
 
 const GlobalProvider = ({ children }) => {
+
+  const userURL = `${BASE_URL}:${BACKEND_PORT}/users`;
+
   const [authToken, setauthToken] = useState(() =>
     localStorage.getItem("authToken")
       ? JSON.parse(localStorage.getItem("authToken"))

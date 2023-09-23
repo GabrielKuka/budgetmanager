@@ -1,6 +1,7 @@
 import axios from "axios";
+import { BASE_URL, BACKEND_PORT } from "../../config";
 
-const BASE_URL = "http://localhost:8001/accounts";
+const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/accounts`;
 
 async function getAllUserAccounts() {
   const token = JSON.parse(localStorage.getItem("authToken"));
@@ -9,7 +10,7 @@ async function getAllUserAccounts() {
       Authorization: token,
     },
   };
-  const response = await axios.get(`${BASE_URL}/all`, config);
+  const response = await axios.get(`${ENDPOINT}/all`, config);
 
   if (response.status === 200) {
     return response.data;
@@ -26,7 +27,7 @@ async function addAccount(payload) {
     },
   };
 
-  const response = await axios.post(`${BASE_URL}/create`, payload, config);
+  const response = await axios.post(`${ENDPOINT}/create`, payload, config);
   if (response.status === 201) {
     return response.data;
   } else {
@@ -41,7 +42,7 @@ async function deleteAccount(payload) {
     },
   };
 
-  const response = await axios.delete(`${BASE_URL}/delete/${payload}`, config);
+  const response = await axios.delete(`${ENDPOINT}/delete/${payload}`, config);
   if (response.status === 200) {
     return response.data;
   } else {

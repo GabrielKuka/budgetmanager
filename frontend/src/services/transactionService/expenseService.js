@@ -1,9 +1,10 @@
 import axios from "axios";
+import { BASE_URL, BACKEND_PORT } from "../../config";
 
-const BASE_URL = "http://localhost:8001/transactions";
+const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
 
 async function getAllExpenseCategories() {
-  const response = await axios.get(`${BASE_URL}/expensecategories`);
+  const response = await axios.get(`${ENDPOINT}/expensecategories`);
 
   if (response.status === 200) {
     return response.data;
@@ -20,7 +21,7 @@ async function getAllUserExpenses() {
     },
   };
 
-  const response = await axios.get(`${BASE_URL}/allexpenses`, config);
+  const response = await axios.get(`${ENDPOINT}/allexpenses`, config);
 
   if (response.status === 200) {
     return response.data;
@@ -37,7 +38,7 @@ async function addExpense(payload) {
     },
   };
 
-  const response = await axios.post(`${BASE_URL}/add`, payload, config);
+  const response = await axios.post(`${ENDPOINT}/add`, payload, config);
   return response.data;
 }
 export default {

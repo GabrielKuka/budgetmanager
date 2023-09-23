@@ -1,9 +1,10 @@
 import axios from "axios";
+import { BASE_URL, BACKEND_PORT } from "../../config";
 
-const BASE_URL = "http://localhost:8001/templates";
+const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/templates`;
 
 async function addTemplate(payload) {
-  const url = `${BASE_URL}/add-template`;
+  const url = `${ENDPOINT}/add-template`;
 
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
@@ -21,7 +22,7 @@ async function addTemplate(payload) {
 }
 
 async function getTemplates() {
-  const url = `${BASE_URL}/get-templates`;
+  const url = `${ENDPOINT}/get-templates`;
 
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {

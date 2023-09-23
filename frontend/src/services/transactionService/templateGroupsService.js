@@ -1,9 +1,10 @@
 import axios from "axios";
+import { BASE_URL, BACKEND_PORT } from "../../config";
 
-const BASE_URL = "http://localhost:8001/templates";
+const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/templates`;
 
 async function addTemplateGroup(payload) {
-  const url = `${BASE_URL}/add-template-group`;
+  const url = `${ENDPOINT}/add-template-group`;
 
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
@@ -21,7 +22,7 @@ async function addTemplateGroup(payload) {
 }
 
 async function deleteTemplateGroup(id) {
-  const url = `${BASE_URL}/delete-template-group/${id}`;
+  const url = `${ENDPOINT}/delete-template-group/${id}`;
 
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
@@ -39,7 +40,7 @@ async function deleteTemplateGroup(id) {
 }
 
 async function getTemplateGroups() {
-  const url = `${BASE_URL}/get-template-groups`;
+  const url = `${ENDPOINT}/get-template-groups`;
 
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {

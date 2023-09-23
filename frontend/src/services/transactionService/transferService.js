@@ -1,6 +1,7 @@
 import axios from "axios";
+import {BASE_URL, BACKEND_PORT} from "../../config"
 
-const BASE_URL = "http://localhost:8001/transactions";
+const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
 
 async function getAllUserTransfers() {
   const token = JSON.parse(localStorage.getItem("authToken"));
@@ -10,7 +11,7 @@ async function getAllUserTransfers() {
     },
   };
 
-  const response = await axios.get(`${BASE_URL}/alltransfers`, config);
+  const response = await axios.get(`${ENDPOINT}/alltransfers`, config);
 
   if (response.status === 200) {
     return response.data;
@@ -27,7 +28,7 @@ async function addTransfer(payload) {
     },
   };
 
-  const response = await axios.post(`${BASE_URL}/add`, payload, config);
+  const response = await axios.post(`${ENDPOINT}/add`, payload, config);
   return response.data;
 }
 

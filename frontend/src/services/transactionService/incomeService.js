@@ -1,9 +1,10 @@
 import axios from "axios";
+import { BASE_URL, BACKEND_PORT } from "../../config";
 
-const BASE_URL = "http://localhost:8001/transactions";
+const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
 
 async function getAllIncomeCategories() {
-  const response = await axios.get(`${BASE_URL}/incomecategories`);
+  const response = await axios.get(`${ENDPOINT}/incomecategories`);
 
   return response.data;
 }
@@ -14,7 +15,7 @@ async function getAllUserIncomes() {
       Authorization: token,
     },
   };
-  const response = await axios.get(`${BASE_URL}/allincomes`, config);
+  const response = await axios.get(`${ENDPOINT}/allincomes`, config);
   return response.data;
 }
 
@@ -26,7 +27,7 @@ async function addIncome(payload) {
     },
   };
 
-  const response = await axios.post(`${BASE_URL}/add`, payload, config);
+  const response = await axios.post(`${ENDPOINT}/add`, payload, config);
   return response.data;
 }
 

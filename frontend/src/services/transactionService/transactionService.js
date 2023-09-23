@@ -4,8 +4,9 @@ import accountService from "./accountService";
 import expenseService from "./expenseService";
 import incomeService from "./incomeService";
 import transferService from "./transferService";
+import { BASE_URL, BACKEND_PORT } from "../../config";
 
-const BASE_URL = "http://localhost:8001";
+const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}`;
 
 // Templates
 async function addTemplate(payload) {
