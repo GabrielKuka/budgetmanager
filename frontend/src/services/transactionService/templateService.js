@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8000/templates";
+const BASE_URL = "http://localhost:8001/templates";
 
 async function addTemplate(payload) {
   const url = `${BASE_URL}/add-template`;

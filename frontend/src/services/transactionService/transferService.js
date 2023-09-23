@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8000/transactions";
+const BASE_URL = "http://localhost:8001/transactions";
 
 async function getAllUserTransfers() {
   const token = JSON.parse(localStorage.getItem("authToken"));

@@ -1,5 +1,4 @@
 from pathlib import Path
-from dotenv import dotenv_values
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -72,7 +71,7 @@ WSGI_APPLICATION = "budgetmanager.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "/home/work/budgetmanagerdb",
+        "NAME": "../budgetdb/budgetmanagerdb",
     }
 }
 

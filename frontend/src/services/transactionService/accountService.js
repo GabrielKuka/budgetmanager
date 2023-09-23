@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8000/accounts";
+const BASE_URL = "http://localhost:8001/accounts";
 
 async function getAllUserAccounts() {
   const token = JSON.parse(localStorage.getItem("authToken"));

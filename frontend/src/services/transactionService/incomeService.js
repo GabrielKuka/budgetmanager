@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8000/transactions";
+const BASE_URL = "http://localhost:8001/transactions";
 
 async function getAllIncomeCategories() {
   const response = await axios.get(`${BASE_URL}/incomecategories`);

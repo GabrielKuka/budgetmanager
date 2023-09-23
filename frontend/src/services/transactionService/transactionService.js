@@ -5,7 +5,7 @@ import expenseService from "./expenseService";
 import incomeService from "./incomeService";
 import transferService from "./transferService";
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = "http://localhost:8001";
 
 // Templates
 async function addTemplate(payload) {

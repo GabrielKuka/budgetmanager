@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: budget_manager_backend
+    restart: always
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./budgetdb:/app/budgetdb
+    networks:
+      - budget_network
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: budget_manager_frontend
+    restart: always
+    ports:
+      - "3001:3001"
+    networks:
+      - budget_network
+
+
+volumes:
+  budgetdb:
+
+networks:
+  budget_network:
+    driver: bridge
