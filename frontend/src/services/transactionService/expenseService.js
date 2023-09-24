@@ -41,8 +41,11 @@ async function addExpense(payload) {
   const response = await axios.post(`${ENDPOINT}/add`, payload, config);
   return response.data;
 }
-export default {
+
+const expenseService = {
   addExpense,
   getAllExpenseCategories,
   getAllUserExpenses,
-};
+}
+
+export default expenseService; 

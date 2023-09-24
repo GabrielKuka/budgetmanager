@@ -14,7 +14,7 @@ async function addTemplate(payload) {
   };
 
   const response = await axios.post(url, payload, config);
-  if (response.status == 201) {
+  if (response.status === 201) {
     return response.data;
   } else {
     alert("Error adding template");
@@ -32,11 +32,15 @@ async function getTemplates() {
   };
 
   const response = await axios.get(url, config);
-  if (response.status == 200) {
+  if (response.status === 200) {
     return response.data;
   } else {
     alert("Error getting templates");
   }
 }
 
-export default { addTemplate, getTemplates };
+const templateService = {
+  addTemplate, getTemplates
+}
+
+export default templateService;

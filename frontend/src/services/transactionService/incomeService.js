@@ -31,8 +31,10 @@ async function addIncome(payload) {
   return response.data;
 }
 
-export default {
+const incomeService = {
   addIncome,
   getAllIncomeCategories,
   getAllUserIncomes,
-};
+}
+
+export default incomeService;

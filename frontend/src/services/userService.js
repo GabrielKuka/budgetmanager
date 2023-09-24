@@ -20,4 +20,8 @@ async function getUserData() {
   }
 }
 
-export default { getUserData };
+const userService = {
+  getUserData
+}
+
+export default userService;

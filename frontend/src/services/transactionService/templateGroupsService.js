@@ -14,7 +14,7 @@ async function addTemplateGroup(payload) {
   };
 
   const response = await axios.post(url, payload, config);
-  if (response.status == 201) {
+  if (response.status === 201) {
     return response.data;
   } else {
     alert("Error adding template");
@@ -32,7 +32,7 @@ async function deleteTemplateGroup(id) {
   };
 
   const response = await axios.delete(url, config);
-  if (response.status == 200) {
+  if (response.status === 200) {
     return response.data;
   } else {
     alert("Error deleting template");
@@ -50,15 +50,17 @@ async function getTemplateGroups() {
   };
 
   const response = await axios.get(url, config);
-  if (response.status == 200) {
+  if (response.status === 200) {
     return response.data;
   } else {
     alert("Error adding template group");
   }
 }
 
-export default {
+const templateGroupService = {
   addTemplateGroup,
   deleteTemplateGroup,
   getTemplateGroups,
-};
+}
+
+export default templateGroupService;

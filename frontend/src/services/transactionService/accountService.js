@@ -50,8 +50,10 @@ async function deleteAccount(payload) {
   }
 }
 
-export default {
+const accountService = {
   deleteAccount,
   getAllUserAccounts,
   addAccount,
-};
+}
+
+export default accountService;

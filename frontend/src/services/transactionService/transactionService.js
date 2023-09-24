@@ -4,9 +4,6 @@ import accountService from "./accountService";
 import expenseService from "./expenseService";
 import incomeService from "./incomeService";
 import transferService from "./transferService";
-import { BASE_URL, BACKEND_PORT } from "../../config";
-
-const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}`;
 
 // Templates
 async function addTemplate(payload) {
@@ -78,7 +75,7 @@ async function addTransfer(payload) {
   return await transferService.addTransfer(payload);
 }
 
-export default {
+const transactionService = {
   getAllIncomeCategories,
   getAllExpenseCategories,
   getAllUserAccounts,
@@ -94,5 +91,7 @@ export default {
   addTemplateGroup,
   addTemplate,
   getTemplates,
-  deleteTemplateGroup,
-};
+  deleteTemplateGroup
+}
+
+export default transactionService;

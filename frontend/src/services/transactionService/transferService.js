@@ -32,7 +32,9 @@ async function addTransfer(payload) {
   return response.data;
 }
 
-export default {
+const transferService = {
   getAllUserTransfers,
-  addTransfer,
-};
+  addTransfer
+}
+
+export default transferService;

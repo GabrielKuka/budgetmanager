@@ -25,7 +25,7 @@ const GlobalProvider = ({ children }) => {
     const response = await axios.post(`${userURL}/token`, credentials);
 
     const data = response.data;
-    if (response.status == 200) {
+    if (response.status === 200) {
       const localUser = {
         token: data.token,
         data: await getUser(data.token),
