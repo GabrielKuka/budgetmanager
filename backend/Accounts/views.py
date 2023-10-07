@@ -56,5 +56,5 @@ def get_all_accounts(request):
     accounts = Account.objects.filter(user=user_id)
 
     serializer = AccountSerializer(accounts, many=True)
-
+    
     return Response(serializer.data, status=status.HTTP_200_OK)

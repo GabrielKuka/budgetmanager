@@ -7,6 +7,7 @@ import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import "./incomes.scss";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
+import { helper } from "../helper";
 
 const Incomes = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -333,6 +334,15 @@ const IncomeItem = ({ income, accounts, categories }) => {
     return diffInHrs <= 5;
   }
 
+  function getAccountCurrency(id){
+    const account = accounts.filter((a)=>a.id === id);
+    if(account?.length === 1){
+      return account[0].currency
+    }
+
+    return "Not Found"
+  }
+
   return (
     <div className="income-item">
       {isRecent(income.created_on) && (
@@ -341,7 +351,7 @@ const IncomeItem = ({ income, accounts, categories }) => {
       <label id="date">{income.date}</label>
       <label id="description">{income.description}</label>
       <label id="account">{getAccountName(income.account)}</label>
-      <label id="amount">{parseFloat(income.amount).toFixed(2)} €</label>
+      <label id="amount">{parseFloat(income.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(income.account))}</label>
       <label id="category">{getIncomeCategory(income.income_category)}</label>
     </div>
   );

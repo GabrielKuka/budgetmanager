@@ -6,6 +6,7 @@ import "./accounts.scss";
 import { useToast } from "../context/ToastContext";
 import ConfirmDialog from "./core/confirm";
 import { useConfirm } from "../context/ConfirmContext";
+import { helper } from "./helper";
 
 const Accounts = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -204,14 +205,14 @@ const AccountItem = ({ account, refreshAccounts }) => {
       showToast("Account Deleted", "info");
     });
   }
-
+  
   return (
     <div className="account-item">
       <label id="date">
         {new Date(account.created_on).toISOString().slice(0, 10)}
       </label>
       <label id="name">{account.name}</label>
-      <label id="amount">{parseFloat(account.amount).toFixed(2)} €</label>
+      <label id="amount">{parseFloat(account.amount).toFixed(2)} {helper.getCurrency(account.currency)}</label>
       <label id="type">{accountTypes[account.type]}</label>
       <button onClick={deleteAccount}>X</button>
     </div>

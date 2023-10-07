@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "./transfers.scss";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
+import { helper } from "../helper";
 
 const Transfers = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -268,6 +269,16 @@ const TransferItem = ({ transfer, accounts }) => {
     const diffInHrs = diffInMs / (1000 * 60 * 60);
     return diffInHrs <= 5;
   }
+
+  function getAccountCurrency(id){
+    const account = accounts.filter((a)=>a.id === id);
+    if(account?.length === 1){
+      return account[0].currency
+    }
+
+    return "Not Found"
+  }
+
   return (
     <div className="transfer-item">
       {isRecent(transfer.created_on) && (
@@ -277,7 +288,7 @@ const TransferItem = ({ transfer, accounts }) => {
       <label id="description">{transfer.description}</label>
       <label id="from_account">{getAccountName(transfer.from_account)}</label>
       <label id="to_account">{getAccountName(transfer.to_account)}</label>
-      <label id="amount">{parseFloat(transfer.amount).toFixed(2)} €</label>
+      <label id="amount">{parseFloat(transfer.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(transfer.from_account))}</label>
     </div>
   );
 };
