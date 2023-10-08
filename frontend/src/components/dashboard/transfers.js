@@ -28,12 +28,23 @@ const Transfers = () => {
     setTransfers(transfers);
   }
 
+  function getAccountCurrency(id){
+    const account = accounts.filter((a)=>a.id === id);
+    if(account?.length === 1){
+      return account[0].currency
+    }
+
+    return "Not Found"
+  }
+
+
   return (
     <div className={"transfers-wrapper"}>
       <Sidebar
         accounts={accounts}
         refreshTransfers={getTransfers}
         refreshAccounts={getAccounts}
+        getAccountCurrency={getAccountCurrency}
       />
       {!isLoading && (
         <>
@@ -44,7 +55,7 @@ const Transfers = () => {
               focusOn={"date"}
             />
           ) : (
-            <TransfersList transfers={transfers} accounts={accounts} />
+            <TransfersList transfers={transfers} accounts={accounts} getAccountCurrency={getAccountCurrency}/>
           )}
         </>
       )}
@@ -52,19 +63,20 @@ const Transfers = () => {
   );
 };
 
-const Sidebar = ({ accounts, refreshTransfers, refreshAccounts }) => {
+const Sidebar = ({ accounts, refreshTransfers, refreshAccounts, getAccountCurrency }) => {
   return (
     <div className={"transfers-wrapper__sidebar"}>
       <AddTransfer
         accounts={accounts}
         refreshTransfers={refreshTransfers}
         refreshAccounts={refreshAccounts}
+        getAccountCurrency={getAccountCurrency}
       />
     </div>
   );
 };
 
-const AddTransfer = ({ accounts, refreshTransfers, refreshAccounts }) => {
+const AddTransfer = ({ accounts, refreshTransfers, refreshAccounts, getAccountCurrency }) => {
   const showToast = useToast();
   return (
     <div className={"enter-transfer"}>
@@ -96,10 +108,9 @@ const AddTransfer = ({ accounts, refreshTransfers, refreshAccounts }) => {
               <option value="" disabled hidden>
                 From account
               </option>
-              {accounts &&
-                accounts.map((a) => (
+              {accounts?.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)} €
+                    {a.name} {parseFloat(a.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(a.id))}
                   </option>
                 ))}
             </Field>
@@ -107,17 +118,16 @@ const AddTransfer = ({ accounts, refreshTransfers, refreshAccounts }) => {
               <option value="" disabled hidden>
                 To account
               </option>
-              {accounts &&
-                accounts.map((a) => (
+              {accounts?.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)} €
+                    {a.name} {parseFloat(a.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(a.id))}
                   </option>
                 ))}
             </Field>
             <Field
               type="text"
               name="amount"
-              placeholder="Enter amount in EUR."
+              placeholder="Enter amount"
             />
             <Field
               type="text"
@@ -132,7 +142,7 @@ const AddTransfer = ({ accounts, refreshTransfers, refreshAccounts }) => {
   );
 };
 
-const TransfersList = ({ transfers, accounts }) => {
+const TransfersList = ({ transfers, accounts, getAccountCurrency }) => {
   const [shownTransfers = transfers, setShownTransfers] = useState({});
 
   const [dateRange, setDateRange] = useState({
@@ -246,6 +256,7 @@ const TransfersList = ({ transfers, accounts }) => {
               key={transfer.id}
               transfer={transfer}
               accounts={accounts}
+              currency={helper.getCurrency(getAccountCurrency(transfer.from_account))}
             />
           ))}
       </div>
@@ -253,7 +264,7 @@ const TransfersList = ({ transfers, accounts }) => {
   );
 };
 
-const TransferItem = ({ transfer, accounts }) => {
+const TransferItem = ({ transfer, accounts, currency }) => {
   function getAccountName(id) {
     const account = accounts.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -270,15 +281,6 @@ const TransferItem = ({ transfer, accounts }) => {
     return diffInHrs <= 5;
   }
 
-  function getAccountCurrency(id){
-    const account = accounts.filter((a)=>a.id === id);
-    if(account?.length === 1){
-      return account[0].currency
-    }
-
-    return "Not Found"
-  }
-
   return (
     <div className="transfer-item">
       {isRecent(transfer.created_on) && (
@@ -288,7 +290,7 @@ const TransferItem = ({ transfer, accounts }) => {
       <label id="description">{transfer.description}</label>
       <label id="from_account">{getAccountName(transfer.from_account)}</label>
       <label id="to_account">{getAccountName(transfer.to_account)}</label>
-      <label id="amount">{parseFloat(transfer.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(transfer.from_account))}</label>
+      <label id="amount">{parseFloat(transfer.amount).toFixed(2)} {currency}</label>
     </div>
   );
 };
