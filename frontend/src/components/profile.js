@@ -98,6 +98,15 @@ const Profile = () => {
 };
 
 const Sidebar = (props) => {
+
+  function getAccountCurrency(id){
+    const account = props.accounts?.filter((a)=>a.id === id);
+    if(account?.length === 1){
+      return account[0].currency
+    }
+
+    return "Not Found"
+  }
   return (
     <div className={"profile-wrapper__sidebar"}>
       <div className={"user-data"}>
@@ -126,7 +135,7 @@ const Sidebar = (props) => {
               <div key={a.id} className={"account-item"}>
                 <label className={"name"}>{a.name}</label>
                 <label className={"amount"}>
-                  {parseFloat(a.amount).toFixed(2)} €
+                  {parseFloat(a.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(a.id))}
                 </label>
               </div>
             ))}
