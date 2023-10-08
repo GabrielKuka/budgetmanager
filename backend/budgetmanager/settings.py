@@ -71,7 +71,7 @@ WSGI_APPLICATION = "budgetmanager.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "../budgetdb/budgetmanagerdb_test",
+        "NAME": "../budgetdb/budgetmanagerdb",
     }
 }
 
