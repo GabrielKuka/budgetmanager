@@ -43,6 +43,16 @@ const Incomes = () => {
     setIncomes(incomes);
   }
 
+  function getAccountCurrency(id){
+    const account = accounts.filter((a)=>a.id === id);
+    if(account?.length === 1){
+      return account[0].currency
+    }
+
+    return "Not Found"
+  }
+
+
   return (
     <div className={"incomes-wrapper"}>
       <Sidebar
@@ -52,6 +62,7 @@ const Incomes = () => {
         refreshAccounts={getAccounts}
         shownIncomes={shownIncomes}
         dateRange={dateRange}
+        getAccountCurrency={getAccountCurrency}
       />
       {!isLoading && (
         <>
@@ -70,6 +81,7 @@ const Incomes = () => {
               accounts={accounts}
               dateRange={dateRange}
               setDateRange={setDateRange}
+              getAccountCurrency={getAccountCurrency}
             />
           )}
         </>
@@ -103,6 +115,7 @@ const Sidebar = (props) => {
         categories={props.categories}
         refreshIncomes={props.refreshIncomes}
         refreshAccounts={props.refreshAccounts}
+        getAccountCurrency={props.getAccountCurrency}
       />
       <label>Fix the chart!</label>
       {
@@ -138,6 +151,7 @@ const AddIncome = ({
   categories,
   refreshIncomes,
   refreshAccounts,
+  getAccountCurrency
 }) => {
   const showToast = useToast();
   return (
@@ -170,17 +184,16 @@ const AddIncome = ({
               <option value="" disabled hidden>
                 Select account
               </option>
-              {accounts &&
-                accounts.map((a) => (
+              {accounts?.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)} €
+                    {a.name} {parseFloat(a.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(a.id))}
                   </option>
                 ))}
             </Field>
             <Field
               type="text"
               name="amount"
-              placeholder="Enter amount in EUR."
+              placeholder="Enter amount"
             />
             <Field
               type="text"
@@ -191,8 +204,7 @@ const AddIncome = ({
               <option value="" disabled hidden>
                 Income category
               </option>
-              {categories &&
-                categories.map((c) => (
+              {categories?.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.category_type}
                   </option>
@@ -291,8 +303,7 @@ const IncomesList = (props) => {
           <label>Category:</label>
           <select id="category" defaultValue="-1" onChange={filterIncomes}>
             <option value="-1">All</option>
-            {props.categories &&
-              props.categories.map((c) => (
+            {props.categories?.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.category_type}
                 </option>
@@ -308,6 +319,7 @@ const IncomesList = (props) => {
               income={income}
               accounts={props.accounts}
               categories={props.categories}
+              currency={helper.getCurrency(props.getAccountCurrency(income.account))}
             />
           ))}
       </div>
@@ -315,7 +327,7 @@ const IncomesList = (props) => {
   );
 };
 
-const IncomeItem = ({ income, accounts, categories }) => {
+const IncomeItem = ({ income, accounts, categories, currency }) => {
   function getAccountName(id) {
     const account = accounts.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -339,15 +351,6 @@ const IncomeItem = ({ income, accounts, categories }) => {
     return diffInHrs <= 5;
   }
 
-  function getAccountCurrency(id){
-    const account = accounts.filter((a)=>a.id === id);
-    if(account?.length === 1){
-      return account[0].currency
-    }
-
-    return "Not Found"
-  }
-
   return (
     <div className="income-item">
       {isRecent(income.created_on) && (
@@ -356,7 +359,7 @@ const IncomeItem = ({ income, accounts, categories }) => {
       <label id="date">{income.date}</label>
       <label id="description">{income.description}</label>
       <label id="account">{getAccountName(income.account)}</label>
-      <label id="amount">{parseFloat(income.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(income.account))}</label>
+      <label id="amount">{parseFloat(income.amount).toFixed(2)} {currency}</label>
       <label id="category">{getIncomeCategory(income.income_category)}</label>
     </div>
   );
