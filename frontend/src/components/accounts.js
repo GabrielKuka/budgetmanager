@@ -84,6 +84,9 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
       <CreateAccount refreshAccounts={refreshAccounts} />
       <div className={"accounts-info"}>
         <div className={"card-label"}>Info</div>
+        <label>Fix this!</label>
+        {
+          /*
         <label>
           <span>Investments: </span>
           <small>{investments} €</small>
@@ -102,6 +105,9 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
           </span>
           <b style={{ "border-bottom": "2px solid #5F9EA0" }}>{total} €</b>
         </label>
+          
+          */
+        }
       </div>
     </div>
   );

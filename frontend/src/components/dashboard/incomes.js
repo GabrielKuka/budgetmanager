@@ -104,7 +104,12 @@ const Sidebar = (props) => {
         refreshIncomes={props.refreshIncomes}
         refreshAccounts={props.refreshAccounts}
       />
-      <Chart data={getIncomesPerCategory()} />
+      <label>Fix the chart!</label>
+      {
+        /*
+        <Chart data={getIncomesPerCategory()} />
+        */
+      }
     </div>
   );
 };

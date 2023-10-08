@@ -118,11 +118,21 @@ const Sidebar = (props) => {
         refreshAccounts={props.refreshAccounts}
       />
       <div className={"summary"}>
-        Total money spent: <b>{getTotal()}€</b> from{" "}
-        {props.dateRange.from.toDateString()} to{" "}
-        {props.dateRange.to.toDateString()}.
+        <label>Total money spent: Fix this!</label>
+        {
+          /* 
+          Total money spent: <b>{getTotal()}€</b> from{" "}
+          {props.dateRange.from.toDateString()} to{" "}
+          {props.dateRange.to.toDateString()}.
+          */
+        }          
       </div>
-      <Chart data={getExpensesPerCategory()} />
+      <label>Fix the chart!</label>
+      {
+        /*
+        <Chart data={getExpensesPerCategory()} />
+        */
+      }
     </div>
   );
 };
