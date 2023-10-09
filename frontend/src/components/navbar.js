@@ -86,7 +86,7 @@ const CurrencyConverter = () => {
           const amount = values.amount;
 
           const result = await convert(from, to, amount);
-          setResult(result.data.result);
+          setResult(result);
         }}
       >
         {() => (
@@ -98,8 +98,7 @@ const CurrencyConverter = () => {
               placeholder="Enter amount value"
             />
             <Field as="select" name="from_currency">
-              {currencies &&
-                currencies.map((c) => (
+              {currencies?.map((c) => (
                   <option value={c} key={c}>
                     {c}
                   </option>
@@ -107,8 +106,7 @@ const CurrencyConverter = () => {
             </Field>
             <label>--&gt;</label>
             <Field as="select" name="to_currency">
-              {currencies &&
-                currencies.map((c) => (
+              {currencies?.map((c) => (
                   <option value={c} key={c}>
                     {c}
                   </option>

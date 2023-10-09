@@ -1,13 +1,15 @@
 import axios from "axios";
+import { CURRENCY_API_KEY, CURRENCY_BASE_URL } from "../config";
 
-const BASE_URL = "https://api.exchangerate.host";
 
 async function convert(from, to, amount) {
-  const response = axios.get(
-    `${BASE_URL}/convert?from=${from}&to=${to}&amount=${amount}`
-  );
+  const response = await axios.get(
+    `${CURRENCY_BASE_URL}?apikey=${CURRENCY_API_KEY}&base_currency=${from}`
+  )
 
-  return response;
+  const result = parseFloat(response.data.data[to]*amount).toFixed(2)
+
+  return result;
 }
 
 export default convert;
