@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('Templates', '0007_rename_templategroup_template_template_group'),
+        ("Templates", "0007_rename_templategroup_template_template_group"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='template',
-            name='date',
+            model_name="template",
+            name="date",
         ),
     ]

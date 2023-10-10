@@ -1,14 +1,9 @@
 from rest_framework import serializers
 
-from .models import (
-    ExpenseCategory,
-    IncomeCategory,
-    Income,
-    Expense,
-    Transfer,
-)
-from Users.serializers import UserSerializer
 from Users.models import User
+from Users.serializers import UserSerializer
+
+from .models import Expense, ExpenseCategory, Income, IncomeCategory, Transfer
 
 
 class IncomeSerializer(serializers.ModelSerializer):

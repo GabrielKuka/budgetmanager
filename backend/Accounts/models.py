@@ -1,9 +1,8 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
 
 
 class Account(models.Model):
-
     account_types = [
         (0, "Bank Account"),
         (1, "Investment Account"),

@@ -1,30 +1,23 @@
 from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
 from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
+from Accounts.models import Account
+from Users.models import User
+
+from .models import Expense, ExpenseCategory, Income, IncomeCategory, Transfer
 from .serializers import (
     ExpenseCategorySerializer,
-    IncomeCategorySerializer,
     ExpenseSerializer,
+    IncomeCategorySerializer,
     IncomeSerializer,
     TransferSerializer,
 )
 
-from .models import (
-    ExpenseCategory,
-    IncomeCategory,
-    Expense,
-    Transfer,
-    Income,
-)
-from Users.models import User
-from Accounts.models import Account
-
 
 @api_view(["POST"])
 def add_transaction(request):
-
     # Retrieve Token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
@@ -37,7 +30,6 @@ def add_transaction(request):
     try:
         # If it's a transfer
         if p["type"] == 2:
-
             p["to_account_id"] = int(p.pop("to_account"))
             p["from_account_id"] = int(p.pop("from_account"))
 
@@ -52,7 +44,6 @@ def add_transaction(request):
             p.pop("type")
             Transfer(**p).save()
         elif p["type"] == 1:  # This is an expense
-
             p["account_id"] = int(p.pop("account"))
             p["expense_category_id"] = int(p.pop("expense_category"))
 
@@ -64,7 +55,6 @@ def add_transaction(request):
             p.pop("type")
             Expense(**p).save()
         elif p["type"] == 0:  # This is an income
-
             p["account_id"] = int(p.pop("account"))
             p["income_category_id"] = int(p.pop("income_category"))
 
@@ -88,7 +78,6 @@ def add_transaction(request):
 
 @api_view(["GET"])
 def get_all_transactions(request):
-
     # Retrieve Token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
@@ -98,7 +87,6 @@ def get_all_transactions(request):
 
 @api_view(["GET"])
 def get_income_categories(request):
-
     categories = IncomeCategory.objects.all()
     serializer = IncomeCategorySerializer(categories, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -106,7 +94,6 @@ def get_income_categories(request):
 
 @api_view(["GET"])
 def get_expense_categories(request):
-
     categories = ExpenseCategory.objects.all()
     serializer = ExpenseCategorySerializer(categories, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -114,7 +101,6 @@ def get_expense_categories(request):
 
 @api_view(["GET"])
 def get_all_expenses(request):
-
     # Retrieve Token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
@@ -128,7 +114,6 @@ def get_all_expenses(request):
 
 @api_view(["GET"])
 def get_all_incomes(request):
-
     # Retrieve Token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
@@ -142,7 +127,6 @@ def get_all_incomes(request):
 
 @api_view(["GET"])
 def get_all_transfers(request):
-
     # Retrieve Token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id

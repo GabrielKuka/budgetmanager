@@ -1,24 +1,23 @@
-from Users.serializers import UserSerializer, AuthTokenSerializer
+from rest_framework import authentication, generics, permissions, status
+from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework import generics, authentication, permissions
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from rest_framework.authtoken.models import Token
+from Users.serializers import AuthTokenSerializer, UserSerializer
 
 from .models import User
 from .serializers import UserSerializer
 
-@api_view(['GET'])
-def get_user_data(request):
 
+@api_view(["GET"])
+def get_user_data(request):
     # Retrieve Token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
-    user = User.objects.get(id=user_id) 
+    user = User.objects.get(id=user_id)
 
     serializer = UserSerializer(user)
 

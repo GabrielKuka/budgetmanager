@@ -3,7 +3,7 @@ import { useGlobalContext } from "../context/GlobalContext";
 import { useNavigate } from "react-router-dom";
 import "./navbar.scss";
 import { Formik, Form, Field } from "formik";
-import convert from "../services/currencyService";
+import currencyService from "../services/currencyService";
 
 const Navbar = () => {
   const global = useGlobalContext();
@@ -85,7 +85,7 @@ const CurrencyConverter = () => {
           const to = values.to_currency;
           const amount = values.amount;
 
-          const result = await convert(from, to, amount);
+          const result = await currencyService.convert(from, to, amount);
           setResult(result);
         }}
       >

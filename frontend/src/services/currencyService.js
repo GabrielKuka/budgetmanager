@@ -1,15 +1,70 @@
 import axios from "axios";
-import { CURRENCY_API_KEY, CURRENCY_BASE_URL } from "../config";
+import {BASE_URL, BACKEND_PORT} from "../config";
 
 
-async function convert(from, to, amount) {
-  const response = await axios.get(
-    `${CURRENCY_BASE_URL}?apikey=${CURRENCY_API_KEY}&base_currency=${from}`
-  )
+const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/currencies`
 
-  const result = parseFloat(response.data.data[to]*amount).toFixed(2)
+async function convert(from, to, amount){
+  if(from === to){
+    return amount
+  }
 
-  return result;
+  const response = await axios.get(`${ENDPOINT}/convert/${from}/${to}/${amount}`)
+
+  const result = response.data.conversion_result
+
+  return result
+
 }
 
-export default convert;
+async function convertInvestments(currency){
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.get(`${ENDPOINT}/convert_on_type/${currency}/1`, config)
+
+  return response.data
+
+}
+
+async function convertCash(currency){
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.get(`${ENDPOINT}/convert_on_type/${currency}/2`, config)
+
+  return response.data
+
+}
+
+async function convertBankAssets(currency){
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.get(`${ENDPOINT}/convert_on_type/${currency}/0`, config)
+
+  return response.data
+
+}
+
+
+const currencyService = {
+  convert,
+  convertInvestments,
+  convertCash,
+  convertBankAssets 
+}
+
+export default currencyService;

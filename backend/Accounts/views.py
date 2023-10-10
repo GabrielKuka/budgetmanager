@@ -1,7 +1,7 @@
 from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
 from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from .models import Account
 from .serialzers import AccountSerializer
@@ -9,7 +9,6 @@ from .serialzers import AccountSerializer
 
 @api_view(["POST"])
 def create_account(request):
-
     # Retrieve user token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
@@ -48,7 +47,6 @@ def delete_account(request, id):
 
 @api_view(["GET"])
 def get_all_accounts(request):
-
     # Retrieve user token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
@@ -56,5 +54,5 @@ def get_all_accounts(request):
     accounts = Account.objects.filter(user=user_id)
 
     serializer = AccountSerializer(accounts, many=True)
-    
+
     return Response(serializer.data, status=status.HTTP_200_OK)

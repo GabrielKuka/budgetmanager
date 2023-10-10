@@ -1,5 +1,6 @@
-from .models import Template, TemplateGroup
 from rest_framework import serializers
+
+from .models import Template, TemplateGroup
 
 
 class TemplateSerializer(serializers.ModelSerializer):
@@ -16,4 +17,4 @@ class TemplateGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TemplateGroup
-        fields = ('id', 'name', 'created_on', 'user', 'template_group')
+        fields = ("id", "name", "created_on", "user", "template_group")

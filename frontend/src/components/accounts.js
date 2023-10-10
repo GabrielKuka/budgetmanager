@@ -4,9 +4,9 @@ import transactionService from "../services/transactionService/transactionServic
 import NoDataCard from "./core/nodata";
 import "./accounts.scss";
 import { useToast } from "../context/ToastContext";
-import ConfirmDialog from "./core/confirm";
 import { useConfirm } from "../context/ConfirmContext";
 import { helper } from "./helper";
+import currencyService from "../services/currencyService"
 
 const Accounts = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -48,65 +48,68 @@ const Accounts = () => {
 };
 
 const Sidebar = ({ accounts, refreshAccounts }) => {
-  const total = parseFloat(
-    accounts.reduce((t, curr) => (t += parseFloat(curr.amount)), 0)
-  ).toFixed(2);
 
-  const investments = parseFloat(
-    accounts.reduce((t, curr) => {
-      if (curr.type == 1) {
-        return t + curr.amount;
-      }
-      return t;
-    }, 0)
-  ).toFixed(2);
+  const [investments, setInvestments] = useState("Calculating")
+  const [bankAssets, setBankAssets] = useState("Calculating")
+  const [cash, setCash] = useState("Calculating")
+  const [networth, setNetworth] = useState("")
 
-  const hardCash = parseFloat(
-    accounts.reduce((t, curr) => {
-      if (curr.type == 2) {
-        return t + curr.amount;
-      }
-      return t;
-    }, 0)
-  ).toFixed(2);
+  useEffect(()=>{
+    if(investments != "Calculating" && bankAssets != "Calculating" && cash != "Calculating"){
+      const c = parseFloat(cash)
+      const b = parseFloat(bankAssets)
+      const i = parseFloat(investments)
 
-  const bank_assets = parseFloat(
-    accounts.reduce((t, curr) => {
-      if (curr.type == 0) {
-        return t + curr.amount;
-      }
-      return t;
-    }, 0)
-  ).toFixed(2);
+      let total = parseFloat(c+b+i).toFixed(2)
+      setNetworth(total)
+    }
+  },[investments, cash, bankAssets])
+
+  useEffect(()=>{
+    async function convertInvestments(){
+      const response = await currencyService.convertInvestments("EUR")
+      setInvestments(parseFloat(response.amount).toFixed(2))
+    }
+    async function convertCash(){
+      const response = await currencyService.convertCash("EUR")
+      setCash(parseFloat(response.amount).toFixed(2))
+    }
+
+    async function convertBankAssets(){
+      const response = await currencyService.convertBankAssets("EUR")
+      setBankAssets(parseFloat(response.amount).toFixed(2))
+    }
+
+    convertInvestments()
+    convertCash()
+    convertBankAssets()
+  },[])
 
   return (
     <div className={"accounts-wrapper__sidebar"}>
       <CreateAccount refreshAccounts={refreshAccounts} />
       <div className={"accounts-info"}>
         <div className={"card-label"}>Info</div>
-        <label>Fix this!</label>
-        {
-          /*
         <label>
           <span>Investments: </span>
           <small>{investments} €</small>
         </label>
         <label>
           <span>Hard cash: </span>
-          <small>{hardCash} €</small>
+          <small>{cash} €</small>
         </label>
         <label>
           <span>Money in banks: </span>
-          <small>{bank_assets} €</small>
+          <small>{bankAssets} €</small>
         </label>
-        <label>
-          <span>
-            <b>TOTAL ASSETS:</b>{" "}
-          </span>
-          <b style={{ "border-bottom": "2px solid #5F9EA0" }}>{total} €</b>
-        </label>
-          
-          */
+        {investments != "" && bankAssets != "" && cash != "" && (
+          <label>
+            <span>
+              <b>TOTAL ASSETS:</b>{" "}
+            </span>
+            <b style={{ "borderBottom": "2px solid #5F9EA0" }}>{networth} €</b>
+          </label>
+        )
         }
       </div>
     </div>

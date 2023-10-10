@@ -1,15 +1,14 @@
 from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
 from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from .models import Template, TemplateGroup
-from .serialzers import TemplateSerializer, TemplateGroupSerializer
+from .serialzers import TemplateGroupSerializer, TemplateSerializer
 
 
 @api_view(["GET"])
 def get_template_groups(request):
-
     # Retrieve Token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
@@ -23,7 +22,6 @@ def get_template_groups(request):
 
 @api_view(["POST"])
 def add_template_group(request):
-
     # Retrieve Token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
@@ -46,7 +44,6 @@ def add_template_group(request):
 
 @api_view(["DELETE"])
 def delete_template_group(request, id):
-
     # Retrieve user token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
@@ -65,7 +62,6 @@ def delete_template_group(request, id):
 
 @api_view(["POST"])
 def add_template(request):
-
     # Retrieve user token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
@@ -128,7 +124,6 @@ def update_template(request):
 
 @api_view(["GET"])
 def get_templates(request):
-
     # Retrieve Token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
