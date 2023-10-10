@@ -49,47 +49,59 @@ const Accounts = () => {
 
 const Sidebar = ({ accounts, refreshAccounts }) => {
 
-  const [investments, setInvestments] = useState("Calculating")
-  const [bankAssets, setBankAssets] = useState("Calculating")
-  const [cash, setCash] = useState("Calculating")
-  const [networth, setNetworth] = useState("")
+  //const [investments, setInvestments] = useState("Calculating")
+  //const [bankAssets, setBankAssets] = useState("Calculating")
+  //const [cash, setCash] = useState("Calculating")
+  //const [networth, setNetworth] = useState("")
 
-  useEffect(()=>{
-    if(investments != "Calculating" && bankAssets != "Calculating" && cash != "Calculating"){
-      const c = parseFloat(cash)
-      const b = parseFloat(bankAssets)
-      const i = parseFloat(investments)
+  //useEffect(()=>{
+  //  if(investments != "Calculating" && bankAssets != "Calculating" && cash != "Calculating"){
+  //    const c = parseFloat(cash)
+  //    const b = parseFloat(bankAssets)
+  //    const i = parseFloat(investments)
 
-      let total = parseFloat(c+b+i).toFixed(2)
-      setNetworth(total)
+  //    let total = parseFloat(c+b+i).toFixed(2)
+  //    setNetworth(total)
+  //  }
+  //},[investments, cash, bankAssets])
+
+  //useEffect(()=>{
+  //  // Uncomment below lines when the currency conversion API is dealt with
+  //  async function convertInvestments(){
+  //    const response = await currencyService.convertInvestments("EUR")
+  //    setInvestments(parseFloat(response.amount).toFixed(2))
+  //  }
+  //  async function convertCash(){
+  //    const response = await currencyService.convertCash("EUR")
+  //    setCash(parseFloat(response.amount).toFixed(2))
+  //  }
+
+  //  async function convertBankAssets(){
+  //    const response = await currencyService.convertBankAssets("EUR")
+  //    setBankAssets(parseFloat(response.amount).toFixed(2))
+  //  }
+
+  //  convertInvestments()
+  //  convertCash()
+  //  convertBankAssets()
+  //},[])
+
+  function getAccountCurrency(id){
+    const account = accounts.filter((a)=>a.id === id);
+    if(account?.length === 1){
+      return account[0].currency
     }
-  },[investments, cash, bankAssets])
 
-  useEffect(()=>{
-    async function convertInvestments(){
-      const response = await currencyService.convertInvestments("EUR")
-      setInvestments(parseFloat(response.amount).toFixed(2))
-    }
-    async function convertCash(){
-      const response = await currencyService.convertCash("EUR")
-      setCash(parseFloat(response.amount).toFixed(2))
-    }
-
-    async function convertBankAssets(){
-      const response = await currencyService.convertBankAssets("EUR")
-      setBankAssets(parseFloat(response.amount).toFixed(2))
-    }
-
-    convertInvestments()
-    convertCash()
-    convertBankAssets()
-  },[])
+    return "Not Found"
+  }
 
   return (
     <div className={"accounts-wrapper__sidebar"}>
       <CreateAccount refreshAccounts={refreshAccounts} />
       <div className={"accounts-info"}>
         <div className={"card-label"}>Info</div>
+        <label>Fix this</label>
+        { /*
         <label>
           <span>Investments: </span>
           <small>{investments} €</small>
@@ -102,14 +114,14 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
           <span>Money in banks: </span>
           <small>{bankAssets} €</small>
         </label>
-        {investments != "" && bankAssets != "" && cash != "" && (
+        investments != "" && bankAssets != "" && cash != "" && (
           <label>
             <span>
               <b>TOTAL ASSETS:</b>{" "}
             </span>
             <b style={{ "borderBottom": "2px solid #5F9EA0" }}>{networth} €</b>
           </label>
-        )
+        ) */
         }
       </div>
     </div>
