@@ -48,42 +48,64 @@ const Accounts = () => {
 };
 
 const Sidebar = ({ accounts, refreshAccounts }) => {
-  //const [investments, setInvestments] = useState("Calculating")
-  //const [bankAssets, setBankAssets] = useState("Calculating")
-  //const [cash, setCash] = useState("Calculating")
-  //const [networth, setNetworth] = useState("")
+  const [investments, setInvestments] = useState("");
+  const [bankAssets, setBankAssets] = useState("");
+  const [cash, setCash] = useState("");
+  const [networth, setNetworth] = useState("");
 
-  //useEffect(()=>{
-  //  if(investments != "Calculating" && bankAssets != "Calculating" && cash != "Calculating"){
-  //    const c = parseFloat(cash)
-  //    const b = parseFloat(bankAssets)
-  //    const i = parseFloat(investments)
+  useEffect(() => {
+    if (investments != "" && bankAssets != "" && cash != "") {
+      const c = parseFloat(cash);
+      const b = parseFloat(bankAssets);
+      const i = parseFloat(investments);
 
-  //    let total = parseFloat(c+b+i).toFixed(2)
-  //    setNetworth(total)
-  //  }
-  //},[investments, cash, bankAssets])
+      let total = parseFloat(c + b + i).toFixed(2);
+      setNetworth(total);
+    }
+  }, [investments, cash, bankAssets]);
 
-  //useEffect(()=>{
-  //  // Uncomment below lines when the currency conversion API is dealt with
-  //  async function convertInvestments(){
-  //    const response = await currencyService.convertInvestments("EUR")
-  //    setInvestments(parseFloat(response.amount).toFixed(2))
-  //  }
-  //  async function convertCash(){
-  //    const response = await currencyService.convertCash("EUR")
-  //    setCash(parseFloat(response.amount).toFixed(2))
-  //  }
+  useEffect(() => {
+    async function convertInvestments() {
+      let promises = accounts.map(async (a) => {
+        if (a.type == 1) {
+          return await currencyService.convert(a.currency, "EUR", a.amount);
+        }
+        return 0;
+      });
 
-  //  async function convertBankAssets(){
-  //    const response = await currencyService.convertBankAssets("EUR")
-  //    setBankAssets(parseFloat(response.amount).toFixed(2))
-  //  }
+      let results = await Promise.all(promises);
+      let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
+      setInvestments(total.toFixed(2));
+    }
+    async function convertCash() {
+      let promises = accounts.map(async (a) => {
+        if (a.type == 2) {
+          return await currencyService.convert(a.currency, "EUR", a.amount);
+        }
+        return 0; // or return a default value if a.type is not 1
+      });
 
-  //  convertInvestments()
-  //  convertCash()
-  //  convertBankAssets()
-  //},[])
+      let results = await Promise.all(promises);
+      let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
+      setCash(total.toFixed(2));
+    }
+    async function convertBankAssets() {
+      let promises = accounts.map(async (a) => {
+        if (a.type == 0) {
+          return await currencyService.convert(a.currency, "EUR", a.amount);
+        }
+        return 0; // or return a default value if a.type is not 1
+      });
+
+      let results = await Promise.all(promises);
+      let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
+      setBankAssets(total.toFixed(2));
+    }
+
+    convertInvestments();
+    convertCash();
+    convertBankAssets();
+  }, [accounts]);
 
   function getAccountCurrency(id) {
     const account = accounts.filter((a) => a.id === id);
@@ -98,9 +120,7 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
     <div className={"accounts-wrapper__sidebar"}>
       <CreateAccount refreshAccounts={refreshAccounts} />
       <div className={"accounts-info"}>
-        <div className={"card-label"}>Info</div>
-        <label>Fix this</label>
-        {/*
+        <div className={"card-label"}>Summary</div>
         <label>
           <span>Investments: </span>
           <small>{investments} €</small>
@@ -113,14 +133,12 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
           <span>Money in banks: </span>
           <small>{bankAssets} €</small>
         </label>
-        investments != "" && bankAssets != "" && cash != "" && (
-          <label>
-            <span>
-              <b>TOTAL ASSETS:</b>{" "}
-            </span>
-            <b style={{ "borderBottom": "2px solid #5F9EA0" }}>{networth} €</b>
-          </label>
-        ) */}
+        <label>
+          <span>
+            <b>TOTAL ASSETS:</b>{" "}
+          </span>
+          <b style={{ borderBottom: "2px solid #5F9EA0" }}>{networth} €</b>
+        </label>
       </div>
     </div>
   );

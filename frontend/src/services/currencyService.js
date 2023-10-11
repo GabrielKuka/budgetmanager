@@ -10,7 +10,8 @@ const ENDPOINT = `${CURRENCY_BASE_URL}/latest.json?app_id=${CURRENCY_API_KEY}`;
 
 async function convert(from, to, amount) {
   if (from === to) {
-    return amount;
+    console.log(amount);
+    return parseFloat(amount).toFixed(2);
   }
 
   // Check if rates are stored in cookies
@@ -24,7 +25,7 @@ async function convert(from, to, amount) {
       const fromUSDrate = rates[from];
       const toUSDamount = amount / fromUSDrate;
       const toAmount = toUSDamount * rates[to];
-
+      console.log(parseFloat(toAmount).toFixed(2));
       return parseFloat(toAmount).toFixed(2);
     }
   }
