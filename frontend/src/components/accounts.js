@@ -6,7 +6,7 @@ import "./accounts.scss";
 import { useToast } from "../context/ToastContext";
 import { useConfirm } from "../context/ConfirmContext";
 import { helper } from "./helper";
-import currencyService from "../services/currencyService"
+import currencyService from "../services/currencyService";
 
 const Accounts = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +48,6 @@ const Accounts = () => {
 };
 
 const Sidebar = ({ accounts, refreshAccounts }) => {
-
   //const [investments, setInvestments] = useState("Calculating")
   //const [bankAssets, setBankAssets] = useState("Calculating")
   //const [cash, setCash] = useState("Calculating")
@@ -86,13 +85,13 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
   //  convertBankAssets()
   //},[])
 
-  function getAccountCurrency(id){
-    const account = accounts.filter((a)=>a.id === id);
-    if(account?.length === 1){
-      return account[0].currency
+  function getAccountCurrency(id) {
+    const account = accounts.filter((a) => a.id === id);
+    if (account?.length === 1) {
+      return account[0].currency;
     }
 
-    return "Not Found"
+    return "Not Found";
   }
 
   return (
@@ -101,7 +100,7 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
       <div className={"accounts-info"}>
         <div className={"card-label"}>Info</div>
         <label>Fix this</label>
-        { /*
+        {/*
         <label>
           <span>Investments: </span>
           <small>{investments} €</small>
@@ -121,8 +120,7 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
             </span>
             <b style={{ "borderBottom": "2px solid #5F9EA0" }}>{networth} €</b>
           </label>
-        ) */
-        }
+        ) */}
       </div>
     </div>
   );
@@ -185,24 +183,69 @@ const CreateAccount = ({ refreshAccounts }) => {
 };
 
 const AccountsList = ({ accounts, refreshAccounts, setAccounts }) => {
-  function sortByAmount() {
-    let sortedAccounts = accounts.sort((a, b) =>
-      a.amount <= b.amount ? 1 : -1
-    );
-    setAccounts([...sortedAccounts]);
+  const [showEmptyAccounts, setShowEmptyAccounts] = useState(false);
+  const [shownAccounts, setShownAccounts] = useState(accounts);
+
+  useEffect(() => {
+    filterAccounts();
+  }, [showEmptyAccounts]);
+
+  function sortShownAccounts(by) {
+    let sortedAccounts = shownAccounts;
+    switch (by) {
+      case "name":
+        sortedAccounts = shownAccounts.sort((a, b) =>
+          a.name >= b.name ? 1 : -1
+        );
+        break;
+      case "type":
+        sortedAccounts = shownAccounts.sort((a, b) =>
+          a.type >= b.type ? 1 : -1
+        );
+        break;
+      case "amount":
+        sortedAccounts = shownAccounts.sort((a, b) =>
+          a.amount <= b.amount ? 1 : -1
+        );
+        break;
+    }
+    setShownAccounts([...sortedAccounts]);
+  }
+
+  function filterAccounts() {
+    let filtered_accounts = accounts;
+    if (!showEmptyAccounts) {
+      filtered_accounts = accounts.filter((a) => a.amount != 0);
+    }
+
+    setShownAccounts(filtered_accounts);
+  }
+
+  function handleEmptyAccounts() {
+    setShowEmptyAccounts(!showEmptyAccounts);
   }
 
   return (
     <div className={"accounts-wrapper__accounts-list"}>
+      <div className={"extra_filters"}>
+        <label className={"empty_accounts_checkbox"}>
+          <input
+            type="checkbox"
+            checked={showEmptyAccounts}
+            onChange={handleEmptyAccounts}
+          />
+          <span>Empty Accounts</span>
+        </label>
+      </div>
       <div className={"header"}>
         <label>Date</label>
-        <label>Name</label>
-        <label onClick={sortByAmount}>Amount</label>
-        <label>Type</label>
+        <label onClick={() => sortShownAccounts("name")}>Name</label>
+        <label onClick={() => sortShownAccounts("amount")}>Amount</label>
+        <label onClick={() => sortShownAccounts("type")}>Type</label>
       </div>
       <div className={"accounts"}>
-        {accounts?.length > 0 &&
-          accounts.map((account) => (
+        {shownAccounts?.length > 0 &&
+          shownAccounts.map((account) => (
             <AccountItem
               key={account.id}
               account={account}
@@ -226,14 +269,17 @@ const AccountItem = ({ account, refreshAccounts }) => {
       showToast("Account Deleted", "info");
     });
   }
-  
+
   return (
     <div className="account-item">
       <label id="date">
         {new Date(account.created_on).toISOString().slice(0, 10)}
       </label>
       <label id="name">{account.name}</label>
-      <label id="amount">{parseFloat(account.amount).toFixed(2)} {helper.getCurrency(account.currency)}</label>
+      <label id="amount">
+        {parseFloat(account.amount).toFixed(2)}{" "}
+        {helper.getCurrency(account.currency)}
+      </label>
       <label id="type">{accountTypes[account.type]}</label>
       <button onClick={deleteAccount}>X</button>
     </div>
