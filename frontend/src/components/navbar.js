@@ -99,18 +99,18 @@ const CurrencyConverter = () => {
             />
             <Field as="select" name="from_currency">
               {currencies?.map((c) => (
-                  <option value={c} key={c}>
-                    {c}
-                  </option>
-                ))}
+                <option value={c} key={c}>
+                  {c}
+                </option>
+              ))}
             </Field>
             <label>--&gt;</label>
             <Field as="select" name="to_currency">
               {currencies?.map((c) => (
-                  <option value={c} key={c}>
-                    {c}
-                  </option>
-                ))}
+                <option value={c} key={c}>
+                  {c}
+                </option>
+              ))}
             </Field>
             <button type="submit">Convert</button>
             <label>{result}</label>
