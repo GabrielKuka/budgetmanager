@@ -8,6 +8,7 @@ import "./incomes.scss";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
 import { helper } from "../helper";
+import currencyService from "../../services/currencyService";
 
 const Incomes = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -43,15 +44,14 @@ const Incomes = () => {
     setIncomes(incomes);
   }
 
-  function getAccountCurrency(id){
-    const account = accounts.filter((a)=>a.id === id);
-    if(account?.length === 1){
-      return account[0].currency
+  function getAccountCurrency(id) {
+    const account = accounts.filter((a) => a.id === id);
+    if (account?.length === 1) {
+      return account[0].currency;
     }
 
-    return "Not Found"
+    return "Not Found";
   }
-
 
   return (
     <div className={"incomes-wrapper"}>
@@ -91,22 +91,35 @@ const Incomes = () => {
 };
 
 const Sidebar = (props) => {
-  function getIncomesPerCategory() {
-    const data = [];
+  const [incomesPerCategory, setIncomesPerCategory] = useState("");
 
-    props.categories.forEach((c) => {
-      let result = props.shownIncomes
-        .filter((e) => e.income_category == c.id)
-        .reduce((t, obj) => (t += parseFloat(obj.amount)), 0)
-        .toFixed(2);
-      data.push({
-        category: c.category_type,
-        amount: result,
-      });
-    });
+  useEffect(() => {
+    async function getIncomesPerCategory() {
+      const data = [];
+      for (const c of props.categories) {
+        let promises = props.shownIncomes
+          .filter((e) => e.income_category == c.id)
+          .map(async (e) => {
+            return await currencyService.convert(
+              props.getAccountCurrency(e.account),
+              "EUR",
+              e.amount
+            );
+          });
 
-    return data;
-  }
+        const results = await Promise.all(promises);
+        const total = results.reduce((t, curr) => (t += parseFloat(curr)), 0);
+        data.push({
+          category: c.category_type,
+          amount: parseFloat(total).toFixed(2),
+        });
+      }
+
+      setIncomesPerCategory(data);
+    }
+
+    getIncomesPerCategory();
+  }, [props.shownIncomes]);
 
   return (
     <div className={"incomes-wrapper__sidebar"}>
@@ -117,18 +130,20 @@ const Sidebar = (props) => {
         refreshAccounts={props.refreshAccounts}
         getAccountCurrency={props.getAccountCurrency}
       />
-      <label>Fix the chart!</label>
-      {
-        /*
-        <Chart data={getIncomesPerCategory()} />
-        */
-      }
+      <Chart data={incomesPerCategory} />
     </div>
   );
 };
 
 const Chart = (props) => {
-  const yMaxValue = Math.max(...props.data.map((o) => o.amount));
+  const [yMaxValue, setYMaxValue] = useState({});
+
+  useEffect(() => {
+    if (props.data) {
+      setYMaxValue(Math.max(...props.data.map((o) => o.amount)));
+    }
+  }, [props.data]);
+
   return (
     <BarChart
       className={"bar-chart"}
@@ -151,7 +166,7 @@ const AddIncome = ({
   categories,
   refreshIncomes,
   refreshAccounts,
-  getAccountCurrency
+  getAccountCurrency,
 }) => {
   const showToast = useToast();
   return (
@@ -185,16 +200,13 @@ const AddIncome = ({
                 Select account
               </option>
               {accounts?.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(a.id))}
-                  </option>
-                ))}
+                <option key={a.id} value={a.id}>
+                  {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
+                  {helper.getCurrency(getAccountCurrency(a.id))}
+                </option>
+              ))}
             </Field>
-            <Field
-              type="text"
-              name="amount"
-              placeholder="Enter amount"
-            />
+            <Field type="text" name="amount" placeholder="Enter amount" />
             <Field
               type="text"
               name="description"
@@ -205,10 +217,10 @@ const AddIncome = ({
                 Income category
               </option>
               {categories?.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.category_type}
-                  </option>
-                ))}
+                <option key={c.id} value={c.id}>
+                  {c.category_type}
+                </option>
+              ))}
             </Field>
             <button type="submit">Submit</button>
           </Form>
@@ -304,10 +316,10 @@ const IncomesList = (props) => {
           <select id="category" defaultValue="-1" onChange={filterIncomes}>
             <option value="-1">All</option>
             {props.categories?.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.category_type}
-                </option>
-              ))}
+              <option key={c.id} value={c.id}>
+                {c.category_type}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -319,7 +331,9 @@ const IncomesList = (props) => {
               income={income}
               accounts={props.accounts}
               categories={props.categories}
-              currency={helper.getCurrency(props.getAccountCurrency(income.account))}
+              currency={helper.getCurrency(
+                props.getAccountCurrency(income.account)
+              )}
             />
           ))}
       </div>
@@ -359,7 +373,9 @@ const IncomeItem = ({ income, accounts, categories, currency }) => {
       <label id="date">{income.date}</label>
       <label id="description">{income.description}</label>
       <label id="account">{getAccountName(income.account)}</label>
-      <label id="amount">{parseFloat(income.amount).toFixed(2)} {currency}</label>
+      <label id="amount">
+        {parseFloat(income.amount).toFixed(2)} {currency}
+      </label>
       <label id="category">{getIncomeCategory(income.income_category)}</label>
     </div>
   );

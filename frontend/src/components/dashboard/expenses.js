@@ -8,9 +8,7 @@ import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
 import { helper } from "../helper";
-import axios from "axios";
-
-
+import currencyService from "../../services/currencyService";
 
 const Expenses = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -48,13 +46,13 @@ const Expenses = () => {
     setExpenses(expenses);
   }
 
-  function getAccountCurrency(id){
-    const account = accounts.filter((a)=>a.id === id);
-    if(account?.length === 1){
-      return account[0].currency
+  function getAccountCurrency(id) {
+    const account = accounts.filter((a) => a.id === id);
+    if (account?.length === 1) {
+      return account[0].currency;
     }
 
-    return "Not Found"
+    return "Not Found";
   }
 
   return (
@@ -96,31 +94,52 @@ const Expenses = () => {
 };
 
 const Sidebar = (props) => {
-  function getExpensesPerCategory() {
-    const data = [];
+  const [totalShownExpenses, setTotalShownExpenses] = useState(0);
+  const [expensesPerCategory, setExpensesPerCategory] = useState("");
 
-    props.categories.forEach((c) => {
-      let result = props.shownExpenses
-        .filter((e) => e.expense_category == c.id)
-        .reduce((t, obj) => (t += parseFloat(obj.amount)), 0)
-        .toFixed(2);
-      data.push({
-        category: c.category_type,
-        amount: result,
+  useEffect(() => {
+    async function getTotal() {
+      let promises = props.shownExpenses.map(async (e) => {
+        return await currencyService.convert(
+          props.getAccountCurrency(e.account),
+          "EUR",
+          e.amount
+        );
       });
-    });
 
-    return data;
-  }
+      const results = await Promise.all(promises);
+      let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
 
-  function getTotal() {
-    const total = props.shownExpenses
-      .reduce((t, obj) => (t += parseFloat(obj.amount)), 0)
-      .toFixed(2);
+      setTotalShownExpenses(total);
+    }
 
-    return total;
-  }
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+    async function getExpensesPerCategory() {
+      const data = [];
+      for (const c of props.categories) {
+        let promises = props.shownExpenses
+          .filter((e) => e.expense_category == c.id)
+          .map(async (e) => {
+            return await currencyService.convert(
+              props.getAccountCurrency(e.account),
+              "EUR",
+              e.amount
+            );
+          });
+
+        const results = await Promise.all(promises);
+        const total = results.reduce((t, curr) => (t += parseFloat(curr)), 0);
+        data.push({
+          category: c.category_type,
+          amount: parseFloat(total).toFixed(2),
+        });
+      }
+
+      setExpensesPerCategory(data);
+    }
+
+    getExpensesPerCategory();
+    getTotal();
+  }, [props.shownExpenses]);
 
   return (
     <div className={"expenses-wrapper__sidebar"}>
@@ -132,27 +151,24 @@ const Sidebar = (props) => {
         getAccountCurrency={props.getAccountCurrency}
       />
       <div className={"summary"}>
-        <label>Total money spent: Fix this!</label>
-        {
-          /* 
-          Total money spent: <b>{getTotal()}€</b> from{" "}
-          {props.dateRange.from.toDateString()} to{" "}
-          {props.dateRange.to.toDateString()}.
-          */
-        }          
+        Total money spent: <b>{totalShownExpenses}€</b> from{" "}
+        {props.dateRange.from.toDateString()} to{" "}
+        {props.dateRange.to.toDateString()}.
       </div>
-      <label>Fix the chart!</label>
-      {
-        /*
-        <Chart data={getExpensesPerCategory()} />
-        */
-      }
+      <Chart data={expensesPerCategory} />
     </div>
   );
 };
 
 const Chart = (props) => {
-  const yMaxValue = Math.max(...props.data.map((o) => o.amount));
+  const [yMaxValue, setYMaxValue] = useState({});
+
+  useEffect(() => {
+    if (props.data) {
+      setYMaxValue(Math.max(...props.data.map((o) => o.amount)));
+    }
+  }, [props.data]);
+
   return (
     <BarChart
       className={"bar-chart"}
@@ -175,7 +191,7 @@ const AddExpense = ({
   categories,
   refreshExpenses,
   refreshAccounts,
-  getAccountCurrency
+  getAccountCurrency,
 }) => {
   const showToast = useToast();
 
@@ -210,16 +226,13 @@ const AddExpense = ({
                 Select account
               </option>
               {accounts?.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(a.id))}
-                  </option>
-                ))}
+                <option key={a.id} value={a.id}>
+                  {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
+                  {helper.getCurrency(getAccountCurrency(a.id))}
+                </option>
+              ))}
             </Field>
-            <Field
-              type="text"
-              name="amount"
-              placeholder="Enter amount"
-            />
+            <Field type="text" name="amount" placeholder="Enter amount" />
             <Field
               type="text"
               name="description"
@@ -230,10 +243,10 @@ const AddExpense = ({
                 Expense category
               </option>
               {categories?.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.category_type}
-                  </option>
-                ))}
+                <option key={c.id} value={c.id}>
+                  {c.category_type}
+                </option>
+              ))}
             </Field>
             <button type="submit">Submit</button>
           </Form>
@@ -329,10 +342,10 @@ const ExpensesList = (props) => {
           <select id="category" defaultValue="-1" onChange={filterExpenses}>
             <option value="-1">All</option>
             {props.categories?.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.category_type}
-                </option>
-              ))}
+              <option key={c.id} value={c.id}>
+                {c.category_type}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -344,7 +357,9 @@ const ExpensesList = (props) => {
               expense={expense}
               accounts={props.accounts}
               categories={props.categories}
-              currency={helper.getCurrency(props.getAccountCurrency(expense.account))}
+              currency={helper.getCurrency(
+                props.getAccountCurrency(expense.account)
+              )}
             />
           ))}
       </div>
@@ -385,7 +400,9 @@ const ExpenseItem = ({ expense, accounts, categories, currency }) => {
       <label id="date">{expense.date}</label>
       <label id="description">{expense.description}</label>
       <label id="account">{getAccountName(expense.account)}</label>
-      <label id="amount">{parseFloat(expense.amount).toFixed(2)} {currency}</label>
+      <label id="amount">
+        {parseFloat(expense.amount).toFixed(2)} {currency}
+      </label>
       <label id="category">
         {getExpenseCategory(expense.expense_category)}
       </label>
