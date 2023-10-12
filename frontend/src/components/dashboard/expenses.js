@@ -110,7 +110,7 @@ const Sidebar = (props) => {
       const results = await Promise.all(promises);
       let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
 
-      setTotalShownExpenses(total);
+      setTotalShownExpenses(parseFloat(total).toFixed(2));
     }
 
     async function getExpensesPerCategory() {
