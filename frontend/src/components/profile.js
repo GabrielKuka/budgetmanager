@@ -26,6 +26,8 @@ const Profile = () => {
     getIncomes();
     getExpenses();
     getTransfers();
+
+    console.log(accounts);
   }, []);
 
   async function getExpenseCategories() {
@@ -40,8 +42,6 @@ const Profile = () => {
 
   async function getAccounts() {
     let accounts = await transactionService.getAllUserAccounts();
-    accounts.sort((a, b) => (a.amount > b.amount ? -1 : 1));
-    accounts = accounts.slice(0, 5);
     setAccounts(accounts);
   }
 
@@ -98,14 +98,13 @@ const Profile = () => {
 };
 
 const Sidebar = (props) => {
-
-  function getAccountCurrency(id){
-    const account = props.accounts?.filter((a)=>a.id === id);
-    if(account?.length === 1){
-      return account[0].currency
+  function getAccountCurrency(id) {
+    const account = props.accounts?.filter((a) => a.id === id);
+    if (account?.length === 1) {
+      return account[0].currency;
     }
 
-    return "Not Found"
+    return "Not Found";
   }
   return (
     <div className={"profile-wrapper__sidebar"}>
@@ -131,14 +130,18 @@ const Sidebar = (props) => {
         </div>
         <div className={"accounts-list"}>
           {props.accounts?.length > 0 &&
-            props.accounts.map((a) => (
-              <div key={a.id} className={"account-item"}>
-                <label className={"name"}>{a.name}</label>
-                <label className={"amount"}>
-                  {parseFloat(a.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(a.id))}
-                </label>
-              </div>
-            ))}
+            props.accounts
+              .filter((a) => a.amount > 0)
+              .slice(0, 5)
+              .map((a) => (
+                <div key={a.id} className={"account-item"}>
+                  <label className={"name"}>{a.name}</label>
+                  <label className={"amount"}>
+                    {parseFloat(a.amount).toFixed(2)}{" "}
+                    {helper.getCurrency(getAccountCurrency(a.id))}
+                  </label>
+                </div>
+              ))}
         </div>
       </div>
     </div>
@@ -193,13 +196,13 @@ const ExpenseItem = ({ expense, accounts, categories }) => {
     return diffInHrs <= 5;
   }
 
-  function getAccountCurrency(id){
-    const account = accounts.filter((a)=>a.id === id);
-    if(account?.length === 1){
-      return account[0].currency
+  function getAccountCurrency(id) {
+    const account = accounts.filter((a) => a.id === id);
+    if (account?.length === 1) {
+      return account[0].currency;
     }
 
-    return "Not Found"
+    return "Not Found";
   }
 
   return (
@@ -210,7 +213,10 @@ const ExpenseItem = ({ expense, accounts, categories }) => {
       <label id="date">{expense.date}</label>
       <label id="description">{expense.description}</label>
       <label id="account">{getAccountName(expense.account)}</label>
-      <label id="amount">{parseFloat(expense.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(expense.account))}</label>
+      <label id="amount">
+        {parseFloat(expense.amount).toFixed(2)}{" "}
+        {helper.getCurrency(getAccountCurrency(expense.account))}
+      </label>
       <label id="category">
         {getExpenseCategory(expense.expense_category)}
       </label>
@@ -266,13 +272,13 @@ const IncomeItem = ({ income, accounts, categories }) => {
     return diffInHrs <= 5;
   }
 
-  function getAccountCurrency(id){
-    const account = accounts.filter((a)=>a.id === id);
-    if(account?.length === 1){
-      return account[0].currency
+  function getAccountCurrency(id) {
+    const account = accounts.filter((a) => a.id === id);
+    if (account?.length === 1) {
+      return account[0].currency;
     }
 
-    return "Not Found"
+    return "Not Found";
   }
 
   return (
@@ -283,7 +289,10 @@ const IncomeItem = ({ income, accounts, categories }) => {
       <label id="date">{income.date}</label>
       <label id="description">{income.description}</label>
       <label id="account">{getAccountName(income.account)}</label>
-      <label id="amount">{parseFloat(income.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(income.account))}</label>
+      <label id="amount">
+        {parseFloat(income.amount).toFixed(2)}{" "}
+        {helper.getCurrency(getAccountCurrency(income.account))}
+      </label>
       <label id="category">{getIncomeCategory(income.income_category)}</label>
     </div>
   );
@@ -328,13 +337,13 @@ const TransferItem = ({ transfer, accounts }) => {
     const diffInHrs = diffInMs / (1000 * 60 * 60);
     return diffInHrs <= 5;
   }
-  function getAccountCurrency(id){
-    const account = accounts.filter((a)=>a.id === id);
-    if(account?.length === 1){
-      return account[0].currency
+  function getAccountCurrency(id) {
+    const account = accounts.filter((a) => a.id === id);
+    if (account?.length === 1) {
+      return account[0].currency;
     }
 
-    return "Not Found"
+    return "Not Found";
   }
 
   return (
@@ -346,7 +355,10 @@ const TransferItem = ({ transfer, accounts }) => {
       <label id="description">{transfer.description}</label>
       <label id="from_account">{getAccountName(transfer.from_account)}</label>
       <label id="to_account">{getAccountName(transfer.to_account)}</label>
-      <label id="amount">{parseFloat(transfer.amount).toFixed(2)} {helper.getCurrency(getAccountCurrency(transfer.from_account))}</label>
+      <label id="amount">
+        {parseFloat(transfer.amount).toFixed(2)}{" "}
+        {helper.getCurrency(getAccountCurrency(transfer.from_account))}
+      </label>
     </div>
   );
 };
