@@ -151,9 +151,11 @@ const Sidebar = (props) => {
         getAccountCurrency={props.getAccountCurrency}
       />
       <div className={"summary"}>
-        Total money spent: <b>{totalShownExpenses}€</b> from{" "}
-        {props.dateRange.from.toDateString()} to{" "}
-        {props.dateRange.to.toDateString()}.
+        <b>{totalShownExpenses}€</b> spent{" "}
+        <small>
+          from {props.dateRange.from.toDateString()} to{" "}
+          {props.dateRange.to.toDateString()}.
+        </small>
       </div>
       <Chart data={expensesPerCategory} />
     </div>

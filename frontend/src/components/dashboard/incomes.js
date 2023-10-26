@@ -91,9 +91,25 @@ const Incomes = () => {
 };
 
 const Sidebar = (props) => {
+  const [totalShownIncomes, setShownIncomes] = useState(0);
   const [incomesPerCategory, setIncomesPerCategory] = useState("");
 
   useEffect(() => {
+    async function getTotal() {
+      let promises = props.shownIncomes.map(async (e) => {
+        return await currencyService.convert(
+          props.getAccountCurrency(e.account),
+          "EUR",
+          e.amount
+        );
+      });
+
+      const results = await Promise.all(promises);
+      let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
+
+      setShownIncomes(parseFloat(total).toFixed(2));
+    }
+
     async function getIncomesPerCategory() {
       const data = [];
       for (const c of props.categories) {
@@ -119,6 +135,7 @@ const Sidebar = (props) => {
     }
 
     getIncomesPerCategory();
+    getTotal();
   }, [props.shownIncomes]);
 
   return (
@@ -130,6 +147,13 @@ const Sidebar = (props) => {
         refreshAccounts={props.refreshAccounts}
         getAccountCurrency={props.getAccountCurrency}
       />
+      <div className={"summary"}>
+        <b>{totalShownIncomes}€</b> earned{" "}
+        <small>
+          from {props.dateRange.from.toDateString()} to{" "}
+          {props.dateRange.to.toDateString()}.
+        </small>
+      </div>
       <Chart data={incomesPerCategory} />
     </div>
   );
