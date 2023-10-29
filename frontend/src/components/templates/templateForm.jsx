@@ -3,9 +3,20 @@ import "./templates.scss";
 import { Formik, Form, Field } from "formik";
 import transactionService from "../../services/transactionService/transactionService";
 import { useToast } from "../../context/ToastContext";
+import { helper } from "../helper";
 
 const TemplateForm = (props) => {
   const showToast = useToast();
+
+  function getAccountCurrency(id) {
+    const account = props.accounts.filter((a) => a.id === id);
+    if (account?.length === 1) {
+      return account[0].currency;
+    }
+
+    return "Not Found";
+  }
+
   return (
     <Formik
       initialValues={{
@@ -50,7 +61,8 @@ const TemplateForm = (props) => {
                 </option>
                 {props.accounts?.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)} €
+                    {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
+                    {helper.getCurrency(getAccountCurrency(a.id))}
                   </option>
                 ))}
               </Field>
@@ -75,7 +87,8 @@ const TemplateForm = (props) => {
                 </option>
                 {props.accounts?.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)} €
+                    {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
+                    {helper.getCurrency(getAccountCurrency(a.id))}
                   </option>
                 ))}
               </Field>
@@ -99,7 +112,8 @@ const TemplateForm = (props) => {
                 </option>
                 {props.accounts?.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)} €
+                    {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
+                    {helper.getCurrency(getAccountCurrency(a.id))}
                   </option>
                 ))}
               </Field>
@@ -109,7 +123,8 @@ const TemplateForm = (props) => {
                 </option>
                 {props.accounts?.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)} €
+                    {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
+                    {helper.getCurrency(getAccountCurrency(a.id))}
                   </option>
                 ))}
               </Field>

@@ -1,5 +1,6 @@
 import React from "react";
 import "./templates.scss";
+import { helper } from "../helper";
 
 const TemplateItem = (props) => {
   const type = () => {
@@ -16,6 +17,15 @@ const TemplateItem = (props) => {
 
   const amount = props.i.amount;
   const category = props.i.category;
+
+  function getAccountCurrency(id) {
+    const account = props.accounts.filter((a) => a.id === id);
+    if (account?.length === 1) {
+      return account[0].currency;
+    }
+
+    return "Not Found";
+  }
 
   function getAccount(id) {
     const res = allAccounts.filter((a) => a.id == id);
@@ -36,19 +46,29 @@ const TemplateItem = (props) => {
     <div className={"template-item"}>
       {type() == "income" && (
         <label>
-          Earn <b>{amount}€</b> to <i>{getAccount(account)}</i> as{" "}
-          {getCategory(category)}
+          Earn{" "}
+          <b>
+            {amount} {helper.getCurrency(getAccountCurrency(account))}
+          </b>{" "}
+          to <i>{getAccount(account)}</i> as {getCategory(category)}
         </label>
       )}
       {type() == "expense" && (
         <label>
-          Spend <b>{amount}€</b> from <i>{getAccount(account)}</i> on{" "}
-          {getCategory(category)}
+          Spend{" "}
+          <b>
+            {amount} {helper.getCurrency(getAccountCurrency(account))}
+          </b>{" "}
+          from <i>{getAccount(account)}</i> on {getCategory(category)}
         </label>
       )}
       {type() == "transfer" && (
         <label>
-          Transfer <b>{amount}€</b> from <i>{getAccount(from_account)}</i> to{" "}
+          Transfer{" "}
+          <b>
+            {amount} {helper.getCurrency(getAccountCurrency(account))}
+          </b>{" "}
+          from <i>{getAccount(from_account)}</i> to{" "}
           <i>{getAccount(to_account)}</i>
         </label>
       )}

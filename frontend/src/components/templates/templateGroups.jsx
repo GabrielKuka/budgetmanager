@@ -4,6 +4,7 @@ import transactionService from "../../services/transactionService/transactionSer
 import "./templates.scss";
 import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
+import { helper } from "../helper";
 
 const TemplateGroups = (props) => {
   const [currentTemplateGroup, setCurrentTemplateGroup] = useState(false);
@@ -42,6 +43,15 @@ const TemplateGroups = (props) => {
     );
   }
 
+  function getAccountCurrency(id) {
+    const account = props.accounts.filter((a) => a.id === id);
+    if (account?.length === 1) {
+      return account[0].currency;
+    }
+
+    return "Not Found";
+  }
+
   function areTransactionsValid() {
     let valid = true;
     currentTemplateGroup.template_group.forEach((t) => {
@@ -50,7 +60,11 @@ const TemplateGroups = (props) => {
         const amount = acc.amount;
         if (amount < t.amount) {
           showToast(
-            `You only have ${acc.amount}€ in ${acc.name}. You cannot spend ${t.amount}€.`,
+            `You only have ${acc.amount} ${helper.getCurrency(
+              getAccountCurrency(acc.id)
+            )} in ${acc.name}. You cannot spend ${
+              t.amount
+            } ${helper.getCurrency(getAccountCurrency(acc.id))}.`,
             "error"
           );
           valid = false;
@@ -62,7 +76,11 @@ const TemplateGroups = (props) => {
         const amount = acc.amount;
         if (amount < t.amount) {
           showToast(
-            `You only have ${acc.amount}€ in ${acc.name}. You cannot transfer ${t.amount}€.`,
+            `You only have ${acc.amount} ${helper.getCurrency(
+              getAccountCurrency(acc.id)
+            )} in ${acc.name}. You cannot transfer ${
+              t.amount
+            } ${helper.getCurrency(getAccountCurrency(acc.id))}.`,
             "error"
           );
           valid = false;
