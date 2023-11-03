@@ -63,6 +63,10 @@
       flex-direction: column;
       gap: 5px;
 
+      div {
+        margin-bottom: 10px;
+      }
+
       label {
         display: flex;
         justify-content: space-between;
@@ -107,12 +111,12 @@
     @include flex(column, flex-start, flex-start);
     .extra_filters {
       align-self: center;
-      margin-bottom: 10px;
-      margin-top: 10px;
+      margin-bottom: 5px;
+      margin-top: 5px;
       padding: 10px 20px 0 0;
       width: 820px;
       label > span {
-        font-weight: bold;
+        font-size: 15px;
         user-select: none;
         text-transform: uppercase;  
       }
@@ -185,6 +189,14 @@
         }
         #date {
           color: gray;
+        }
+        #name {
+          @include flex(row, flex-start, center);
+          gap: 10px;
+        }
+        #type {
+          @include flex(row, flex-start, center);
+          gap: 10px;
         }
       }
       .account-item:hover {

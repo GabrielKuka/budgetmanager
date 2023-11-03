@@ -223,12 +223,14 @@ const AddIncome = ({
               <option value="" disabled hidden>
                 Select account
               </option>
-              {accounts?.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
-                  {helper.getCurrency(getAccountCurrency(a.id))}
-                </option>
-              ))}
+              {accounts
+                ?.sort((a, b) => (a.name > b.name ? 1 : -1))
+                .map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
+                    {helper.getCurrency(getAccountCurrency(a.id))}
+                  </option>
+                ))}
             </Field>
             <Field type="text" name="amount" placeholder="Enter amount" />
             <Field
