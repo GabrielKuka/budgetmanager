@@ -70,8 +70,7 @@
           box-shadow: 1px 1px 3px #dadada;
           border-radius: 5px;
           padding: 10px;
-          transition: box-shadow 0.3s ease-in-out, border-color 0.3s,
-            padding 0.3s ease-in-out, font-size 0.3s, font-weight 0.3s ease-in;
+          transition: box-shadow 0.2s ease-in-out, border-color 0.3s;
 
           .name {
             cursor: pointer;
@@ -84,11 +83,8 @@
           }
         }
         .account-item:hover {
-          box-shadow: 1px 1px 6px cadetblue;
+          box-shadow: 1px 1px 3px cadetblue;
           border-color: cadetblue;
-          padding: 15px;
-          font-size: 15px;
-          font-weight: bold;
         }
       }
     }
