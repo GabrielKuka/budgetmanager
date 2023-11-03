@@ -122,14 +122,41 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
       <div className={"accounts-info"}>
         <div className={"card-label"}>Summary</div>
         <label>
+          {
+            <img
+              alt="account-type"
+              src={process.env.PUBLIC_URL + "/investment_icon.png"}
+              width="20"
+              height="17"
+              style={{ marginRight: "10px" }}
+            />
+          }
           <span>Investments: </span>
           <small>{investments} €</small>
         </label>
         <label>
+          {
+            <img
+              alt="account-type"
+              src={process.env.PUBLIC_URL + "/cash_icon.png"}
+              width="20"
+              height="17"
+              style={{ marginRight: "10px" }}
+            />
+          }
           <span>Hard cash: </span>
           <small>{cash} €</small>
         </label>
         <label>
+          {
+            <img
+              alt="account-type"
+              src={process.env.PUBLIC_URL + "/bank_icon.png"}
+              width="20"
+              height="17"
+              style={{ marginRight: "10px" }}
+            />
+          }
           <span>Money in banks: </span>
           <small>{bankAssets} €</small>
         </label>
@@ -276,7 +303,14 @@ const AccountsList = ({ accounts, refreshAccounts, setAccounts }) => {
 };
 
 const AccountItem = ({ account, refreshAccounts }) => {
-  const accountTypes = ["Bank Account", "Investment Account", "Hard Cash"];
+  const accountTypes = [
+    { source: `${process.env.PUBLIC_URL}/bank_icon.png`, name: "Bank Account" },
+    {
+      source: `${process.env.PUBLIC_URL}/investment_icon.png`,
+      name: "Investment Account",
+    },
+    { source: `${process.env.PUBLIC_URL}/cash_icon.png`, name: "Hard Cash" },
+  ];
   const showToast = useToast();
   const showConfirm = useConfirm();
 
@@ -288,17 +322,60 @@ const AccountItem = ({ account, refreshAccounts }) => {
     });
   }
 
+  function amountColor(amount) {
+    let color = "#000";
+
+    if (parseInt(amount) == 0) {
+      color = "gray";
+    }
+    if (parseFloat(amount) < 0) {
+      color = "#fff";
+    }
+
+    return {
+      color: color,
+    };
+  }
+
   return (
     <div className="account-item">
       <label id="date">
         {new Date(account.created_on).toISOString().slice(0, 10)}
       </label>
-      <label id="name">{account.name}</label>
-      <label id="amount">
+      <label id="name">
+        {account.name.toLowerCase().includes("Revolut".toLowerCase()) && (
+          <img
+            alt="revolut_icon"
+            width="15"
+            height="18"
+            src={process.env.PUBLIC_URL + "/revolut_icon.png"}
+          />
+        )}
+        {account.name.toLowerCase().includes("Wise".toLowerCase()) && (
+          <img
+            alt="wise_icon"
+            width="15"
+            height="18"
+            src={process.env.PUBLIC_URL + "/wise_icon.png"}
+          />
+        )}
+        {account.name}
+      </label>
+      <label id="amount" style={amountColor(account.amount)}>
         {parseFloat(account.amount).toFixed(2)}{" "}
         {helper.getCurrency(account.currency)}
       </label>
-      <label id="type">{accountTypes[account.type]}</label>
+      <label id="type">
+        {
+          <img
+            alt="account_type"
+            height="15"
+            width="20"
+            src={accountTypes[account.type]["source"]}
+          />
+        }
+        {accountTypes[account.type]["name"]}
+      </label>
       <button onClick={deleteAccount}>X</button>
     </div>
   );
