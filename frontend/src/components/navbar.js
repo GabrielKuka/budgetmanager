@@ -73,50 +73,48 @@ const CurrencyConverter = () => {
   const currencies = ["BGN", "EUR", "USD", "GBP"];
   const [result, setResult] = useState(null);
   return (
-    <>
-      <Formik
-        initialValues={{
-          amount: 0,
-          from_currency: "BGN",
-          to_currency: "EUR",
-        }}
-        onSubmit={async (values) => {
-          const from = values.from_currency;
-          const to = values.to_currency;
-          const amount = values.amount;
+    <Formik
+      initialValues={{
+        amount: 0,
+        from_currency: "BGN",
+        to_currency: "EUR",
+      }}
+      onSubmit={async (values) => {
+        const from = values.from_currency;
+        const to = values.to_currency;
+        const amount = values.amount;
 
-          const result = await currencyService.convert(from, to, amount);
-          setResult(result);
-        }}
-      >
-        {() => (
-          <Form className={"currency-converter-form"}>
-            <Field
-              type="text"
-              name="amount"
-              id="amount_field"
-              placeholder="Enter amount value"
-            />
-            <Field as="select" name="from_currency">
-              {currencies?.map((c) => (
-                <option value={c} key={c}>
-                  {c}
-                </option>
-              ))}
-            </Field>
-            <label>--&gt;</label>
-            <Field as="select" name="to_currency">
-              {currencies?.map((c) => (
-                <option value={c} key={c}>
-                  {c}
-                </option>
-              ))}
-            </Field>
-            <button type="submit">Convert</button>
-            <label>{result}</label>
-          </Form>
-        )}
-      </Formik>
-    </>
+        const result = await currencyService.convert(from, to, amount);
+        setResult(result);
+      }}
+    >
+      {() => (
+        <Form className={"currency-converter-form"}>
+          <Field
+            type="text"
+            name="amount"
+            id="amount_field"
+            placeholder="Enter amount value"
+          />
+          <Field as="select" name="from_currency">
+            {currencies?.map((c) => (
+              <option value={c} key={c}>
+                {c}
+              </option>
+            ))}
+          </Field>
+          <label>--&gt;</label>
+          <Field as="select" name="to_currency">
+            {currencies?.map((c) => (
+              <option value={c} key={c}>
+                {c}
+              </option>
+            ))}
+          </Field>
+          <button type="submit">Convert</button>
+          <label>{result}</label>
+        </Form>
+      )}
+    </Formik>
   );
 };

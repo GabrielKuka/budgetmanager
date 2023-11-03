@@ -10,9 +10,25 @@
     @include flex(row, flex-start, center);
     gap: 10px;
 
-    padding: 20px;
+    padding: 15px;
     color: black;
 
+    button {
+      padding-bottom: 10px;
+      padding-top: 7px;
+      color: white;
+      background-color: cadetblue;
+      border: none;
+      text-decoration: none;
+      border-bottom: 2px solid cadetblue;
+      transition: border-bottom 0.2s ease-in;
+      font-size: 15px;
+      text-transform: uppercase;
+    }
+
+    button:hover{
+      border-bottom: 2px solid royalblue;
+    }
     .currency-converter-form {
       margin-left: 50px;
       @include flex(row, flex-start, center);
@@ -21,5 +37,6 @@
         width: 70px;
       }
     }
+
   }
 }
