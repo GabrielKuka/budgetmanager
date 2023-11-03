@@ -24,7 +24,7 @@ div[class^="confirm-dialog"] {
   padding: 10px 20px;
   transform: translate(-50%, -50%);
   border-radius: 5px;
-  background-color: white;
+  background-color: cadetblue;
   color: white;
   z-index: 1000;
 
@@ -63,7 +63,6 @@ div[class$="show"] {
       align-self: center;
       font-weight: bold;
       font-size: 18px;
-      color: cadetblue;
     }
   }
 
