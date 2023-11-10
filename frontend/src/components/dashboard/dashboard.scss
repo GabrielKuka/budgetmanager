@@ -13,5 +13,20 @@
     gap: 10px;
     padding: 10px;
     padding-left: 0;
+
+    button {
+      border: 1px solid cadetblue;
+      padding: 5px 5px 5px 5px;
+      color: cadetblue;
+      background-color: white;
+      width: 100px;
+      transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, border-radius 0.3s ease-in-out;
+    }
+    button:hover{
+      background-color: cadetblue;
+      border-radius: 5px;
+      color: white;
+    }
   }
+
 }

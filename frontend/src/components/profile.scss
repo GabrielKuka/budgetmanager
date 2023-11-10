@@ -26,9 +26,20 @@
       div {
         width: 100%;
 
-        label {
-          font-weight: bold;
+        div {
+          display: grid;
+          grid-template-columns: 1fr 2fr;
+
+          label {
+            text-align: right;
+            font-weight: bold;
+          }
+          span {
+            color: gray;
+            font-size: 14px;
+          }
         }
+
       }
     }
 
@@ -48,6 +59,11 @@
         .main-title {
           text-transform: uppercase;
           font-weight: bold;
+        }
+
+        .main-title:hover {
+          cursor: pointer;
+          @include title-decoration($height: 3px, $width: 100%, $bottom: -1px);
         }
 
         .more-link {
@@ -127,6 +143,11 @@
         .main-title {
           text-transform: uppercase;
           font-weight: bold;
+        }
+
+        .main-title:hover {
+          cursor: pointer;
+          @include title-decoration($height: 3px, $width: 100%, $bottom: -1px);
         }
 
         .more-link {

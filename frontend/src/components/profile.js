@@ -111,13 +111,18 @@ const Sidebar = (props) => {
       <div className={"user-data"}>
         <img alt="user-icon" src={process.env.PUBLIC_URL + "/user-icon.png"} />
         <div>
-          Full name: <label>{props.userData.name}</label>
-        </div>
-        <div>
-          Email: <label>{props.userData.email}</label>
-        </div>
-        <div>
-          Phone: <label>{props.userData.phone}</label>
+          <div>
+            <span>Full name </span>
+            <label>{props.userData.name}</label>
+          </div>
+          <div>
+            <span>Email </span>
+            <label>{props.userData.email}</label>
+          </div>
+          <div>
+            <span>Phone </span>
+            <label>{props.userData.phone}</label>
+          </div>
         </div>
       </div>
       <hr />
