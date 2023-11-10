@@ -104,6 +104,33 @@
         }
       }
     }
+
+    .download-data {
+      @include flex(row, center, center);
+      border: 1px solid #00A862;
+      gap: 10px;
+      width: 350px;
+      padding: 7px 0 7px 0;
+      background-color: white;
+      color: #00A862;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s, font-size 0.3s;
+
+      .download-icon {
+          transition: filter 0.5s;
+      }
+    }
+    .download-data:active {
+      font-size: 16.5px;
+    }
+    .download-data:hover {
+      background-color: #00A862;
+      color: white;
+      .download-icon {
+        filter: hue-rotate(0deg) brightness(0) invert(1);
+      }
+    }
   }
 
   &__board {

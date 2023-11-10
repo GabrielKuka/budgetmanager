@@ -149,6 +149,22 @@ const Sidebar = (props) => {
               ))}
         </div>
       </div>
+      <div className={"download-data"}>
+        <img
+          src={process.env.PUBLIC_URL + "/download_icon.png"}
+          alt="download_icon"
+          height="20"
+          width="20"
+          className={"download-icon"}
+        />
+        <span>Export data in Excel</span>
+        <img
+          src={process.env.PUBLIC_URL + "/excel_icon.png"}
+          alt="excel_icon"
+          height="20"
+          width="20"
+        />
+      </div>
     </div>
   );
 };
