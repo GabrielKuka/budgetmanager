@@ -41,7 +41,11 @@ const Toolbar = ({ page, setPage }) => {
 
   useEffect(() => {
     if (page) {
-      document.getElementById(page).style.fontWeight = "bold";
+      const activeButtonStyle = document.getElementById(page).style;
+      activeButtonStyle.fontWeight = "bold";
+      activeButtonStyle.color = "white";
+      activeButtonStyle.backgroundColor = "cadetblue";
+      activeButtonStyle.borderRadius = "5px";
     }
   }, []);
 
@@ -50,8 +54,18 @@ const Toolbar = ({ page, setPage }) => {
     setPage(selected);
 
     buttons.forEach((button) => {
-      document.getElementById(button).style.fontWeight =
-        selected == button ? "bold" : "normal";
+      const buttonStyle = document.getElementById(button).style;
+      if (selected == button) {
+        buttonStyle.fontWeight = "bold";
+        buttonStyle.color = "white";
+        buttonStyle.backgroundColor = "cadetblue";
+        buttonStyle.borderRadius = "5px";
+      } else {
+        buttonStyle.fontWeight = "normal";
+        buttonStyle.color = "cadetblue";
+        buttonStyle.backgroundColor = "white";
+        buttonStyle.borderRadius = "2px";
+      }
     });
   }
 
