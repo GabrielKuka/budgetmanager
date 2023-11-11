@@ -4,6 +4,10 @@ import transactionService from "../services/transactionService/transactionServic
 import { Link } from "react-router-dom";
 import { helper } from "./helper";
 import "./profile.scss";
+import { useConfirm } from "../context/ConfirmContext";
+import { useToast } from "../context/ToastContext";
+
+import * as XLSX from "xlsx";
 
 const Profile = () => {
   const [userData, setUserData] = useState("");
@@ -50,7 +54,6 @@ const Profile = () => {
       .getAllUserIncomes()
       .finally(() => setIsLoading(false));
     incomes.sort((a, b) => (a.date > b.date ? -1 : 1));
-    incomes = incomes.slice(0, 5);
     setIncomes(incomes);
   }
 
@@ -59,7 +62,6 @@ const Profile = () => {
       .getAllUserExpenses()
       .finally(() => setIsLoading(false));
     expenses.sort((a, b) => (a.date > b.date ? -1 : 1));
-    expenses = expenses.slice(0, 5);
     setExpenses(expenses);
   }
 
@@ -68,7 +70,6 @@ const Profile = () => {
       .getAllUserTransfers()
       .finally(() => setIsLoading(false));
     transfers.sort((a, b) => (a.date > b.date ? -1 : 1));
-    transfers = transfers.slice(0, 5);
     setTransfers(transfers);
   }
 
@@ -79,7 +80,13 @@ const Profile = () => {
 
   return (
     <div className={"profile-wrapper"}>
-      <Sidebar userData={userData} accounts={accounts} />
+      <Sidebar
+        userData={userData}
+        accounts={accounts}
+        expenses={expenses}
+        incomes={incomes}
+        transfers={transfers}
+      />
       <div className={"profile-wrapper__board"}>
         <RecentExpenses
           expenses={expenses}
@@ -98,6 +105,9 @@ const Profile = () => {
 };
 
 const Sidebar = (props) => {
+  const showConfirm = useConfirm();
+  const showToast = useToast();
+
   function getAccountCurrency(id) {
     const account = props.accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -106,6 +116,29 @@ const Sidebar = (props) => {
 
     return "Not Found";
   }
+
+  function exportData() {
+    showConfirm("Download all data in Excel? ", async () => {
+      // Export to excel here
+      const wb = XLSX.utils.book_new();
+
+      const expensesSheet = XLSX.utils.json_to_sheet(props.expenses);
+      const incomesSheet = XLSX.utils.json_to_sheet(props.incomes);
+      const transfersSheet = XLSX.utils.json_to_sheet(props.transfers);
+      const accountsSheet = XLSX.utils.json_to_sheet(props.accounts);
+      const userSheet = XLSX.utils.json_to_sheet([props.userData]);
+
+      XLSX.utils.book_append_sheet(wb, accountsSheet, "Accounts");
+      XLSX.utils.book_append_sheet(wb, userSheet, "User");
+      XLSX.utils.book_append_sheet(wb, expensesSheet, "Expenses");
+      XLSX.utils.book_append_sheet(wb, incomesSheet, "Incomes");
+      XLSX.utils.book_append_sheet(wb, transfersSheet, "Transfers");
+
+      XLSX.writeFile(wb, "budgetmanager.xlsx");
+      showToast("Data downloaded", "info");
+    });
+  }
+
   return (
     <div className={"profile-wrapper__sidebar"}>
       <div className={"user-data"}>
@@ -149,7 +182,7 @@ const Sidebar = (props) => {
               ))}
         </div>
       </div>
-      <div className={"download-data"}>
+      <div className={"download-data"} onClick={exportData}>
         <img
           src={process.env.PUBLIC_URL + "/download_icon.png"}
           alt="download_icon"
@@ -180,14 +213,16 @@ const RecentExpenses = (props) => {
         </Link>
       </div>
       {props.expenses?.length > 0 &&
-        props.expenses.map((expense) => (
-          <ExpenseItem
-            key={expense.id}
-            expense={expense}
-            accounts={props.accounts}
-            categories={props.categories}
-          />
-        ))}
+        props.expenses
+          .slice(0, 5)
+          .map((expense) => (
+            <ExpenseItem
+              key={expense.id}
+              expense={expense}
+              accounts={props.accounts}
+              categories={props.categories}
+            />
+          ))}
     </div>
   );
 };
@@ -256,14 +291,16 @@ const RecentIncomes = (props) => {
       </div>
       <div className={"incomes"}>
         {props.incomes?.length > 0 &&
-          props.incomes.map((income) => (
-            <IncomeItem
-              key={income.id}
-              income={income}
-              accounts={props.accounts}
-              categories={props.categories}
-            />
-          ))}
+          props.incomes
+            .slice(0, 5)
+            .map((income) => (
+              <IncomeItem
+                key={income.id}
+                income={income}
+                accounts={props.accounts}
+                categories={props.categories}
+              />
+            ))}
       </div>
     </div>
   );
@@ -330,13 +367,15 @@ const RecentTransfers = ({ transfers, accounts }) => {
       </div>
       <div className={"transfers"}>
         {transfers?.length > 0 &&
-          transfers.map((transfer) => (
-            <TransferItem
-              key={transfer.id}
-              transfer={transfer}
-              accounts={accounts}
-            />
-          ))}
+          transfers
+            .slice(0, 5)
+            .map((transfer) => (
+              <TransferItem
+                key={transfer.id}
+                transfer={transfer}
+                accounts={accounts}
+              />
+            ))}
       </div>
     </div>
   );
