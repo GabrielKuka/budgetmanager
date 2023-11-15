@@ -257,6 +257,7 @@ const AddIncome = ({
 };
 
 const IncomesList = (props) => {
+  const [sortedBy, setSortedBy] = useState({});
   useEffect(filterIncomes, [props.dateRange, props.incomes]);
   useEffect(filterIncomes, []);
 
@@ -288,11 +289,74 @@ const IncomesList = (props) => {
     props.setShownIncomes(filteredincomes);
   }
 
+  function sortShownIncomes(by = "") {
+    if (!by) {
+      return;
+    }
+
+    let sorted = null;
+
+    if (by == "date") {
+      if ("date" in sortedBy) {
+        if (sortedBy["date"] == "ascending") {
+          sorted = [...props.shownIncomes].sort(
+            (a, b) => new Date(b.date) - new Date(a.date)
+          );
+          setSortedBy({ date: "descending" });
+        } else {
+          sorted = [...props.shownIncomes].sort(
+            (a, b) => new Date(a.date) - new Date(b.date)
+          );
+          setSortedBy({ date: "ascending" });
+        }
+      } else {
+        sorted = [...props.shownIncomes].sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
+        );
+        setSortedBy({ date: "ascending" });
+      }
+      props.setShownIncomes(sorted);
+      return;
+    }
+
+    if (`${by}` in sortedBy) {
+      if (sortedBy[`${by}`] == "ascending") {
+        sorted = [...props.shownIncomes].sort(
+          (a, b) => b[`${by}`] - a[`${by}`]
+        );
+        setSortedBy({ [by]: "descending" });
+      } else {
+        sorted = [...props.shownIncomes].sort(
+          (a, b) => a[`${by}`] - b[`${by}`]
+        );
+        setSortedBy({ [by]: "ascending" });
+      }
+    } else {
+      sorted = [...props.shownIncomes].sort((a, b) => a[`${by}`] - b[`${by}`]);
+      setSortedBy({ [by]: "ascending" });
+    }
+    props.setShownIncomes(sorted);
+  }
+
   return (
     <div className={"incomes-wrapper__incomes-list"}>
       <div className={"header"}>
         <div>
-          <label>Date:</label>
+          <label onClick={() => sortShownIncomes("date")}>Date:</label>
+          {sortedBy["date"] == "ascending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+          {sortedBy["date"] == "descending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
           <div className={"fromDatePicker"}>
             <span className={"tooltip"}>From: </span>
             <DatePicker
@@ -326,7 +390,21 @@ const IncomesList = (props) => {
         </div>
         <label>Description</label>
         <div>
-          <label>Account:</label>
+          <label onClick={() => sortShownIncomes("account")}>Account:</label>
+          {sortedBy["account"] == "ascending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+          {sortedBy["account"] == "descending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
           <select id="account" defaultValue={"-1"} onChange={filterIncomes}>
             <option value="-1">All</option>
             {props.accounts?.map((a) => (
@@ -336,9 +414,41 @@ const IncomesList = (props) => {
             ))}
           </select>
         </div>
-        <label>Amount</label>
         <div>
-          <label>Category:</label>
+          <label onClick={() => sortShownIncomes("amount")}>Amount</label>
+          {sortedBy["amount"] == "ascending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+          {sortedBy["amount"] == "descending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+        </div>
+        <div>
+          <label onClick={() => sortShownIncomes("income_category")}>
+            Category:
+          </label>
+          {sortedBy["income_category"] == "ascending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+          {sortedBy["income_category"] == "descending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
           <select id="category" defaultValue="-1" onChange={filterIncomes}>
             <option value="-1">All</option>
             {props.categories?.map((c) => (
