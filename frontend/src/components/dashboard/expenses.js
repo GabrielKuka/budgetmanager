@@ -261,6 +261,7 @@ const AddExpense = ({
 };
 
 const ExpensesList = (props) => {
+  const [sortedBy, setSortedBy] = useState({});
   useEffect(filterExpenses, []);
   useEffect(filterExpenses, [props.dateRange, props.expenses]);
 
@@ -292,11 +293,74 @@ const ExpensesList = (props) => {
     props.setShownExpenses(filteredExpenses);
   }
 
+  function sortShownExpenses(by = "") {
+    if (!by) {
+      return;
+    }
+
+    let sorted = null;
+
+    if (by == "date") {
+      if ("date" in sortedBy) {
+        if (sortedBy["date"] == "ascending") {
+          sorted = [...props.shownExpenses].sort(
+            (a, b) => new Date(b.date) - new Date(a.date)
+          );
+          setSortedBy({ date: "descending" });
+        } else {
+          sorted = [...props.shownExpenses].sort(
+            (a, b) => new Date(a.date) - new Date(b.date)
+          );
+          setSortedBy({ date: "ascending" });
+        }
+      } else {
+        sorted = [...props.shownExpenses].sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
+        );
+        setSortedBy({ date: "ascending" });
+      }
+      props.setShownExpenses(sorted);
+      return;
+    }
+
+    if (`${by}` in sortedBy) {
+      if (sortedBy[`${by}`] == "ascending") {
+        sorted = [...props.shownExpenses].sort(
+          (a, b) => b[`${by}`] - a[`${by}`]
+        );
+        setSortedBy({ [by]: "descending" });
+      } else {
+        sorted = [...props.shownExpenses].sort(
+          (a, b) => a[`${by}`] - b[`${by}`]
+        );
+        setSortedBy({ [by]: "ascending" });
+      }
+    } else {
+      sorted = [...props.shownExpenses].sort((a, b) => a[`${by}`] - b[`${by}`]);
+      setSortedBy({ [by]: "ascending" });
+    }
+    props.setShownExpenses(sorted);
+  }
+
   return (
     <div className={"expenses-wrapper__expenses-list"}>
       <div className={"header"}>
         <div>
-          <label>Date:</label>
+          <label onClick={() => sortShownExpenses("date")}>Date:</label>
+          {sortedBy["date"] == "ascending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+          {sortedBy["date"] == "descending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
           <div className={"fromDatePicker"}>
             <span className={"tooltip"}>From: </span>
             <DatePicker
@@ -330,7 +394,21 @@ const ExpensesList = (props) => {
         </div>
         <label>Description</label>
         <div>
-          <label>Account:</label>
+          <label onClick={() => sortShownExpenses("account")}>Account:</label>
+          {sortedBy["account"] == "ascending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+          {sortedBy["account"] == "descending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
           <select id="account" defaultValue={"-1"} onChange={filterExpenses}>
             <option value="-1">All</option>
             {props.accounts?.map((a) => (
@@ -340,9 +418,41 @@ const ExpensesList = (props) => {
             ))}
           </select>
         </div>
-        <label>Amount</label>
         <div>
-          <label>Category:</label>
+          <label onClick={() => sortShownExpenses("amount")}>Amount</label>
+          {sortedBy["amount"] == "ascending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+          {sortedBy["amount"] == "descending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+        </div>
+        <div>
+          <label onClick={() => sortShownExpenses("expense_category")}>
+            Category:
+          </label>
+          {sortedBy["expense_category"] == "ascending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+          {sortedBy["expense_category"] == "descending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
           <select id="category" defaultValue="-1" onChange={filterExpenses}>
             <option value="-1">All</option>
             {props.categories?.map((c) => (
