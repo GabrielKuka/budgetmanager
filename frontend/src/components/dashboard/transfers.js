@@ -159,6 +159,7 @@ const AddTransfer = ({
 
 const TransfersList = ({ transfers, accounts, getAccountCurrency }) => {
   const [shownTransfers = transfers, setShownTransfers] = useState({});
+  const [sortedBy, setSortedBy] = useState({});
 
   const [dateRange, setDateRange] = useState({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -195,11 +196,70 @@ const TransfersList = ({ transfers, accounts, getAccountCurrency }) => {
       .sort((a, b) => (a.date > b.date ? -1 : 1));
     setShownTransfers(filteredtransfers);
   }
+  function sortShownTransfers(by = "") {
+    if (!by) {
+      return;
+    }
+
+    let sorted = null;
+
+    if (by == "date") {
+      if ("date" in sortedBy) {
+        if (sortedBy["date"] == "ascending") {
+          sorted = [...shownTransfers].sort(
+            (a, b) => new Date(b.date) - new Date(a.date)
+          );
+          setSortedBy({ date: "descending" });
+        } else {
+          sorted = [...shownTransfers].sort(
+            (a, b) => new Date(a.date) - new Date(b.date)
+          );
+          setSortedBy({ date: "ascending" });
+        }
+      } else {
+        sorted = [...shownTransfers].sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
+        );
+        setSortedBy({ date: "ascending" });
+      }
+      setShownTransfers(sorted);
+      return;
+    }
+
+    if (`${by}` in sortedBy) {
+      if (sortedBy[`${by}`] == "ascending") {
+        sorted = [...shownTransfers].sort((a, b) => b[`${by}`] - a[`${by}`]);
+        setSortedBy({ [by]: "descending" });
+      } else {
+        sorted = [...shownTransfers].sort((a, b) => a[`${by}`] - b[`${by}`]);
+        setSortedBy({ [by]: "ascending" });
+      }
+    } else {
+      sorted = [...shownTransfers].sort((a, b) => a[`${by}`] - b[`${by}`]);
+      setSortedBy({ [by]: "ascending" });
+    }
+    setShownTransfers(sorted);
+  }
+
   return (
     <div className={"transfers-wrapper__transfers-list"}>
       <div className={"header"}>
         <div>
-          <label>Date:</label>
+          <label onClick={() => sortShownTransfers("date")}>Date:</label>
+          {sortedBy["date"] == "ascending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+          {sortedBy["date"] == "descending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
           <div className={"fromDatePicker"}>
             <span className={"tooltip"}>From: </span>
             <DatePicker
@@ -233,7 +293,23 @@ const TransfersList = ({ transfers, accounts, getAccountCurrency }) => {
         </div>
         <label>Description</label>
         <div>
-          <label>From Account:</label>
+          <label onClick={() => sortShownTransfers("from_account")}>
+            From Account:
+          </label>
+          {sortedBy["from_account"] == "ascending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+          {sortedBy["from_account"] == "descending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
           <select
             id="from_account"
             defaultValue={"-1"}
@@ -248,7 +324,23 @@ const TransfersList = ({ transfers, accounts, getAccountCurrency }) => {
           </select>
         </div>
         <div>
-          <label>To Account:</label>
+          <label onClick={() => sortShownTransfers("to_account")}>
+            To Account:
+          </label>
+          {sortedBy["to_account"] == "ascending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+          {sortedBy["to_account"] == "descending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
           <select
             id="to_account"
             defaultValue={"-1"}
@@ -262,7 +354,23 @@ const TransfersList = ({ transfers, accounts, getAccountCurrency }) => {
             ))}
           </select>
         </div>
-        <label>Amount</label>
+        <div>
+          <label onClick={() => sortShownTransfers("amount")}>Amount</label>
+          {sortedBy["amount"] == "ascending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+          {sortedBy["amount"] == "descending" && (
+            <img
+              src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+              width="12"
+              height="12"
+            />
+          )}
+        </div>
       </div>
       <div className={"transfers"}>
         {shownTransfers?.length > 0 &&
