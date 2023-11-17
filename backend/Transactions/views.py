@@ -77,20 +77,15 @@ def add_transaction(request):
 
 @api_view(["POST"])
 def delete_transaction(request):
-    # Retrieve Token
-    token = request.headers["Authorization"]
-    # user_id = Token.objects.get(key=token).user_id
-
     p = request.data
-    # p["user_id"] = user_id
 
     try:
         transaction_id = int(p["id"])
         transaction_type = int(p["type"])
         if transaction_type == 2:  # A transfer
             transaction = Transfer.objects.get(id=transaction_id)
-            from_account_id = transaction.from_account
-            to_account_id = transaction.to_account
+            from_account_id = transaction.from_account_id
+            to_account_id = transaction.to_account_id
 
             from_account = Account.objects.get(id=from_account_id)
             to_account = Account.objects.get(id=to_account_id)

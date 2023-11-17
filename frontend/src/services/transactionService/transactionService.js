@@ -83,6 +83,10 @@ async function addTransfer(payload) {
   return await transferService.addTransfer(payload);
 }
 
+async function deleteTransfer(payload) {
+  return await transferService.deleteTransfer(payload);
+}
+
 const transactionService = {
   getAllIncomeCategories,
   getAllExpenseCategories,
@@ -94,6 +98,7 @@ const transactionService = {
   addIncome,
   deleteIncome,
   addTransfer,
+  deleteTransfer,
   addAccount,
   deleteAccount,
   getAllUserIncomes,

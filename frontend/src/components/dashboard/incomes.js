@@ -546,7 +546,7 @@ const IncomeItem = ({
       };
       await transactionService.deleteIncome(payload);
 
-      showToast("Expense deleted.");
+      showToast("Income deleted.");
       refreshIncomes();
     });
   }

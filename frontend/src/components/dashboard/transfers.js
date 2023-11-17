@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Formik, Form, Field } from "formik";
 import transactionService from "../../services/transactionService/transactionService";
 import DatePicker from "react-datepicker";
 import "./transfers.scss";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
+import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 
 const Transfers = () => {
@@ -58,6 +59,7 @@ const Transfers = () => {
               transfers={transfers}
               accounts={accounts}
               getAccountCurrency={getAccountCurrency}
+              refreshTransfers={getTransfers}
             />
           )}
         </>
@@ -157,7 +159,12 @@ const AddTransfer = ({
   );
 };
 
-const TransfersList = ({ transfers, accounts, getAccountCurrency }) => {
+const TransfersList = ({
+  transfers,
+  accounts,
+  getAccountCurrency,
+  refreshTransfers,
+}) => {
   const [shownTransfers = transfers, setShownTransfers] = useState({});
   const [sortedBy, setSortedBy] = useState({});
 
@@ -382,6 +389,7 @@ const TransfersList = ({ transfers, accounts, getAccountCurrency }) => {
               currency={helper.getCurrency(
                 getAccountCurrency(transfer.from_account)
               )}
+              refreshTransfers={refreshTransfers}
             />
           ))}
       </div>
@@ -389,7 +397,50 @@ const TransfersList = ({ transfers, accounts, getAccountCurrency }) => {
   );
 };
 
-const TransferItem = ({ transfer, accounts, currency }) => {
+const TransferItem = ({ transfer, accounts, currency, refreshTransfers }) => {
+  const [showKebab, setShowKebab] = useState(false);
+  const showConfirm = useConfirm();
+  const showToast = useToast();
+  const kebabMenu = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const kebabClicked = !!(
+        event.target?.attributes?.class?.value?.includes("kebab-button") ||
+        event.target?.attributes?.src?.value?.includes("kebab_icon")
+      );
+
+      if (!kebabMenu?.current?.contains(event.target) && !kebabClicked) {
+        setShowKebab(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  function toggleKebab() {
+    setShowKebab((prevState) => !prevState);
+  }
+
+  function handleDelete() {
+    showConfirm("Delete transfer?", async () => {
+      const payload = {
+        type: 2,
+        id: transfer.id,
+      };
+      await transactionService.deleteTransfer(payload);
+
+      showToast("Transfer deleted.");
+      refreshTransfers();
+    });
+  }
+
+  function handleShowMore() {}
+
   function getAccountName(id) {
     const account = accounts.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -418,6 +469,19 @@ const TransferItem = ({ transfer, accounts, currency }) => {
       <label id="amount">
         {parseFloat(transfer.amount).toFixed(2)} {currency}
       </label>
+      <button className={"kebab-button"} onClick={toggleKebab}>
+        <img src={`${process.env.PUBLIC_URL}/kebab_icon.png`} />
+      </button>
+      {showKebab && (
+        <div
+          ref={kebabMenu}
+          className={"kebab-menu"}
+          id={`kebab-menu-${transfer.id}`}
+        >
+          <button onClick={handleDelete}>Delete</button>
+          <button onClick={handleShowMore}>Show more</button>
+        </div>
+      )}
     </div>
   );
 };

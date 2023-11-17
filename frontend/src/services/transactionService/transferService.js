@@ -1,5 +1,5 @@
 import axios from "axios";
-import {BASE_URL, BACKEND_PORT} from "../../config"
+import { BASE_URL, BACKEND_PORT } from "../../config";
 
 const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
 
@@ -32,9 +32,22 @@ async function addTransfer(payload) {
   return response.data;
 }
 
+async function deleteTransfer(payload) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.post(`${ENDPOINT}/delete`, payload, config);
+  return response.data;
+}
+
 const transferService = {
   getAllUserTransfers,
-  addTransfer
-}
+  addTransfer,
+  deleteTransfer,
+};
 
 export default transferService;

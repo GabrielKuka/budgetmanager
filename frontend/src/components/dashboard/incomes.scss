@@ -69,7 +69,6 @@
       font-weight: bold;
       text-transform: uppercase;
       display: grid;
-      //grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
       grid-template-columns: 0.6fr 1.5fr 0.9fr 0.8fr 1.1fr;
       grid-gap: 10px;
       width: 800px;
@@ -160,7 +159,6 @@
         transition: border-color 0.3s, padding 0.3s ease-in-out, font-size 0.3s;
 
         display: grid;
-        //grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
         grid-template-columns: 0.6fr 1.5fr 0.9fr 0.8fr 1.1fr;
         grid-gap: 10px;
 
@@ -251,8 +249,6 @@
         }
       }
       .income-item:active {
-        //padding: 25px 20px 25px 20px;
-        //font-size: 17px;
         padding: 22px 20px 22px 20px;
         font-size: 16px;
       }
