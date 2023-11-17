@@ -49,6 +49,10 @@ async function addExpense(payload) {
   return await expenseService.addExpense(payload);
 }
 
+async function deleteExpense(payload) {
+  return await expenseService.deleteExpense(payload);
+}
+
 async function getAllUserExpenses() {
   return await expenseService.getAllUserExpenses();
 }
@@ -82,6 +86,7 @@ const transactionService = {
   getAllUserExpenses,
   getAllUserTransfers,
   addExpense,
+  deleteExpense,
   addIncome,
   addTransfer,
   addAccount,
@@ -91,7 +96,7 @@ const transactionService = {
   addTemplateGroup,
   addTemplate,
   getTemplates,
-  deleteTemplateGroup
-}
+  deleteTemplateGroup,
+};
 
 export default transactionService;

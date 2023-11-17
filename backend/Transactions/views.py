@@ -7,6 +7,7 @@ from Accounts.models import Account
 from Users.models import User
 
 from .models import Expense, ExpenseCategory, Income, IncomeCategory, Transfer
+from Accounts.serialzers import AccountSerializer
 from .serializers import (
     ExpenseCategorySerializer,
     ExpenseSerializer,
@@ -38,9 +39,7 @@ def add_transaction(request):
             to_account = Account.objects.filter(pk=p["to_account_id"])
 
             from_account.update(amount=from_account.first().amount - value)
-            to_account.update(
-                amount=round(to_account.first().amount, 2) + value
-            )
+            to_account.update(amount=round(to_account.first().amount, 2) + value)
             p.pop("type")
             Transfer(**p).save()
         elif p["type"] == 1:  # This is an expense
@@ -74,6 +73,97 @@ def add_transaction(request):
             {"error": "Error adding transaction"},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+@api_view(["POST"])
+def delete_transaction(request):
+    # Retrieve Token
+    token = request.headers["Authorization"]
+    # user_id = Token.objects.get(key=token).user_id
+
+    p = request.data
+    # p["user_id"] = user_id
+
+    try:
+        transaction_id = int(p["id"])
+        transaction_type = int(p["type"])
+        if transaction_type == 2:  # A transfer
+            transaction = Transfer.objects.get(id=transaction_id)
+            from_account_id = transaction.from_account
+            to_account_id = transaction.to_account
+
+            from_account = Account.objects.get(id=from_account_id)
+            to_account = Account.objects.get(id=to_account_id)
+
+            account_serializer = AccountSerializer(
+                from_account,
+                data={"amount": round(from_account.amount, 2) + transaction.amount},
+                partial=True,
+            )
+
+            if account_serializer.is_valid():
+                account_serializer.save()
+            else:
+                raise Exception("Source Account could not be updated.")
+
+            account_serializer = AccountSerializer(
+                to_account,
+                data={"amount": round(to_account.amount, 2) - transaction.amount},
+                partial=True,
+            )
+
+            if account_serializer.is_valid():
+                account_serializer.save()
+            else:
+                raise Exception("Destination Account could not be updated.")
+
+            # Delete transaction
+            transaction.delete()
+            return Response({"msg": "Transaction deleted"}, status=status.HTTP_200_OK)
+        elif transaction_type == 1:  # An expense
+            # Increase the associated account balance
+            transaction = Expense.objects.get(id=transaction_id)
+
+            account_id = transaction.account_id
+            account = Account.objects.get(id=account_id)
+            account_serializer = AccountSerializer(
+                account,
+                data={"amount": round(account.amount, 2) + transaction.amount},
+                partial=True,
+            )
+
+            if account_serializer.is_valid():
+                account_serializer.save()
+            else:
+                raise Exception("Account could not be updated.")
+
+            # Delete the expense object
+            transaction.delete()
+            return Response({"msg": "Transaction deleted"}, status=status.HTTP_200_OK)
+        elif transaction_type == 0:  # An income
+            # Decrease the associated account balance
+            transaction = Income.objects.get(id=transaction_id)
+            account_id = transaction.account_id
+            account = Account.objects.get(id=account_id)
+
+            account_serializer = AccountSerializer(
+                account,
+                data={"amount": round(account.amount, 2) - transaction.amount},
+                partial=True,
+            )
+
+            if account_serializer.is_valid():
+                account_serializer.save()
+            else:
+                raise Exception("Account could not be updated.")
+
+            # Delete the expense object
+            transaction.delete()
+        else:
+            raise Exception("Incorrect transaction type.")
+    except Exception as e:
+        print(e)
+        return Response({"msg": "Test"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])

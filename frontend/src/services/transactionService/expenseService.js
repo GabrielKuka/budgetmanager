@@ -42,10 +42,23 @@ async function addExpense(payload) {
   return response.data;
 }
 
-const expenseService = {
-  addExpense,
-  getAllExpenseCategories,
-  getAllUserExpenses,
+async function deleteExpense(payload) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.post(`${ENDPOINT}/delete`, payload, config);
+  return response.data;
 }
 
-export default expenseService; 
+const expenseService = {
+  addExpense,
+  deleteExpense,
+  getAllExpenseCategories,
+  getAllUserExpenses,
+};
+
+export default expenseService;

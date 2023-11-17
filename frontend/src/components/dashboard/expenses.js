@@ -7,6 +7,7 @@ import "./expenses.scss";
 import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
+import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 
@@ -85,6 +86,7 @@ const Expenses = () => {
               dateRange={dateRange}
               setDateRange={setDateRange}
               getAccountCurrency={getAccountCurrency}
+              refreshExpenses={getExpenses}
             />
           )}
         </>
@@ -470,6 +472,7 @@ const ExpensesList = (props) => {
               key={expense.id}
               expense={expense}
               accounts={props.accounts}
+              refreshExpenses={props.refreshExpenses}
               categories={props.categories}
               currency={helper.getCurrency(
                 props.getAccountCurrency(expense.account)
@@ -481,8 +484,17 @@ const ExpensesList = (props) => {
   );
 };
 
-const ExpenseItem = ({ expense, accounts, categories, currency }) => {
+const ExpenseItem = ({
+  expense,
+  accounts,
+  categories,
+  currency,
+  refreshExpenses,
+}) => {
   const [showKebab, setShowKebab] = useState(false);
+  const showConfirm = useConfirm();
+  const showToast = useToast();
+  const kebabMenu = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -491,7 +503,7 @@ const ExpenseItem = ({ expense, accounts, categories, currency }) => {
         event.target?.attributes?.src?.value?.includes("kebab_icon")
       );
 
-      if (!kebabClicked) {
+      if (!kebabMenu?.current?.contains(event.target) && !kebabClicked) {
         setShowKebab(false);
       }
     };
@@ -532,12 +544,20 @@ const ExpenseItem = ({ expense, accounts, categories, currency }) => {
   }
 
   function handleDelete() {
-    setShowKebab(!showKebab);
+    showConfirm("Delete expense?", async () => {
+      // Delete expense
+      const payload = {
+        type: 1,
+        id: expense.id,
+      };
+      await transactionService.deleteExpense(payload);
+
+      showToast("Expense deleted.");
+      refreshExpenses();
+    });
   }
 
-  function handleShowMore() {
-    setShowKebab(!showKebab);
-  }
+  function handleShowMore() {}
 
   return (
     <div className="expense-item">
@@ -557,7 +577,11 @@ const ExpenseItem = ({ expense, accounts, categories, currency }) => {
         <img src={`${process.env.PUBLIC_URL}/kebab_icon.png`} />
       </button>
       {showKebab && (
-        <div className={"kebab-menu"} id={`kebab-menu-${expense.id}`}>
+        <div
+          ref={kebabMenu}
+          className={"kebab-menu"}
+          id={`kebab-menu-${expense.id}`}
+        >
           <button onClick={handleDelete}>Delete</button>
           <button onClick={handleShowMore}>Show more</button>
         </div>
