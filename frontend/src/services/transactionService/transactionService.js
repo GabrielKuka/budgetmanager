@@ -70,6 +70,10 @@ async function addIncome(payload) {
   return incomeService.addIncome(payload);
 }
 
+async function deleteIncome(payload) {
+  return incomeService.deleteIncome(payload);
+}
+
 // Transfers
 async function getAllUserTransfers() {
   return await transferService.getAllUserTransfers();
@@ -88,6 +92,7 @@ const transactionService = {
   addExpense,
   deleteExpense,
   addIncome,
+  deleteIncome,
   addTransfer,
   addAccount,
   deleteAccount,

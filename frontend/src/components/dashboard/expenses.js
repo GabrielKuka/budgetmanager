@@ -545,7 +545,6 @@ const ExpenseItem = ({
 
   function handleDelete() {
     showConfirm("Delete expense?", async () => {
-      // Delete expense
       const payload = {
         type: 1,
         id: expense.id,

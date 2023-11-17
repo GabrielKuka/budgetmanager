@@ -31,10 +31,23 @@ async function addIncome(payload) {
   return response.data;
 }
 
+async function deleteIncome(payload) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.post(`${ENDPOINT}/delete`, payload, config);
+  return response.data;
+}
+
 const incomeService = {
   addIncome,
+  deleteIncome,
   getAllIncomeCategories,
   getAllUserIncomes,
-}
+};
 
 export default incomeService;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import transactionService from "../../services/transactionService/transactionService";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -7,6 +7,7 @@ import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import "./incomes.scss";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
+import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 
@@ -82,6 +83,7 @@ const Incomes = () => {
               dateRange={dateRange}
               setDateRange={setDateRange}
               getAccountCurrency={getAccountCurrency}
+              refreshIncomes={getIncomes}
             />
           )}
         </>
@@ -470,6 +472,7 @@ const IncomesList = (props) => {
               currency={helper.getCurrency(
                 props.getAccountCurrency(income.account)
               )}
+              refreshIncomes={props.refreshIncomes}
             />
           ))}
       </div>
@@ -477,7 +480,37 @@ const IncomesList = (props) => {
   );
 };
 
-const IncomeItem = ({ income, accounts, categories, currency }) => {
+const IncomeItem = ({
+  income,
+  accounts,
+  categories,
+  currency,
+  refreshIncomes,
+}) => {
+  const [showKebab, setShowKebab] = useState(false);
+  const showConfirm = useConfirm();
+  const showToast = useToast();
+  const kebabMenu = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const kebabClicked = !!(
+        event.target?.attributes?.class?.value?.includes("kebab-button") ||
+        event.target?.attributes?.src?.value?.includes("kebab_icon")
+      );
+
+      if (!kebabMenu?.current?.contains(event.target) && !kebabClicked) {
+        setShowKebab(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   function getAccountName(id) {
     const account = accounts.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -501,6 +534,25 @@ const IncomeItem = ({ income, accounts, categories, currency }) => {
     return diffInHrs <= 5;
   }
 
+  function toggleKebab() {
+    setShowKebab((prevState) => !prevState);
+  }
+
+  function handleDelete() {
+    showConfirm("Delete income?", async () => {
+      const payload = {
+        type: 0,
+        id: income.id,
+      };
+      await transactionService.deleteIncome(payload);
+
+      showToast("Expense deleted.");
+      refreshIncomes();
+    });
+  }
+
+  function handleShowMore() {}
+
   return (
     <div className="income-item">
       {isRecent(income.created_on) && (
@@ -513,6 +565,19 @@ const IncomeItem = ({ income, accounts, categories, currency }) => {
         {parseFloat(income.amount).toFixed(2)} {currency}
       </label>
       <label id="category">{getIncomeCategory(income.income_category)}</label>
+      <button className={"kebab-button"} onClick={toggleKebab}>
+        <img src={`${process.env.PUBLIC_URL}/kebab_icon.png`} />
+      </button>
+      {showKebab && (
+        <div
+          ref={kebabMenu}
+          className={"kebab-menu"}
+          id={`kebab-menu-${income.id}`}
+        >
+          <button onClick={handleDelete}>Delete</button>
+          <button onClick={handleShowMore}>Show more</button>
+        </div>
+      )}
     </div>
   );
 };

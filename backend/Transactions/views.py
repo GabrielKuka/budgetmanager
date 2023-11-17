@@ -159,6 +159,7 @@ def delete_transaction(request):
 
             # Delete the expense object
             transaction.delete()
+            return Response({"msg": "Transaction deleted"}, status=status.HTTP_200_OK)
         else:
             raise Exception("Incorrect transaction type.")
     except Exception as e:
