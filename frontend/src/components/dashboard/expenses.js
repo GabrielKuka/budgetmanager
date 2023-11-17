@@ -1,5 +1,5 @@
 import { Formik, Form, Field } from "formik";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import transactionService from "../../services/transactionService/transactionService";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -482,6 +482,27 @@ const ExpensesList = (props) => {
 };
 
 const ExpenseItem = ({ expense, accounts, categories, currency }) => {
+  const [showKebab, setShowKebab] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const kebabClicked = !!(
+        event.target?.attributes?.class?.value?.includes("kebab-button") ||
+        event.target?.attributes?.src?.value?.includes("kebab_icon")
+      );
+
+      if (!kebabClicked) {
+        setShowKebab(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   function getAccountName(id) {
     const account = accounts.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -506,6 +527,18 @@ const ExpenseItem = ({ expense, accounts, categories, currency }) => {
     return diffInHrs <= 5;
   }
 
+  function toggleKebab() {
+    setShowKebab((prevState) => !prevState);
+  }
+
+  function handleDelete() {
+    setShowKebab(!showKebab);
+  }
+
+  function handleShowMore() {
+    setShowKebab(!showKebab);
+  }
+
   return (
     <div className="expense-item">
       {isRecent(expense.created_on) && (
@@ -520,6 +553,15 @@ const ExpenseItem = ({ expense, accounts, categories, currency }) => {
       <label id="category">
         {getExpenseCategory(expense.expense_category)}
       </label>
+      <button className={"kebab-button"} onClick={toggleKebab}>
+        <img src={`${process.env.PUBLIC_URL}/kebab_icon.png`} />
+      </button>
+      {showKebab && (
+        <div className={"kebab-menu"} id={`kebab-menu-${expense.id}`}>
+          <button onClick={handleDelete}>Delete</button>
+          <button onClick={handleShowMore}>Show more</button>
+        </div>
+      )}
     </div>
   );
 };
