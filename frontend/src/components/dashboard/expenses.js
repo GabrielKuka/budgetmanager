@@ -10,6 +10,7 @@ import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
+import TransactionPopup from "../core/transaction_popup";
 
 const Expenses = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -18,6 +19,7 @@ const Expenses = () => {
 
   const [expenses, setExpenses] = useState([]);
   const [shownExpenses, setShownExpenses] = useState([]);
+  const [transactionPopup, setTransactionPopup] = useState(false);
 
   const [dateRange, setDateRange] = useState({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -87,9 +89,17 @@ const Expenses = () => {
               setDateRange={setDateRange}
               getAccountCurrency={getAccountCurrency}
               refreshExpenses={getExpenses}
+              setTransactionPopup={setTransactionPopup}
             />
           )}
         </>
+      )}
+      {transactionPopup && (
+        <TransactionPopup
+          transaction={transactionPopup}
+          type={"expense"}
+          showPopup={setTransactionPopup}
+        />
       )}
     </div>
   );
@@ -477,6 +487,7 @@ const ExpensesList = (props) => {
               currency={helper.getCurrency(
                 props.getAccountCurrency(expense.account)
               )}
+              setTransactionPopup={props.setTransactionPopup}
             />
           ))}
       </div>
@@ -490,6 +501,7 @@ const ExpenseItem = ({
   categories,
   currency,
   refreshExpenses,
+  setTransactionPopup,
 }) => {
   const [showKebab, setShowKebab] = useState(false);
   const showConfirm = useConfirm();
@@ -556,10 +568,12 @@ const ExpenseItem = ({
     });
   }
 
-  function handleShowMore() {}
+  function handleShowMore() {
+    setTransactionPopup(expense);
+  }
 
   return (
-    <div className="expense-item">
+    <div className="expense-item" onClick={handleShowMore}>
       {isRecent(expense.created_on) && (
         <label className="new-transaction">NEW!</label>
       )}
