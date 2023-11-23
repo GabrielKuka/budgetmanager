@@ -97,8 +97,12 @@ const Expenses = () => {
       {transactionPopup && (
         <TransactionPopup
           transaction={transactionPopup}
-          type={"expense"}
+          type={1}
           showPopup={setTransactionPopup}
+          refreshTransactions={getExpenses}
+          getAccountCurrency={getAccountCurrency}
+          accounts={accounts}
+          categories={categories}
         />
       )}
     </div>
@@ -568,8 +572,17 @@ const ExpenseItem = ({
     });
   }
 
-  function handleShowMore() {
-    setTransactionPopup(expense);
+  function handleShowMore(event) {
+    const kebabClicked = !!(
+      event.target?.attributes?.class?.value?.includes("kebab-button") ||
+      event.target?.attributes?.src?.value?.includes("kebab_icon")
+    );
+    const deleteButtonClicked =
+      !!event.target?.attributes?.id?.value?.includes("deleteButton");
+
+    if (!kebabClicked && !deleteButtonClicked) {
+      setTransactionPopup(expense);
+    }
   }
 
   return (
@@ -595,8 +608,12 @@ const ExpenseItem = ({
           className={"kebab-menu"}
           id={`kebab-menu-${expense.id}`}
         >
-          <button onClick={handleDelete}>Delete</button>
-          <button onClick={handleShowMore}>Show more</button>
+          <button onClick={handleDelete} id="deleteButton">
+            Delete
+          </button>
+          <button onClick={handleShowMore} id="showMoreButton">
+            Show more
+          </button>
         </div>
       )}
     </div>

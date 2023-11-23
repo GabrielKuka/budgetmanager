@@ -19,7 +19,7 @@
     z-index: 2001;
     padding: 10px;
 
-    border: 1px solid #DADADA;
+    border: 5px solid cadetblue;
     border-radius: 3px;
 
     @include flex(column, flex-start, flex-start);
@@ -37,7 +37,7 @@
         width: fit-content;
         flex-grow: 1;
 
-        .description {
+        .title {
           font-size: 20px;
         }
 
@@ -72,9 +72,50 @@
     }
 
     .content {
-      //border: 1px solid green;
       width: 100%;
       flex-grow:1;
+      @include flex(column, flex-start, flex-start);
+      gap:10px;
+
+      div {
+        width: 100%;
+        padding: 10px 10px 0 0;
+        label {
+          font-weight: bold;
+        }
+      }
+      .options {
+        width: 100%;
+        padding: 10px 10px 10px 0;
+        border-top: 1px solid #DADADA;
+        @include flex(row, flex-start, flex-start);
+        gap: 15px;
+
+        button {
+          color: black;
+          padding: 7px;
+          border-radius: 3px;
+          transition: color 0.2s, background-color 0.2s;
+        }
+
+        #editButton {
+          border: 1px solid cadetblue;
+          background-color: white;
+        }
+        #editButton:hover {
+          background-color:cadetblue;
+          color: white;
+        }
+
+        #deleteButton {
+          border: 1px solid rgb(208, 65, 65);
+          background-color: white;
+        }
+        #deleteButton:hover{
+          background-color: rgb(208, 65, 65);
+          color: white;
+        }
+      }
     }
 
 }
