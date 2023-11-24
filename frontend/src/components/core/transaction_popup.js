@@ -148,7 +148,22 @@ const TransactionPopup = ({
           </div>
           <div>
             <label>Created on: </label>
-            <span> {transaction.created_on}</span>
+            <span> {new Date(transaction.created_on).toLocaleString()} </span>
+            <img
+              src={`${process.env.PUBLIC_URL}/questionmark_icon.png`}
+              width="17"
+              height="17"
+              className={"questionmark"}
+              onMouseOver={() => {
+                document.getElementById("tooltip").style.visibility = "visible";
+              }}
+              onMouseOut={() => {
+                document.getElementById("tooltip").style.visibility = "hidden";
+              }}
+            />
+            <span className={"questionmark_tooltip"} id="tooltip">
+              The date and time when the transaction was added in the system.
+            </span>
           </div>
           <div className={"options"}>
             <button onClick={handleDelete} id="deleteButton">

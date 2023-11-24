@@ -17,9 +17,8 @@
     width: 900px;
     background-color: white;
     z-index: 2001;
-    padding: 10px;
 
-    border: 5px solid cadetblue;
+    border: 1px solid cadetblue;
     border-radius: 3px;
 
     @include flex(column, flex-start, flex-start);
@@ -27,22 +26,24 @@
 
     .title-bar {
       border-bottom: 1px solid cadetblue;
+      background-color: cadetblue;
       width: 100%;
       @include flex(row, flex-start, center);
 
       .main {
+        padding: 10px 5px; 
         @include flex(column, center, flex-start);
         gap: 5px;
-        //border: 1px solid black;
         width: fit-content;
         flex-grow: 1;
+        color: white;
 
         .title {
           font-size: 20px;
         }
 
         .date {
-          color: gray;
+          color: lightgray;
           font-size: 13px;
           transition: text-decoration 0.2s; 
           cursor: pointer;
@@ -50,16 +51,17 @@
       }
 
       .close-popup{
+        margin: 10px;
         justify-self: end;
-        background-color: #ffcccb;
+        background-color: #d8807d;
         color: white;
         width: 30px;
         height: 30px;
         padding: 5px;
         font-weight: bold;
-        border: 1px solid #ffcccb;
+        border: 1px solid #d8807d;
         border-radius: 5px;
-        transition: background-color 0.1s ease-in-out,
+        transition: background-color 0.2s ease-in-out,
       }
     }
     .title-bar:hover {
@@ -72,6 +74,7 @@
     }
 
     .content {
+      margin: 10px;
       width: 100%;
       flex-grow:1;
       @include flex(column, flex-start, flex-start);
@@ -80,13 +83,37 @@
       div {
         width: 100%;
         padding: 10px 10px 0 0;
+
         label {
           font-weight: bold;
+
         }
+
+        .questionmark {
+          position: absolute;
+          margin-left: 5px;
+          cursor: pointer;
+        }
+        .questionmark_tooltip {
+          visibility: hidden;
+          position: relative;
+          border: 1px solid cadetblue;
+          background-color: cadetblue;
+          color: white;
+          padding: 5px 8px;
+          border-radius: 3px;
+          margin-left: 30px;
+        }
+
+        .questionmark:hover {
+          position: absolute;
+          margin-left: 5px;
+          cursor: pointer;
+        }
+
       }
       .options {
-        width: 100%;
-        padding: 10px 10px 10px 0;
+        width: 95%;
         border-top: 1px solid #DADADA;
         @include flex(row, flex-start, flex-start);
         gap: 15px;
