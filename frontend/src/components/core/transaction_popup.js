@@ -38,9 +38,9 @@ const TransactionPopup = ({
   }
 
   function getCategory(id) {
-    const category = categories.filter((c) => c.id === id);
+    const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
-      return category[0].category_type;
+      return category[0]?.category_type;
     }
     return "Not found.";
   }
@@ -64,7 +64,7 @@ const TransactionPopup = ({
 
     if (getTransactionType() === "transfer") {
       return `Transfered ${transaction.amount} ${helper.getCurrency(
-        getAccountCurrency(transaction.account)
+        getAccountCurrency(transaction.from_account)
       )} from ${getAccountName(transaction.from_account)} to ${getAccountName(
         transaction.to_account
       )}.`;
@@ -123,21 +123,46 @@ const TransactionPopup = ({
             <label>ID: </label>
             <span> {transaction.id}</span>
           </div>
-          <div>
-            <label>Amount: </label>
-            <span>
-              {parseFloat(transaction.amount).toFixed(2)}{" "}
-              {helper.getCurrency(getAccountCurrency(transaction.account))}
-            </span>
-          </div>
-          <div>
-            <label>Account: </label>
-            <span> {getAccountName(transaction.account)}</span>
-          </div>
-          <div>
-            <label>Category: </label>
-            <span> {getCategory(getCategoryType())}</span>
-          </div>
+          {getTransactionType() === "transfer" && (
+            <>
+              <div>
+                <label>Amount: </label>
+                <span>
+                  {parseFloat(transaction.amount).toFixed(2)}{" "}
+                  {helper.getCurrency(
+                    getAccountCurrency(transaction.from_account)
+                  )}
+                </span>
+              </div>
+              <div>
+                <label>From Account: </label>
+                <span> {getAccountName(transaction.from_account)}</span>
+              </div>
+              <div>
+                <label>To Account: </label>
+                <span> {getAccountName(transaction.to_account)}</span>
+              </div>
+            </>
+          )}
+          {getTransactionType() !== "transfer" && (
+            <>
+              <div>
+                <label>Amount: </label>
+                <span>
+                  {parseFloat(transaction.amount).toFixed(2)}{" "}
+                  {helper.getCurrency(getAccountCurrency(transaction.account))}
+                </span>
+              </div>
+              <div>
+                <label>Account: </label>
+                <span> {getAccountName(transaction.account)}</span>
+              </div>
+              <div>
+                <label>Category: </label>
+                <span> {getCategory(getCategoryType())}</span>
+              </div>
+            </>
+          )}
           <div>
             <label>User: </label>
             <span> {transaction.user}</span>

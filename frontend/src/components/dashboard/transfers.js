@@ -7,11 +7,14 @@ import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
+import TransactionPopup from "../core/transaction_popup";
 
 const Transfers = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [transfers, setTransfers] = useState([]);
   const [accounts, setAccounts] = useState([]);
+
+  const [transactionPopup, setTransactionPopup] = useState(false);
 
   useEffect(() => {
     getTransfers();
@@ -60,9 +63,20 @@ const Transfers = () => {
               accounts={accounts}
               getAccountCurrency={getAccountCurrency}
               refreshTransfers={getTransfers}
+              setTransactionPopup={setTransactionPopup}
             />
           )}
         </>
+      )}
+      {transactionPopup && (
+        <TransactionPopup
+          transaction={transactionPopup}
+          type={2}
+          showPopup={setTransactionPopup}
+          refreshTransactions={getTransfers}
+          getAccountCurrency={getAccountCurrency}
+          accounts={accounts}
+        />
       )}
     </div>
   );
@@ -164,6 +178,7 @@ const TransfersList = ({
   accounts,
   getAccountCurrency,
   refreshTransfers,
+  setTransactionPopup,
 }) => {
   const [shownTransfers = transfers, setShownTransfers] = useState({});
   const [sortedBy, setSortedBy] = useState({});
@@ -390,6 +405,7 @@ const TransfersList = ({
                 getAccountCurrency(transfer.from_account)
               )}
               refreshTransfers={refreshTransfers}
+              setTransactionPopup={setTransactionPopup}
             />
           ))}
       </div>
@@ -397,7 +413,13 @@ const TransfersList = ({
   );
 };
 
-const TransferItem = ({ transfer, accounts, currency, refreshTransfers }) => {
+const TransferItem = ({
+  transfer,
+  accounts,
+  currency,
+  refreshTransfers,
+  setTransactionPopup,
+}) => {
   const [showKebab, setShowKebab] = useState(false);
   const showConfirm = useConfirm();
   const showToast = useToast();
@@ -439,7 +461,18 @@ const TransferItem = ({ transfer, accounts, currency, refreshTransfers }) => {
     });
   }
 
-  function handleShowMore() {}
+  function handleShowMore(event) {
+    const kebabClicked = !!(
+      event.target?.attributes?.class?.value?.includes("kebab-button") ||
+      event.target?.attributes?.src?.value?.includes("kebab_icon")
+    );
+    const deleteButtonClicked =
+      !!event.target?.attributes?.id?.value?.includes("deleteButton");
+
+    if (!kebabClicked && !deleteButtonClicked) {
+      setTransactionPopup(transfer);
+    }
+  }
 
   function getAccountName(id) {
     const account = accounts.filter((a) => a.id === id);
@@ -458,7 +491,7 @@ const TransferItem = ({ transfer, accounts, currency, refreshTransfers }) => {
   }
 
   return (
-    <div className="transfer-item">
+    <div className="transfer-item" onClick={handleShowMore}>
       {isRecent(transfer.created_on) && (
         <label className="new-transaction">NEW!</label>
       )}
@@ -478,8 +511,12 @@ const TransferItem = ({ transfer, accounts, currency, refreshTransfers }) => {
           className={"kebab-menu"}
           id={`kebab-menu-${transfer.id}`}
         >
-          <button onClick={handleDelete}>Delete</button>
-          <button onClick={handleShowMore}>Show more</button>
+          <button onClick={handleDelete} id="deleteButton">
+            Delete
+          </button>
+          <button onClick={handleShowMore} id="showMoreButton">
+            Show more
+          </button>
         </div>
       )}
     </div>
