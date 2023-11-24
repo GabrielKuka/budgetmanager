@@ -10,6 +10,7 @@ import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
+import TransactionPopup from "../core/transaction_popup";
 
 const Incomes = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -18,6 +19,7 @@ const Incomes = () => {
 
   const [incomes, setIncomes] = useState([]);
   const [shownIncomes = incomes, setShownIncomes] = useState();
+  const [transactionPopup, setTransactionPopup] = useState(false);
 
   const [dateRange, setDateRange] = useState({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -84,9 +86,21 @@ const Incomes = () => {
               setDateRange={setDateRange}
               getAccountCurrency={getAccountCurrency}
               refreshIncomes={getIncomes}
+              setTransactionPopup={setTransactionPopup}
             />
           )}
         </>
+      )}
+      {transactionPopup && (
+        <TransactionPopup
+          transaction={transactionPopup}
+          type={0}
+          showPopup={setTransactionPopup}
+          refreshTransactions={getIncomes}
+          getAccountCurrency={getAccountCurrency}
+          accounts={accounts}
+          categories={categories}
+        />
       )}
     </div>
   );
@@ -473,6 +487,7 @@ const IncomesList = (props) => {
                 props.getAccountCurrency(income.account)
               )}
               refreshIncomes={props.refreshIncomes}
+              setTransactionPopup={props.setTransactionPopup}
             />
           ))}
       </div>
@@ -486,6 +501,7 @@ const IncomeItem = ({
   categories,
   currency,
   refreshIncomes,
+  setTransactionPopup,
 }) => {
   const [showKebab, setShowKebab] = useState(false);
   const showConfirm = useConfirm();
@@ -551,10 +567,21 @@ const IncomeItem = ({
     });
   }
 
-  function handleShowMore() {}
+  function handleShowMore(event) {
+    const kebabClicked = !!(
+      event.target?.attributes?.class?.value?.includes("kebab-button") ||
+      event.target?.attributes?.src?.value?.includes("kebab_icon")
+    );
+    const deleteButtonClicked =
+      !!event.target?.attributes?.id?.value?.includes("deleteButton");
+
+    if (!kebabClicked && !deleteButtonClicked) {
+      setTransactionPopup(income);
+    }
+  }
 
   return (
-    <div className="income-item">
+    <div className="income-item" onClick={handleShowMore}>
       {isRecent(income.created_on) && (
         <label className="new-transaction">NEW!</label>
       )}
@@ -574,8 +601,12 @@ const IncomeItem = ({
           className={"kebab-menu"}
           id={`kebab-menu-${income.id}`}
         >
-          <button onClick={handleDelete}>Delete</button>
-          <button onClick={handleShowMore}>Show more</button>
+          <button onClick={handleDelete} id="deleteButton">
+            Delete
+          </button>
+          <button onClick={handleShowMore} id="showMoreButton">
+            Show more
+          </button>
         </div>
       )}
     </div>
