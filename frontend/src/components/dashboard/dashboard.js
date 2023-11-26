@@ -6,6 +6,7 @@ import "./dashboard.scss";
 import Expenses from "./expenses";
 import Incomes from "./incomes";
 import Transfers from "./transfers";
+import Stats from "./stats";
 import DatePicker from "react-datepicker";
 
 const Dashboard = () => {
@@ -43,12 +44,13 @@ const Dashboard = () => {
       {page === "expenses" && <Expenses dateRange={dateRange} />}
       {page === "incomes" && <Incomes dateRange={dateRange} />}
       {page === "transfers" && <Transfers dateRange={dateRange} />}
+      {page === "stats" && <Stats dateRange={dateRange} />}
     </div>
   );
 };
 
 const Toolbar = ({ page, setPage, dateRange, setDateRange }) => {
-  const buttons = ["incomes", "expenses", "transfers"];
+  const buttons = ["incomes", "expenses", "transfers", "stats"];
 
   useEffect(() => {
     if (page) {
@@ -90,6 +92,9 @@ const Toolbar = ({ page, setPage, dateRange, setDateRange }) => {
       </button>
       <button id="transfers" onClick={(e) => handlePage(e)}>
         Transfers
+      </button>
+      <button id="stats" onClick={(e) => handlePage(e)}>
+        Stats
       </button>
 
       <div className={"date-filter"}>
