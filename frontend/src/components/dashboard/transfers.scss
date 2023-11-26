@@ -79,50 +79,6 @@
         @include title-decoration($height: 3px, $width: 100%, $bottom: -1px);
       }
 
-      .fromDatePicker,
-      .toDatePicker {
-        position: relative;
-        display: inline-block;
-        margin-top: 5px;
-        .datepicker {
-          width: 70px;
-          height: 13px;
-          cursor: pointer;
-        }
-        span {
-          background-color: cadetblue;
-          color: #fff;
-          padding: 1.2px 5px;
-
-          border-top-right-radius: 10px;
-          border-bottom-right-radius: 10px;
-
-          border-top-left-radius: 3px;
-          border-bottom-left-radius: 3px;
-
-          position: absolute;
-          top: 3px;
-          transition: left 0.2s ease-in-out;
-          visibility: hidden;
-          font-weight: normal;
-          text-transform: capitalize;
-          font-size: 13px;
-        }
-      }
-      .fromDatePicker > span {
-        left: -55%;
-      }
-      .toDatePicker > span {
-        left: -30%;
-      }
-      .toDatePicker:hover > span {
-        visibility: visible;
-        left: -40%;
-      }
-      .fromDatePicker:hover > span {
-        visibility: visible;
-        left: -60%;
-      }
     }
     .transfers {
       @include flex(column, flex-start, center);

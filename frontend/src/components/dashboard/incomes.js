@@ -12,7 +12,7 @@ import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
 
-const Incomes = () => {
+const Incomes = ({ dateRange }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [accounts, setAccounts] = useState([]);
@@ -20,11 +20,6 @@ const Incomes = () => {
   const [incomes, setIncomes] = useState([]);
   const [shownIncomes = incomes, setShownIncomes] = useState();
   const [transactionPopup, setTransactionPopup] = useState(false);
-
-  const [dateRange, setDateRange] = useState({
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    to: new Date(),
-  });
 
   useEffect(() => {
     getAccounts();
@@ -83,7 +78,6 @@ const Incomes = () => {
               categories={categories}
               accounts={accounts}
               dateRange={dateRange}
-              setDateRange={setDateRange}
               getAccountCurrency={getAccountCurrency}
               refreshIncomes={getIncomes}
               setTransactionPopup={setTransactionPopup}
@@ -373,36 +367,6 @@ const IncomesList = (props) => {
               height="12"
             />
           )}
-          <div className={"fromDatePicker"}>
-            <span className={"tooltip"}>From: </span>
-            <DatePicker
-              className="datepicker"
-              selected={props.dateRange.from}
-              onChange={(date) =>
-                props.setDateRange((prev) => ({
-                  ...prev,
-                  from: date,
-                }))
-              }
-              showMonthDropdown
-              dateFormat={"yyyy-MM-dd"}
-            />
-          </div>
-          <div className={"toDatePicker"}>
-            <span className={"tooltip"}>To:</span>
-            <DatePicker
-              className="datepicker"
-              selected={props.dateRange.to}
-              onChange={(date) =>
-                props.setDateRange((prev) => ({
-                  ...prev,
-                  to: date,
-                }))
-              }
-              showMonthDropdown
-              dateFormat={"yyyy-MM-dd"}
-            />
-          </div>
         </div>
         <label>Description</label>
         <div>

@@ -6,6 +6,7 @@ import "./dashboard.scss";
 import Expenses from "./expenses";
 import Incomes from "./incomes";
 import Transfers from "./transfers";
+import DatePicker from "react-datepicker";
 
 const Dashboard = () => {
   const global = useGlobalContext();
@@ -18,6 +19,11 @@ const Dashboard = () => {
       : window.location.pathname.split("/").slice(-1)[0];
   const [page, setPage] = useState(initLocation);
 
+  const [dateRange, setDateRange] = useState({
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    to: new Date(),
+  });
+
   useEffect(() => {
     navigate(`/dashboard/${page}`);
   }, [page]);
@@ -28,15 +34,20 @@ const Dashboard = () => {
 
   return (
     <div className={"dashboard-wrapper"}>
-      <Toolbar setPage={setPage} page={page} />
-      {page === "expenses" && <Expenses />}
-      {page === "incomes" && <Incomes />}
-      {page === "transfers" && <Transfers />}
+      <Toolbar
+        setPage={setPage}
+        page={page}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+      />
+      {page === "expenses" && <Expenses dateRange={dateRange} />}
+      {page === "incomes" && <Incomes dateRange={dateRange} />}
+      {page === "transfers" && <Transfers dateRange={dateRange} />}
     </div>
   );
 };
 
-const Toolbar = ({ page, setPage }) => {
+const Toolbar = ({ page, setPage, dateRange, setDateRange }) => {
   const buttons = ["incomes", "expenses", "transfers"];
 
   useEffect(() => {
@@ -80,6 +91,39 @@ const Toolbar = ({ page, setPage }) => {
       <button id="transfers" onClick={(e) => handlePage(e)}>
         Transfers
       </button>
+
+      <div className={"date-filter"}>
+        <div className={"fromDatePicker"}>
+          <span className={"tooltip"}>From: </span>
+          <DatePicker
+            className="datepicker"
+            selected={dateRange.from}
+            onChange={(date) =>
+              setDateRange((prev) => ({
+                ...prev,
+                from: date,
+              }))
+            }
+            showMonthDropdown
+            dateFormat={"yyyy-MM-dd"}
+          />
+        </div>
+        <div className={"toDatePicker"}>
+          <span className={"tooltip"}>To:</span>
+          <DatePicker
+            className="datepicker"
+            selected={dateRange.to}
+            onChange={(date) =>
+              setDateRange((prev) => ({
+                ...prev,
+                to: date,
+              }))
+            }
+            showMonthDropdown
+            dateFormat={"yyyy-MM-dd"}
+          />
+        </div>
+      </div>
     </div>
   );
 };

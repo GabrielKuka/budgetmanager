@@ -1,7 +1,6 @@
 import { Formik, Form, Field } from "formik";
 import React, { useEffect, useRef, useState } from "react";
 import transactionService from "../../services/transactionService/transactionService";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./expenses.scss";
 import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
@@ -12,7 +11,7 @@ import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
 
-const Expenses = () => {
+const Expenses = ({ dateRange }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [accounts, setAccounts] = useState([]);
@@ -21,10 +20,7 @@ const Expenses = () => {
   const [shownExpenses, setShownExpenses] = useState([]);
   const [transactionPopup, setTransactionPopup] = useState(false);
 
-  const [dateRange, setDateRange] = useState({
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    to: new Date(),
-  });
+  console.log(dateRange);
 
   useEffect(() => {
     getCategories();
@@ -86,7 +82,6 @@ const Expenses = () => {
               accounts={accounts}
               categories={categories}
               dateRange={dateRange}
-              setDateRange={setDateRange}
               getAccountCurrency={getAccountCurrency}
               refreshExpenses={getExpenses}
               setTransactionPopup={setTransactionPopup}
@@ -306,6 +301,7 @@ const ExpensesList = (props) => {
       .filter((e) => categoryFilter.includes(e))
       .filter((e) => dateFilter.includes(e))
       .sort((a, b) => (a.date > b.date ? -1 : 1));
+
     props.setShownExpenses(filteredExpenses);
   }
 
@@ -377,36 +373,6 @@ const ExpensesList = (props) => {
               height="12"
             />
           )}
-          <div className={"fromDatePicker"}>
-            <span className={"tooltip"}>From: </span>
-            <DatePicker
-              className="datepicker"
-              selected={props.dateRange.from}
-              onChange={(date) =>
-                props.setDateRange((prev) => ({
-                  ...prev,
-                  from: date,
-                }))
-              }
-              showMonthDropdown
-              dateFormat={"yyyy-MM-dd"}
-            />
-          </div>
-          <div className={"toDatePicker"}>
-            <span className={"tooltip"}>To:</span>
-            <DatePicker
-              className="datepicker"
-              selected={props.dateRange.to}
-              onChange={(date) =>
-                props.setDateRange((prev) => ({
-                  ...prev,
-                  to: date,
-                }))
-              }
-              showMonthDropdown
-              dateFormat={"yyyy-MM-dd"}
-            />
-          </div>
         </div>
         <label>Description</label>
         <div>

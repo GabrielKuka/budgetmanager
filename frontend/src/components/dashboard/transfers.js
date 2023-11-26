@@ -9,7 +9,7 @@ import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import TransactionPopup from "../core/transaction_popup";
 
-const Transfers = () => {
+const Transfers = ({ dateRange }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [transfers, setTransfers] = useState([]);
   const [accounts, setAccounts] = useState([]);
@@ -64,6 +64,7 @@ const Transfers = () => {
               getAccountCurrency={getAccountCurrency}
               refreshTransfers={getTransfers}
               setTransactionPopup={setTransactionPopup}
+              dateRange={dateRange}
             />
           )}
         </>
@@ -179,14 +180,10 @@ const TransfersList = ({
   getAccountCurrency,
   refreshTransfers,
   setTransactionPopup,
+  dateRange,
 }) => {
   const [shownTransfers = transfers, setShownTransfers] = useState({});
   const [sortedBy, setSortedBy] = useState({});
-
-  const [dateRange, setDateRange] = useState({
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    to: new Date(),
-  });
 
   useEffect(filterTransfers, [dateRange, transfers]);
   useEffect(filterTransfers, []);
@@ -282,36 +279,6 @@ const TransfersList = ({
               height="12"
             />
           )}
-          <div className={"fromDatePicker"}>
-            <span className={"tooltip"}>From: </span>
-            <DatePicker
-              className="datepicker"
-              selected={dateRange.from}
-              onChange={(date) =>
-                setDateRange((prev) => ({
-                  ...prev,
-                  from: date,
-                }))
-              }
-              showMonthDropdown
-              dateFormat={"yyyy-MM-dd"}
-            />
-          </div>
-          <div className={"toDatePicker"}>
-            <span className={"tooltip"}>To:</span>
-            <DatePicker
-              className="datepicker"
-              selected={dateRange.to}
-              onChange={(date) =>
-                setDateRange((prev) => ({
-                  ...prev,
-                  to: date,
-                }))
-              }
-              showMonthDropdown
-              dateFormat={"yyyy-MM-dd"}
-            />
-          </div>
         </div>
         <label>Description</label>
         <div>
