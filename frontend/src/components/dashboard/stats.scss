@@ -4,4 +4,16 @@
   position: relative;
   margin-top: 50px;
   border: 1px solid black;
+
+  @include flex(row, flex-start, center, wrap);
+
+  div {
+    border: 1px solid cadetblue;
+    margin: 5px;
+    height: 320px;
+    text-align: center;
+    flex: 0 0 calc(33.00% - 20px); 
+
+  }
+
 }

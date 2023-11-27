@@ -20,8 +20,6 @@ const Expenses = ({ dateRange }) => {
   const [shownExpenses, setShownExpenses] = useState([]);
   const [transactionPopup, setTransactionPopup] = useState(false);
 
-  console.log(dateRange);
-
   useEffect(() => {
     getCategories();
     getAccounts();
