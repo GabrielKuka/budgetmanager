@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Formik, Form, Field } from "formik";
 import transactionService from "../../services/transactionService/transactionService";
-import DatePicker from "react-datepicker";
 import "./transfers.scss";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import TransactionPopup from "../core/transaction_popup";
+import currencyService from "../../services/currencyService";
 
 const Transfers = ({ dateRange }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -112,13 +112,30 @@ const AddTransfer = ({
     <div className={"enter-transfer"}>
       <Formik
         initialValues={{
-          amount: "",
+          from_amount: "",
           from_account: "",
           to_account: "",
           description: "",
           date: new Date().toISOString().slice(0, 10),
         }}
         onSubmit={async (values, { resetForm, setSubmitting }) => {
+          // if from and to accounts have different currencies, convert
+          const from_currency = getAccountCurrency(
+            parseInt(values["from_account"])
+          );
+          const to_currency = getAccountCurrency(
+            parseInt(values["to_account"])
+          );
+          if (from_currency !== to_currency) {
+            values["to_amount"] = await currencyService.convert(
+              from_currency,
+              to_currency,
+              values["from_amount"]
+            );
+          } else {
+            values["to_amount"] = values["from_amount"];
+          }
+
           values["type"] = 2;
           await transactionService.addTransfer(values);
           await refreshTransfers();
@@ -160,7 +177,7 @@ const AddTransfer = ({
                   </option>
                 ))}
             </Field>
-            <Field type="text" name="amount" placeholder="Enter amount" />
+            <Field type="text" name="from_amount" placeholder="Enter amount" />
             <Field
               type="text"
               name="description"

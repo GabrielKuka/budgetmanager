@@ -26,11 +26,12 @@ def add_transaction(request):
     p = request.data
     p["user_id"] = user_id
 
-    value = round(float(p["amount"]), 2)
-
     try:
         # If it's a transfer
         if p["type"] == 2:
+            from_amount = round(float(p.pop("from_amount")), 2)
+            to_amount = round(float(p.pop("to_amount")), 2)
+
             p["to_account_id"] = int(p.pop("to_account"))
             p["from_account_id"] = int(p.pop("from_account"))
 
@@ -38,11 +39,14 @@ def add_transaction(request):
             from_account = Account.objects.filter(pk=p["from_account_id"])
             to_account = Account.objects.filter(pk=p["to_account_id"])
 
-            from_account.update(amount=from_account.first().amount - value)
-            to_account.update(amount=round(to_account.first().amount, 2) + value)
+            from_account.update(amount=from_account.first().amount - from_amount)
+            to_account.update(amount=round(to_account.first().amount, 2) + to_amount)
+
             p.pop("type")
+            p["amount"] = from_amount
             Transfer(**p).save()
         elif p["type"] == 1:  # This is an expense
+            value = round(float(p["amount"]), 2)
             p["account_id"] = int(p.pop("account"))
             p["expense_category_id"] = int(p.pop("expense_category"))
 
@@ -54,6 +58,7 @@ def add_transaction(request):
             p.pop("type")
             Expense(**p).save()
         elif p["type"] == 0:  # This is an income
+            value = round(float(p["amount"]), 2)
             p["account_id"] = int(p.pop("account"))
             p["income_category_id"] = int(p.pop("income_category"))
 
