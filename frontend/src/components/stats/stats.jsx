@@ -6,10 +6,40 @@ import "./stats.scss";
 
 const Stats = (props) => {
   const [accounts, setAccounts] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [expenseCategories, setExpenseCategories] = useState([]);
+
+  const [incomes, setIncomes] = useState([]);
+  const [incomeCategories, setIncomeCategories] = useState([]);
 
   useEffect(() => {
     getAccounts();
+
+    getExpenseCategories();
+    getExpenses();
+
+    getIncomeCategories();
+    getIncomes();
   }, []);
+
+  async function getIncomeCategories() {
+    const categories = await transactionService.getAllIncomeCategories();
+    setIncomeCategories(categories);
+  }
+  async function getIncomes() {
+    const incomes = await transactionService.getAllUserIncomes();
+    setIncomes(incomes);
+  }
+
+  async function getExpenseCategories() {
+    const categories = await transactionService.getAllExpenseCategories();
+    setExpenseCategories(categories);
+  }
+
+  async function getExpenses() {
+    const expenses = await transactionService.getAllUserExpenses();
+    setExpenses(expenses);
+  }
 
   async function getAccounts() {
     const accounts = await transactionService.getAllUserAccounts();
