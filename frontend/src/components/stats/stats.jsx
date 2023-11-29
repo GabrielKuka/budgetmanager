@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { Cell, Pie, Legend, PieChart, Label, Tooltip } from "recharts";
 import transactionService from "../../services/transactionService/transactionService";
-import currencyService from "../../services/currencyService";
 import NetworthPieChart from "./networthPieChart";
 
 import "./stats.scss";
