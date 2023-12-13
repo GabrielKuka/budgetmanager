@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import currencyService from "../../services/currencyService";
 import { Pie, PieChart, Cell, Label, Tooltip, Legend } from "recharts";
+import PieChartToolTip from "./pieChartToolTip";
+import PieChartCustomizedLabel from "./pieChartCustomLabel";
 
 const NetworthPieChart = ({ accounts }) => {
   const [data, setData] = useState(null);
@@ -91,9 +93,8 @@ const NetworthPieChart = ({ accounts }) => {
         cy="50%"
         outerRadius={100}
         stroke="none"
-        label={renderCustomizedLabel}
+        label={PieChartCustomizedLabel}
       >
-        {console.log(data)}
         {data?.map((entry, index) => {
           return (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -101,7 +102,10 @@ const NetworthPieChart = ({ accounts }) => {
         })}
         <Label valueKey="value" position="outside" />
       </Pie>
-      <Tooltip content={<CustomTooltip />} wrapperStyle={{ border: "none" }} />
+      <Tooltip
+        content={<PieChartToolTip />}
+        wrapperStyle={{ border: "none" }}
+      />
       <Legend
         wrapperStyle={{ border: "none" }}
         layout={"vertical"}
@@ -110,58 +114,6 @@ const NetworthPieChart = ({ accounts }) => {
       />
     </PieChart>
   );
-};
-
-const renderCustomizedLabel = ({
-  cx,
-  cy,
-  midAngle,
-  outerRadius,
-  name,
-  value,
-}) => {
-  const radius = outerRadius + 30;
-  const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
-  const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
-
-  return (
-    <>
-      {value > 0 && value < 100 && (
-        <text
-          x={x}
-          y={y}
-          fill="#000"
-          textAnchor="middle"
-          dominantBaseline="central"
-        >
-          {name}: {parseFloat(value).toFixed(2)}%
-        </text>
-      )}
-    </>
-  );
-};
-
-const CustomTooltip = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div
-        style={{
-          backgroundColor: data.fill,
-          padding: "5px",
-          borderRadius: "3px",
-          height: "50px",
-          color: "white",
-        }}
-      >
-        <p>
-          <b>{`${data.name} : ${parseFloat(data.value).toFixed(2)}%`}</b>
-        </p>
-      </div>
-    );
-  }
-
-  return null;
 };
 
 export default NetworthPieChart;

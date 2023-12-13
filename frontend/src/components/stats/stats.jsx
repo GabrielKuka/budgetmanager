@@ -3,6 +3,7 @@ import transactionService from "../../services/transactionService/transactionSer
 import NetworthPieChart from "./networthPieChart";
 
 import "./stats.scss";
+import NetworthBasedOnCurrencyChart from "./currencyChart";
 
 const Stats = (props) => {
   const [accounts, setAccounts] = useState([]);
@@ -51,7 +52,9 @@ const Stats = (props) => {
       <div>
         <NetworthPieChart accounts={accounts} />
       </div>
-      <div>Item 2</div>
+      <div>
+        <NetworthBasedOnCurrencyChart accounts={accounts} />
+      </div>
       <div>Item 3</div>
       <div>Item 4</div>
     </div>
