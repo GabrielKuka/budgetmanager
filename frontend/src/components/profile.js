@@ -196,6 +196,16 @@ const Sidebar = (props) => {
           width="20"
         />
       </div>
+      <Link className={"stats-button"} to="/stats">
+        <img
+          src={process.env.PUBLIC_URL + "/stats_icon.png"}
+          alt="download_icon"
+          height="20"
+          width="20"
+          className={"stats-icon"}
+        />
+        Statistics
+      </Link>
     </div>
   );
 };
