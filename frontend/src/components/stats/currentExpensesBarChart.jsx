@@ -68,7 +68,10 @@ const CurrentExpensesBarChart = (props) => {
     >
       <XAxis dataKey="category" />
       <YAxis type="number" tickSize={2} domain={[0, yMaxValue]} />
-      <Tooltip />
+      <Tooltip
+        content={<BarChartToolTip />}
+        wrapperStyle={{ border: "none" }}
+      />
       <Bar dataKey="amount" fill="#8884d8" />
     </BarChart>
   );
@@ -77,3 +80,26 @@ const CurrentExpensesBarChart = (props) => {
 export default CurrentExpensesBarChart;
 
 // width: 330 height: 250
+
+const BarChartToolTip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div
+        style={{
+          backgroundColor: "cadetBlue",
+          padding: "5px",
+          borderRadius: "3px",
+          height: "50px",
+          color: "white",
+        }}
+      >
+        <p>
+          <b>{`${data.category} : ${parseFloat(data.amount).toFixed(2)} €`}</b>
+        </p>
+      </div>
+    );
+  }
+
+  return null;
+};

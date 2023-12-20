@@ -40,8 +40,10 @@ const LoggedInNavbar = () => {
     navigate(selected);
 
     buttons.forEach((button) => {
-      document.getElementById(button).style.fontWeight =
-        selected == button ? "bold" : "normal";
+      const btn = document.getElementById(button);
+      if (btn && btn.style != null) {
+        btn.style.fontWeight = selected == button ? "bold" : "normal";
+      }
     });
   }
 

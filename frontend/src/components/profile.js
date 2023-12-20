@@ -30,8 +30,6 @@ const Profile = () => {
     getIncomes();
     getExpenses();
     getTransfers();
-
-    console.log(accounts);
   }, []);
 
   async function getExpenseCategories() {
