@@ -59,7 +59,7 @@ const CurrentExpensesBarChart = (props) => {
 
   return (
     <BarChart
-      className={"bar-chart"}
+      className={"bar-chart chart"}
       margin={{ left: 0, right: 0 }}
       width={props.width}
       height={props.height}

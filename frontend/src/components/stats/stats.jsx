@@ -64,13 +64,13 @@ const Stats = (props) => {
 
   return (
     <div className={"stats-wrapper"}>
-      <div>
+      <div className={"chart-container"}>
         <NetworthPieChart accounts={accounts} />
       </div>
-      <div>
+      <div className={"chart-container"}>
         <NetworthBasedOnCurrencyChart accounts={accounts} />
       </div>
-      <div>
+      <div className={"chart-container"}>
         <CurrentExpensesBarChart
           expenses={expenses.filter(
             (e) =>
@@ -83,7 +83,6 @@ const Stats = (props) => {
           width={480}
         />
       </div>
-      <div>Item 4</div>
     </div>
   );
 };
