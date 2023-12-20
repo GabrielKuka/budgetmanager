@@ -79,8 +79,6 @@ const CurrentExpensesBarChart = (props) => {
 
 export default CurrentExpensesBarChart;
 
-// width: 330 height: 250
-
 const BarChartToolTip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;

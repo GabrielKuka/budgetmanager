@@ -3,13 +3,13 @@ import React, { useEffect, useRef, useState } from "react";
 import transactionService from "../../services/transactionService/transactionService";
 import "react-datepicker/dist/react-datepicker.css";
 import "./expenses.scss";
-import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
+import CurrentExpensesBarChart from "../stats/currentExpensesBarChart";
 
 const Expenses = ({ dateRange }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -104,7 +104,6 @@ const Expenses = ({ dateRange }) => {
 
 const Sidebar = (props) => {
   const [totalShownExpenses, setTotalShownExpenses] = useState(0);
-  const [expensesPerCategory, setExpensesPerCategory] = useState("");
 
   useEffect(() => {
     async function getTotal() {
@@ -122,31 +121,6 @@ const Sidebar = (props) => {
       setTotalShownExpenses(parseFloat(total).toFixed(2));
     }
 
-    async function getExpensesPerCategory() {
-      const data = [];
-      for (const c of props.categories) {
-        let promises = props.shownExpenses
-          .filter((e) => e.expense_category == c.id)
-          .map(async (e) => {
-            return await currencyService.convert(
-              props.getAccountCurrency(e.account),
-              "EUR",
-              e.amount
-            );
-          });
-
-        const results = await Promise.all(promises);
-        const total = results.reduce((t, curr) => (t += parseFloat(curr)), 0);
-        data.push({
-          category: c.category_type,
-          amount: parseFloat(total).toFixed(2),
-        });
-      }
-
-      setExpensesPerCategory(data);
-    }
-
-    getExpensesPerCategory();
     getTotal();
   }, [props.shownExpenses]);
 
@@ -166,34 +140,14 @@ const Sidebar = (props) => {
           {props.dateRange.to.toDateString()}.
         </small>
       </div>
-      <Chart data={expensesPerCategory} />
+      <CurrentExpensesBarChart
+        expenses={props.shownExpenses}
+        categories={props.categories}
+        getAccountCurrency={props.getAccountCurrency}
+        width={330}
+        height={250}
+      />
     </div>
-  );
-};
-
-const Chart = (props) => {
-  const [yMaxValue, setYMaxValue] = useState({});
-
-  useEffect(() => {
-    if (props.data) {
-      setYMaxValue(Math.max(...props.data.map((o) => o.amount)));
-    }
-  }, [props.data]);
-
-  return (
-    <BarChart
-      className={"bar-chart"}
-      margin={{ left: 0, right: 0 }}
-      width={330}
-      height={250}
-      data={props.data}
-      barSize={20}
-    >
-      <XAxis dataKey="category" />
-      <YAxis type="number" tickSize={2} domain={[0, yMaxValue]} />
-      <Tooltip />
-      <Bar dataKey="amount" fill="#8884d8" />
-    </BarChart>
   );
 };
 
