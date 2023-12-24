@@ -5,6 +5,7 @@ import NetworthPieChart from "./networthPieChart";
 import "./stats.scss";
 import NetworthBasedOnCurrencyChart from "./currencyChart";
 import CurrentExpensesBarChart from "./currentExpensesBarChart";
+import IncomeVsExpenseChart from "./incomeVsExpenseChart";
 
 const Stats = (props) => {
   const [accounts, setAccounts] = useState([]);
@@ -81,6 +82,15 @@ const Stats = (props) => {
           getAccountCurrency={getAccountCurrency}
           height={310}
           width={480}
+        />
+      </div>
+      <div className={"chart-container"}>
+        <IncomeVsExpenseChart
+          getAccountCurrency={getAccountCurrency}
+          height={310}
+          width={580}
+          expenses={expenses}
+          incomes={incomes}
         />
       </div>
     </div>
