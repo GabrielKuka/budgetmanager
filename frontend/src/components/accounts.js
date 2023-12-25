@@ -82,7 +82,7 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
         if (a.type == 2) {
           return await currencyService.convert(a.currency, "EUR", a.amount);
         }
-        return 0; // or return a default value if a.type is not 1
+        return 0;
       });
 
       let results = await Promise.all(promises);
@@ -94,7 +94,7 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
         if (a.type == 0) {
           return await currencyService.convert(a.currency, "EUR", a.amount);
         }
-        return 0; // or return a default value if a.type is not 1
+        return 0;
       });
 
       let results = await Promise.all(promises);

@@ -23,7 +23,7 @@ const LoggedInNavbar = () => {
     global.logoutUser();
   };
 
-  const buttons = ["dashboard", "accounts", "profile", "templates"];
+  const buttons = ["dashboard", "accounts", "profile", "stats", "templates"];
 
   useEffect(() => {
     let location = window.location.pathname.replace("/", "");
@@ -40,8 +40,10 @@ const LoggedInNavbar = () => {
     navigate(selected);
 
     buttons.forEach((button) => {
-      document.getElementById(button).style.fontWeight =
-        selected == button ? "bold" : "normal";
+      const btn = document.getElementById(button);
+      if (btn && btn.style != null) {
+        btn.style.fontWeight = selected == button ? "bold" : "normal";
+      }
     });
   }
 
@@ -58,6 +60,9 @@ const LoggedInNavbar = () => {
       </button>
       <button id="templates" onClick={(e) => handlePage(e)}>
         Templates
+      </button>
+      <button id="templates" onClick={(e) => handlePage(e)}>
+        Stats
       </button>
       <button onClick={handleLogout}>Log out</button>
       <CurrencyConverter />

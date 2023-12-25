@@ -14,9 +14,9 @@
     padding: 10px;
     padding-left: 0;
     width: 100%;
-    z-index: 4000;
+    z-index: 2000;
 
-    #incomes, #expenses, #transfers {
+    #incomes, #expenses, #transfers, #stats {
       border: 1px solid cadetblue;
       padding: 5px 5px 5px 5px;
       color: cadetblue;
@@ -24,7 +24,7 @@
       width: 100px;
       transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, border-radius 0.3s ease-in-out;
     }
-    #incomes:hover, #expenses:hover, #transfers:hover{
+    #incomes:hover, #expenses:hover, #transfers:hover, #stats:hover{
       background-color: cadetblue;
       border-radius: 5px;
       color: white;

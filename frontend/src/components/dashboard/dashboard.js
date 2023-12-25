@@ -91,7 +91,6 @@ const Toolbar = ({ page, setPage, dateRange, setDateRange }) => {
       <button id="transfers" onClick={(e) => handlePage(e)}>
         Transfers
       </button>
-
       <div className={"date-filter"}>
         <div className={"fromDatePicker"}>
           <span className={"tooltip"}>From: </span>

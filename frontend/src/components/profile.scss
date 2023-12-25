@@ -131,6 +131,26 @@
         filter: hue-rotate(0deg) brightness(0) invert(1);
       }
     }
+
+    .stats-button {
+      @include flex(row, center, center);
+      gap: 10px;
+      border: 1px solid cadetblue;
+      border-radius: 3px;
+      width: 350px;
+
+      text-align: center;
+      padding: 6px 0px;
+      color: cadetblue;
+      text-decoration: none;
+      transition: background-color 0.2s, color 0.2s;
+
+    }
+    .stats-button:hover {
+      background-color: cadetblue;
+      color: white;
+      cursor: pointer;
+    }
   }
 
   &__board {
