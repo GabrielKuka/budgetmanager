@@ -6,6 +6,7 @@ import "./stats.scss";
 import NetworthBasedOnCurrencyChart from "./currencyChart";
 import CurrentExpensesBarChart from "./currentExpensesBarChart";
 import IncomeVsExpenseChart from "./incomeVsExpenseChart";
+import FoodExpensesChart from "./foodExpensesChart";
 
 const Stats = (props) => {
   const [accounts, setAccounts] = useState([]);
@@ -91,6 +92,15 @@ const Stats = (props) => {
           width={580}
           expenses={expenses}
           incomes={incomes}
+        />
+      </div>
+      <div className={"chart-container"}>
+        <FoodExpensesChart
+          height={310}
+          width={580}
+          expenses={expenses.filter((e) => e.expense_category == 1)}
+          incomes={incomes}
+          getAccountCurrency={getAccountCurrency}
         />
       </div>
     </div>
