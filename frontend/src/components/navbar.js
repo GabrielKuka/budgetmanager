@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./navbar.scss";
 import { Formik, Form, Field } from "formik";
 import currencyService from "../services/currencyService";
+import ConversionTool from "./core/conversiontool";
 
 const Navbar = () => {
   const global = useGlobalContext();
@@ -24,6 +25,7 @@ const LoggedInNavbar = () => {
   };
 
   const buttons = ["dashboard", "accounts", "profile", "stats", "templates"];
+  const [conversionTool, setConversionTool] = useState(false);
 
   useEffect(() => {
     let location = window.location.pathname.replace("/", "");
@@ -61,11 +63,16 @@ const LoggedInNavbar = () => {
       <button id="templates" onClick={(e) => handlePage(e)}>
         Templates
       </button>
-      <button id="templates" onClick={(e) => handlePage(e)}>
+      <button id="stats" onClick={(e) => handlePage(e)}>
         Stats
       </button>
+      <button id="converter" onClick={() => setConversionTool(true)}>
+        Convert Currency
+      </button>
+      {conversionTool && (
+        <ConversionTool closePopup={() => setConversionTool(false)} />
+      )}
       <button onClick={handleLogout}>Log out</button>
-      <CurrencyConverter />
     </div>
   );
 };
