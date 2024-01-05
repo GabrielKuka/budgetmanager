@@ -1,8 +1,8 @@
-import "./transaction_popup.scss";
 import { useConfirm } from "../../context/ConfirmContext";
 import { useToast } from "../../context/ToastContext";
 import transactionService from "../../services/transactionService/transactionService";
 import { helper } from "../helper";
+import "./transaction_popup.scss";
 
 const TransactionPopup = ({
   transaction,
@@ -104,7 +104,7 @@ const TransactionPopup = ({
   return (
     <>
       <div className={"overlay"}></div>
-      <div className={"popup-wrapper"}>
+      <div className={"transaction-popup-wrapper"}>
         <div className={"title-bar"}>
           <div className={"main"}>
             <span className={"title"}>{getTitle()}</span>

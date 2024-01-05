@@ -10,7 +10,7 @@ const ConversionTool = ({ closePopup }) => {
   return (
     <>
       <div className={"overlay"}></div>
-      <div className={"popup-wrapper"}>
+      <div className={"conversion-popup-wrapper"}>
         <div className={"title-bar"}>
           <span className={"title"}>Currency Converter Tool</span>
           <button className={"close-popup"} onClick={closePopup}>
