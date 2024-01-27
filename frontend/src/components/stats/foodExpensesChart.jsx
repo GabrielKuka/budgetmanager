@@ -66,6 +66,9 @@ const FoodExpensesChart = (props) => {
       }
       // Calculate the ratio
       for (const date in foodExpensesByMonth) {
+        if (incomesByMonth[date] < foodExpensesByMonth[date]) {
+          continue;
+        }
         items.push({
           date: date,
           ratio: parseFloat(

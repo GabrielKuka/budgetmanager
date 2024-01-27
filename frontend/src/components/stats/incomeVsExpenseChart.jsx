@@ -74,10 +74,21 @@ const IncomeVsExpenseChart = (props) => {
       const incomesByMonth = await getIncomesYoY();
 
       for (let monthYear in expensesByMonth) {
+        if (
+          typeof incomesByMonth[monthYear] === "undefined" ||
+          expensesByMonth[monthYear] === "undefined"
+        ) {
+          continue;
+        }
+        const currentIncome = parseFloat(incomesByMonth[monthYear].toFixed(2));
+        const currentExpense = parseFloat(
+          expensesByMonth[monthYear].toFixed(2)
+        );
+
         items.push({
           date: monthYear,
-          income: parseFloat(incomesByMonth[monthYear]).toFixed(2),
-          expense: parseFloat(expensesByMonth[monthYear]).toFixed(2),
+          income: currentIncome,
+          expense: currentExpense,
         });
       }
       setData(items);
@@ -104,7 +115,7 @@ const IncomeVsExpenseChart = (props) => {
         </linearGradient>
       </defs>
 
-      <CartesianGrid strokeDasharray="3 3" />
+      <CartesianGrid strokeDasharray="6 6" />
       <XAxis dataKey="date" />
       <YAxis />
       <Tooltip content={<AreaChartChartToolTip />} />
