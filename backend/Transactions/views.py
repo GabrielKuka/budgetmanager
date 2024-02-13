@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from Accounts.models import Account
 from Users.models import User
+from tags.models import Tag
 
 from .models import Expense, ExpenseCategory, Income, IncomeCategory, Transfer
 from Accounts.serialzers import AccountSerializer
@@ -39,12 +40,27 @@ def add_transaction(request):
             from_account = Account.objects.filter(pk=p["from_account_id"])
             to_account = Account.objects.filter(pk=p["to_account_id"])
 
-            from_account.update(amount=from_account.first().amount - from_amount)
-            to_account.update(amount=round(to_account.first().amount, 2) + to_amount)
+            from_account.update(
+                amount=from_account.first().amount - from_amount
+            )
+            to_account.update(
+                amount=round(to_account.first().amount, 2) + to_amount
+            )
 
             p.pop("type")
             p["amount"] = from_amount
-            Transfer(**p).save()
+
+            serializer = TransferSerializer(data=p)
+            if not serializer.is_valid():
+                print(p)
+                raise Exception(f"{serializer.errors}")
+
+            serializer.save(
+                user_id=user_id,
+                from_account_id=p["from_account_id"],
+                to_account_id=p["to_account_id"],
+            )
+            # Transfer(**p).save()
         elif p["type"] == 1:  # This is an expense
             value = round(float(p["amount"]), 2)
             p["account_id"] = int(p.pop("account"))
@@ -56,7 +72,18 @@ def add_transaction(request):
                 amount=round(selected_account.first().amount, 2) - value
             )
             p.pop("type")
-            Expense(**p).save()
+
+            serializer = ExpenseSerializer(data=p)
+            if not serializer.is_valid():
+                print(p)
+                raise Exception(f"{serializer.errors}")
+
+            serializer.save(
+                user_id=user_id,
+                account_id=p["account_id"],
+                expense_category_id=p["expense_category_id"],
+            )
+            # Expense(**p).save()
         elif p["type"] == 0:  # This is an income
             value = round(float(p["amount"]), 2)
             p["account_id"] = int(p.pop("account"))
@@ -67,8 +94,18 @@ def add_transaction(request):
                 amount=round(selected_account.first().amount, 2) + value
             )
             p.pop("type")
-            Income(**p).save()
 
+            serializer = IncomeSerializer(data=p)
+            if not serializer.is_valid():
+                print(p)
+                raise Exception(f"{serializer.errors}")
+
+            serializer.save(
+                user_id=user_id,
+                account_id=p["account_id"],
+                income_category_id=p["income_category_id"],
+            )
+            # Income(**p).save()
         return Response(
             {"message": "Transaction Added."}, status=status.HTTP_201_CREATED
         )
@@ -97,7 +134,10 @@ def delete_transaction(request):
 
             account_serializer = AccountSerializer(
                 from_account,
-                data={"amount": round(from_account.amount, 2) + transaction.amount},
+                data={
+                    "amount": round(from_account.amount, 2)
+                    + transaction.amount
+                },
                 partial=True,
             )
 
@@ -108,7 +148,9 @@ def delete_transaction(request):
 
             account_serializer = AccountSerializer(
                 to_account,
-                data={"amount": round(to_account.amount, 2) - transaction.amount},
+                data={
+                    "amount": round(to_account.amount, 2) - transaction.amount
+                },
                 partial=True,
             )
 
@@ -119,7 +161,9 @@ def delete_transaction(request):
 
             # Delete transaction
             transaction.delete()
-            return Response({"msg": "Transaction deleted"}, status=status.HTTP_200_OK)
+            return Response(
+                {"msg": "Transaction deleted"}, status=status.HTTP_200_OK
+            )
         elif transaction_type == 1:  # An expense
             # Increase the associated account balance
             transaction = Expense.objects.get(id=transaction_id)
@@ -139,7 +183,9 @@ def delete_transaction(request):
 
             # Delete the expense object
             transaction.delete()
-            return Response({"msg": "Transaction deleted"}, status=status.HTTP_200_OK)
+            return Response(
+                {"msg": "Transaction deleted"}, status=status.HTTP_200_OK
+            )
         elif transaction_type == 0:  # An income
             # Decrease the associated account balance
             transaction = Income.objects.get(id=transaction_id)
@@ -159,7 +205,9 @@ def delete_transaction(request):
 
             # Delete the expense object
             transaction.delete()
-            return Response({"msg": "Transaction deleted"}, status=status.HTTP_200_OK)
+            return Response(
+                {"msg": "Transaction deleted"}, status=status.HTTP_200_OK
+            )
         else:
             raise Exception("Incorrect transaction type.")
     except Exception as e:

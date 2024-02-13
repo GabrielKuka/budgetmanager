@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "Transactions",
     "Templates",
     "Currency",
+    "tags",
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
