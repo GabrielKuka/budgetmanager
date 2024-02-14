@@ -159,6 +159,14 @@ const AddExpense = ({
   getAccountCurrency,
 }) => {
   const showToast = useToast();
+  const [tags, setTags] = useState([]);
+
+  function addTag(e) {
+    e.preventDefault();
+    if (!tags.includes(e.target.previousElementSibling.value)) {
+      setTags([...tags, e.target.previousElementSibling.value]);
+    }
+  }
 
   return (
     <div className={"enter-expense"}>
@@ -200,6 +208,23 @@ const AddExpense = ({
                 ))}
             </Field>
             <Field type="text" name="amount" placeholder="Enter amount" />
+            <div className={"tags_container"}>
+              <div className={"tags_container__input"}>
+                <input type="text" name="tags" placeholder="Enter tags" />
+                <button type="button" onClick={(e) => addTag(e)}>
+                  + Tag
+                </button>
+              </div>
+              {tags && (
+                <div className={"tags_container__shown-tags"}>
+                  {tags.map((t) => (
+                    <span className={"tag"} key={t}>
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
             <Field
               type="text"
               name="description"
