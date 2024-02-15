@@ -80,6 +80,12 @@
       padding-top: 20px;
       padding-bottom: 20px;
     }
+    .summary{
+      box-shadow: 1px 1px 8px #dadada;
+      padding: 5px 10px;
+      border-radius: 3px;
+      width: 310px;
+    }
   }
 
   &__expenses-list {
