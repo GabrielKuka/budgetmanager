@@ -2,7 +2,8 @@
 
 .incomes-wrapper {
   position: relative;
-  margin-top: 50px;
+  margin-top: 40px;
+  height: 86%;
 
   &__sidebar {
     position: fixed;
@@ -11,8 +12,18 @@
     box-shadow: 1px 1px 2px #dadada;
     border-radius: 3px;
     padding: 20px 20px 20px 20px;
-    @include flex(column, center, center);
+    @include flex(column, flex-start, center);
     gap: 15px;
+    max-height: 80%;
+    overflow-y: auto;
+
+    /* hide scrollbar */
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+    overflow: -moz-scrollbars-none; /* Firefox */
 
     .enter-income {
       border: 1px solid #dadada;
@@ -39,6 +50,70 @@
           cursor: pointer;
           transition: padding-left 0.3s;
         }
+
+        .tags_container {
+          @include flex(column, flex-start, flex-start);
+          gap:5px;
+          width: 100%;
+          &__input {
+            @include flex(row, flex-start, flex-start);
+            gap: 15px;
+            width: 100%;
+            align-items: stretch;
+
+            .add-tag-button {
+              border: 1px solid cadetblue;
+              border-radius: 3px;
+              background-color: cadetblue;
+              color: white;
+              font-weight: bold;
+            }
+            
+            #add_tag_textfield{
+              border: 1px solid cadetblue;
+              border-radius: 3px;
+              transition: border 0.3s;
+
+              &:hover{
+                border-radius: 3px;
+              }
+              &:focus{
+                outline:none;
+              }
+            }
+
+          }
+          &__shown-tags {
+            @include flex(row, flex-start, flex-start);
+            gap: 7px;
+            width: 100%;
+            flex-wrap: wrap;
+            overflow-x: auto;
+            span {
+              background-color: cadetblue;
+              color: white;
+              font-weight: bold;
+              border-radius: 3px;
+              padding: 3px 6px 3px 6px;
+
+              .remove-tag-button {
+                background-color: cadetblue;
+                color: white;
+                font-weight: bold;
+                border: 1px solid white;
+                margin-left: 5px;
+                border-radius: 100%;
+                transition: color 0.2s, background-color 0.2s;
+
+                cursor: pointer;
+                &:hover {
+                  color: cadetblue;
+                  background-color: white;
+                }
+              }
+            }
+          }
+        }
       }
     }
     .enter-income:hover {
@@ -57,10 +132,16 @@
     }
 
     .summary{
-      box-shadow: 1px 1px 8px #dadada;
+      box-shadow: 1px 1px 5px #dadada;
+      border: 1px solid #dadada;
       padding: 5px 10px;
       border-radius: 3px;
       width: 310px;
+      transition: box-shadow 0.3s, border 0.3s;
+      &:hover{
+        border: 1px solid cadetblue;
+        box-shadow: 1px 1px 5px cadetblue;
+      } 
     }
   }
 
@@ -70,7 +151,9 @@
     box-shadow: 1px 1px 2px #dadada;
     border-radius: 3px;
     left: 450px;
+    height: 99%;
     width: 900px;
+
     @include flex(column, flex-start, center);
     .header {
       font-weight: bold;
@@ -96,7 +179,6 @@
     .incomes {
       @include flex(column, flex-start, center);
       gap: 15px;
-      height: calc(100vh - 250px);
       width: 100%;
       overflow-x: hidden;
       overflow-y: scroll;

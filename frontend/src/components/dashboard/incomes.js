@@ -203,6 +203,18 @@ const AddIncome = ({
   getAccountCurrency,
 }) => {
   const showToast = useToast();
+  const [tags, setTags] = useState([]);
+
+  function addTag(e) {
+    e.preventDefault();
+    if (!tags.includes(e.target.previousElementSibling.value)) {
+      setTags([...tags, e.target.previousElementSibling.value]);
+      const input = document.getElementById("add_tag_textfield");
+      input.value = "";
+      input.focus();
+    }
+  }
+
   return (
     <div className={"enter-income"}>
       <Formik
@@ -215,11 +227,15 @@ const AddIncome = ({
         }}
         onSubmit={async (values, { resetForm, setSubmitting }) => {
           values["type"] = 0;
+          values["tags"] = tags.map((tag) => ({
+            name: tag,
+          }));
           await transactionService.addIncome(values);
           await refreshIncomes();
           await refreshAccounts();
           showToast("Income Added", "info");
           setSubmitting(false);
+          setTags([]);
           resetForm();
         }}
       >
@@ -243,6 +259,39 @@ const AddIncome = ({
                 ))}
             </Field>
             <Field type="text" name="amount" placeholder="Enter amount" />
+            <div className={"tags_container"}>
+              <div className={"tags_container__input"}>
+                <input
+                  type="text"
+                  name="tags"
+                  id="add_tag_textfield"
+                  placeholder="Enter tags"
+                />
+                <button
+                  type="button"
+                  className={"add-tag-button"}
+                  onClick={(e) => addTag(e)}
+                >
+                  + Tag
+                </button>
+              </div>
+              {tags && (
+                <div className={"tags_container__shown-tags"}>
+                  {tags.map((t) => (
+                    <span className={"tag"} key={t}>
+                      {t}
+                      <button
+                        type="button"
+                        className={"remove-tag-button"}
+                        onClick={() => setTags(tags.filter((tag) => tag !== t))}
+                      >
+                        x
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
             <Field
               type="text"
               name="description"
