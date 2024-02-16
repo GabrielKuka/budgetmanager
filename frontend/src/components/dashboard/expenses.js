@@ -165,7 +165,9 @@ const AddExpense = ({
     e.preventDefault();
     if (!tags.includes(e.target.previousElementSibling.value)) {
       setTags([...tags, e.target.previousElementSibling.value]);
-      document.getElementById("add_tag_textfield").value = "";
+      const input = document.getElementById("add_tag_textfield");
+      input.value = "";
+      input.focus();
     }
   }
 
@@ -221,7 +223,11 @@ const AddExpense = ({
                   id="add_tag_textfield"
                   placeholder="Enter tags"
                 />
-                <button type="button" onClick={(e) => addTag(e)}>
+                <button
+                  type="button"
+                  className={"add-tag-button"}
+                  onClick={(e) => addTag(e)}
+                >
                   + Tag
                 </button>
               </div>

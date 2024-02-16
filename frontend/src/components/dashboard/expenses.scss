@@ -27,7 +27,7 @@
 
     .enter-expense {
       border: 1px solid #dadada;
-      box-shadow: 1px 1px 10px #dadada;
+      box-shadow: 1px 1px 5px #dadada;
       border-radius: 3px;
       width: 270px;
       padding: 30px;
@@ -56,9 +56,31 @@
           width: 100%;
           &__input {
             @include flex(row, flex-start, flex-start);
-            gap: 10px;
+            gap: 15px;
             width: 100%;
             align-items: stretch;
+
+            .add-tag-button {
+              border: 1px solid cadetblue;
+              border-radius: 3px;
+              background-color: cadetblue;
+              color: white;
+              font-weight: bold;
+            }
+            
+            #add_tag_textfield{
+              border: 1px solid cadetblue;
+              border-radius: 3px;
+              transition: border 0.3s;
+
+              &:hover{
+                border-radius: 3px;
+              }
+              &:focus{
+                outline:none;
+              }
+            }
+
           }
           &__shown-tags {
             @include flex(row, flex-start, flex-start);
@@ -110,10 +132,16 @@
       padding-bottom: 20px;
     }
     .summary{
-      box-shadow: 1px 1px 8px #dadada;
+      box-shadow: 1px 1px 5px #dadada;
+      border: 1px solid #dadada;
       padding: 5px 10px;
       border-radius: 3px;
       width: 310px;
+      transition: box-shadow 0.3s, border 0.3s;
+      &:hover{
+        border: 1px solid cadetblue;
+        box-shadow: 1px 1px 5px cadetblue;
+      } 
     }
   }
 
