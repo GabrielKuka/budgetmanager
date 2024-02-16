@@ -112,6 +112,15 @@
           cursor: pointer;
         }
 
+        .tag {
+          background-color: cadetblue;
+          color: white;
+          font-weight: bold;
+          border-radius: 3px;
+          padding: 3px 6px 3px 6px;
+          margin-left: 10px;
+        }
+
       }
       .options {
         width: 95%;

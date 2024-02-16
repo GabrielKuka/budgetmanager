@@ -190,6 +190,16 @@ const TransactionPopup = ({
               The date and time when the transaction was added in the system.
             </span>
           </div>
+          {transaction?.tags?.length > 0 && (
+            <div>
+              <label>Tags: </label>
+              {transaction.tags.map((t) => (
+                <span key={t.id} className={"tag"}>
+                  {t.name}
+                </span>
+              ))}
+            </div>
+          )}
           <div className={"options"}>
             <button onClick={handleDelete} id="deleteButton">
               Delete {getTransactionType()}

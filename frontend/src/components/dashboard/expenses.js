@@ -189,6 +189,7 @@ const AddExpense = ({
           await refreshAccounts();
           showToast("Expense Added", "info");
           setSubmitting(false);
+          setTags([]);
           resetForm();
         }}
       >
