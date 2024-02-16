@@ -181,6 +181,9 @@ const AddExpense = ({
         }}
         onSubmit={async (values, { setSubmitting, resetForm }) => {
           values["type"] = 1;
+          values["tags"] = tags.map((tag) => ({
+            name: tag,
+          }));
           await transactionService.addExpense(values);
           await refreshExpenses();
           await refreshAccounts();
