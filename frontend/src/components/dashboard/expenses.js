@@ -220,6 +220,13 @@ const AddExpense = ({
                   {tags.map((t) => (
                     <span className={"tag"} key={t}>
                       {t}
+                      <button
+                        type="button"
+                        className={"remove-tag-button"}
+                        onClick={() => setTags(tags.filter((tag) => tag !== t))}
+                      >
+                        x
+                      </button>
                     </span>
                   ))}
                 </div>
