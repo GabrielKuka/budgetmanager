@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useGlobalContext } from "../context/GlobalContext";
 import { useNavigate } from "react-router-dom";
 import "./navbar.scss";
@@ -21,6 +21,8 @@ const LoggedInNavbar = () => {
   const handleLogout = () => {
     global.logoutUser();
   };
+
+  const fullname = useRef(global.user.data.name);
 
   const buttons = ["dashboard", "accounts", "profile", "stats", "templates"];
   const [conversionTool, setConversionTool] = useState(false);
@@ -49,14 +51,19 @@ const LoggedInNavbar = () => {
 
   return (
     <div className={"navbar-wrapper__loggedin"}>
+      <div className={"fullname-container"} onClick={() => navigate("profile")}>
+        <img
+          alt="user-icon"
+          className={"user-icon"}
+          src={process.env.PUBLIC_URL + "/user-icon.png"}
+        />
+        <label className={"fullname"}>{fullname.current}</label>
+      </div>
       <button id="dashboard" onClick={(e) => handlePage(e)}>
         Dashboard
       </button>
       <button id="accounts" onClick={(e) => handlePage(e)}>
         Accounts
-      </button>
-      <button id="profile" onClick={(e) => handlePage(e)}>
-        Profile
       </button>
       <button id="templates" onClick={(e) => handlePage(e)}>
         Templates

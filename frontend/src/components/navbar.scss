@@ -5,17 +5,42 @@
   top: 0;
   width: 100%;
   z-index: 1900;
-
   background-color: cadetblue;
+
   &__loggedin {
+    height: 35px;
     @include flex(row, flex-start, center);
     gap: 10px;
 
     padding: 15px;
     color: black;
+    
+    .fullname-container{
+      @include flex(row, flex-start, center);
+      gap: 8px;
+      border-right: 2px solid white;
+      padding: 5px 15px 5px 10px;
+      transition: background-color 0.2s ease-in;
+
+      &:hover {
+       background-color: steelblue; 
+      }
+
+      .fullname {
+        cursor: pointer;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+      }
+      .user-icon {
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+      }
+    }
 
     button {
-      padding-bottom: 10px;
+      padding-bottom: 8px;
       padding-top: 7px;
       color: white;
       background-color: cadetblue;
