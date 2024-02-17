@@ -70,10 +70,6 @@ def add_template(request):
 
     p["type"] = int(p["type"])
     p["amount"] = round(float(p["amount"]), 2)
-    p["template_group"] = TemplateGroup.objects.get(
-        pk=int(p["template_group"])
-    )
-
     try:
         if p["type"] in {0, 1}:  # <- Income or Expense
             p.pop("from_account")
@@ -88,7 +84,13 @@ def add_template(request):
         else:
             raise Exception("Invalid input.")
 
-        Template(**p).save()
+        serializer = TemplateSerializer(data=p)
+        if not serializer.is_valid():
+            raise Exception(f"{serializer.errors}")
+
+        serializer.save(user_id=user_id, template_group_id=p["template_group"])
+
+        # Template(**p).save()
         return Response(
             {"message": "Template created."}, status=status.HTTP_201_CREATED
         )

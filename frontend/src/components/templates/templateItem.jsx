@@ -66,7 +66,7 @@ const TemplateItem = (props) => {
         <label>
           Transfer{" "}
           <b>
-            {amount} {helper.getCurrency(getAccountCurrency(account))}
+            {amount} {helper.getCurrency(getAccountCurrency(from_account))}
           </b>{" "}
           from <i>{getAccount(from_account)}</i> to{" "}
           <i>{getAccount(to_account)}</i>

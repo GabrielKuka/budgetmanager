@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from tags.models import Tag
+
 
 class TemplateGroup(models.Model):
     user = models.ForeignKey(
@@ -15,6 +17,7 @@ class Template(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE
     )
+    tags = models.ManyToManyField(Tag)
 
     transaction_types = [
         (0, "Income"),

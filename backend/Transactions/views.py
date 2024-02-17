@@ -52,7 +52,6 @@ def add_transaction(request):
 
             serializer = TransferSerializer(data=p)
             if not serializer.is_valid():
-                print(p)
                 raise Exception(f"{serializer.errors}")
 
             serializer.save(
@@ -75,7 +74,6 @@ def add_transaction(request):
 
             serializer = ExpenseSerializer(data=p)
             if not serializer.is_valid():
-                print(p)
                 raise Exception(f"{serializer.errors}")
 
             serializer.save(
@@ -97,7 +95,6 @@ def add_transaction(request):
 
             serializer = IncomeSerializer(data=p)
             if not serializer.is_valid():
-                print(p)
                 raise Exception(f"{serializer.errors}")
 
             serializer.save(

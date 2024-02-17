@@ -5,6 +5,7 @@ import "./templates.scss";
 import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
+import currencyService from "../../services/currencyService";
 
 const TemplateGroups = (props) => {
   const [currentTemplateGroup, setCurrentTemplateGroup] = useState(false);
@@ -112,6 +113,7 @@ const TemplateGroups = (props) => {
           description: t.description,
           type: t.type,
           account: t.account,
+          tags: t.tags,
         };
         await transactionService.addIncome(payload);
       }
@@ -122,18 +124,35 @@ const TemplateGroups = (props) => {
           date: new Date().toISOString().slice(0, 10),
           description: t.description,
           type: t.type,
+          tags: t.tags,
           account: t.account,
         };
 
         await transactionService.addExpense(payload);
       }
       if (t.type == 2) {
+        // Convert from_amount to to_amount
+        t["from_amount"] = t["amount"];
+        const from_currency = getAccountCurrency(parseInt(t["from_account"]));
+        const to_currency = getAccountCurrency(parseInt(t["to_account"]));
+        if (from_currency !== to_currency) {
+          t["to_amount"] = await currencyService.convert(
+            from_currency,
+            to_currency,
+            t["from_amount"]
+          );
+        } else {
+          t["to_amount"] = t["from_amount"];
+        }
+
         const payload = {
-          amount: t.amount,
+          from_amount: t.from_amount,
+          to_amount: t.to_amount,
           date: new Date().toISOString().slice(0, 10),
           description: t.description,
           from_account: t.from_account,
           to_account: t.to_account,
+          tags: t.tags,
           type: t.type,
         };
         await transactionService.addTransfer(payload);
