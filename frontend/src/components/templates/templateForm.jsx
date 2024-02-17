@@ -45,10 +45,12 @@ const TemplateForm = (props) => {
         template_group: "",
       }}
       onSubmit={async (values, { setSubmitting, resetForm }) => {
+        values["tags"] = tags.map((t) => ({ name: t }));
         await transactionService.addTemplate(values);
         await props.refreshTemplateGroups();
         showToast(`Transaction Added in The Template`, "info");
         setSubmitting(false);
+        setTags([]);
         resetForm();
       }}
     >
