@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./templates.scss";
 import { Formik, Form, Field } from "formik";
 import transactionService from "../../services/transactionService/transactionService";
@@ -7,6 +7,7 @@ import { helper } from "../helper";
 
 const TemplateForm = (props) => {
   const showToast = useToast();
+  const [tags, setTags] = useState([]);
 
   function getAccountCurrency(id) {
     const account = props.accounts.filter((a) => a.id === id);
@@ -15,6 +16,20 @@ const TemplateForm = (props) => {
     }
 
     return "Not Found";
+  }
+
+  function addTag(e) {
+    e.preventDefault();
+
+    if (!e.target.previousElementSibling.value) {
+      return;
+    }
+    if (!tags.includes(e.target.previousElementSibling.value)) {
+      setTags([...tags, e.target.previousElementSibling.value]);
+      const input = document.getElementById("add_tag_textfield");
+      input.value = "";
+      input.focus();
+    }
   }
 
   return (
@@ -152,6 +167,39 @@ const TemplateForm = (props) => {
             >
               Add Template Group
             </a>
+          </div>
+          <div className={"tags_container"}>
+            <div className={"tags_container__input"}>
+              <input
+                type="text"
+                name="tags"
+                id="add_tag_textfield"
+                placeholder="Enter tags"
+              />
+              <button
+                type="button"
+                className={"add-tag-button"}
+                onClick={(e) => addTag(e)}
+              >
+                + Tag
+              </button>
+            </div>
+            {tags && (
+              <div className={"tags_container__shown-tags"}>
+                {tags.map((t) => (
+                  <span className={"tag"} key={t}>
+                    {t}
+                    <button
+                      type="button"
+                      className={"remove-tag-button"}
+                      onClick={() => setTags(tags.filter((tag) => tag !== t))}
+                    >
+                      x
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
           <Field
             type="text"

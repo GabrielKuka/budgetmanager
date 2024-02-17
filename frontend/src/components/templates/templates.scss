@@ -8,7 +8,7 @@
 
   &__sidebar {
     padding: 20px;
-    width: fit-content;
+    //width: 350px;
     border: 1px solid #dadada;
     box-shadow: 1px 1px 2px #dadada;
     border-radius: 1px;
@@ -17,10 +17,10 @@
 
     .add-template,
     .add-template_group {
-      padding: 10px;
-      width: fit-content;
+      padding: 30px;
+      width: 270px;
       border: 1px solid #dadada;
-      box-shadow: 1px 1px 8px #dadada;
+      box-shadow: 1px 1px 5px #dadada;
       border-radius: 5px;
       transition: box-shadow 0.3s, border 0.3s;
 
@@ -40,6 +40,70 @@
           border-radius: 2px;
           cursor: pointer;
           transition: padding-left 0.3s;
+        }
+
+        .tags_container{
+          @include flex(column, flex-start, flex-start);
+          gap:5px;
+          width: 100%;
+          &__input {
+            @include flex(row, flex-start, flex-start);
+            gap: 15px;
+            width: 100%;
+            align-items: stretch;
+
+            .add-tag-button {
+              border: 1px solid cadetblue;
+              border-radius: 3px;
+              background-color: cadetblue;
+              color: white;
+              font-weight: bold;
+            }
+            
+            #add_tag_textfield{
+              border: 1px solid cadetblue;
+              border-radius: 3px;
+              transition: border 0.3s;
+
+              &:hover{
+                border-radius: 3px;
+              }
+              &:focus{
+                outline:none;
+              }
+            }
+
+          }
+          &__shown-tags {
+            @include flex(row, flex-start, flex-start);
+            gap: 7px;
+            width: 100%;
+            flex-wrap: wrap;
+            overflow-x: auto;
+            span {
+              background-color: cadetblue;
+              color: white;
+              font-weight: bold;
+              border-radius: 3px;
+              padding: 3px 6px 3px 6px;
+
+              .remove-tag-button {
+                background-color: cadetblue;
+                color: white;
+                font-weight: bold;
+                border: 1px solid white;
+                margin-left: 5px;
+                border-radius: 100%;
+                transition: color 0.2s, background-color 0.2s;
+
+                cursor: pointer;
+                &:hover {
+                  color: cadetblue;
+                  background-color: white;
+                }
+              }
+            }
+          }
         }
       }
     }
