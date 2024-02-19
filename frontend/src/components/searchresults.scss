@@ -1,0 +1,48 @@
+@import '../mixins';
+
+.searchresults-wrapper {
+    margin-top: 70px;
+    padding: 0 20px 20px 20px;
+    @include flex(column, flex-start, flex-start);
+    gap: 20px;
+
+    &__incomes, &__expenses, &__transfers {
+        width: 100%;
+        height: 400px;
+    }
+
+    &__header{
+        width: 100%;
+        height: 80px;
+        //border: 2px solid cadetblue;
+
+        label {
+            padding: 10px 10px 10px 0;
+            background-color: cadetblue;
+            color:white;
+            width: 300px;
+            font-size: 33px;
+            font-weight: bold;
+            position: relative;
+            top: 20px;
+            transition: padding-right 0.4s;
+            border-radius: 3px;
+
+            &:hover {
+                padding-right: 50px;
+            }
+        }
+    }
+
+    &__incomes {
+        border: 1px solid red;
+    }
+
+    &__expenses {
+        border: 1px solid green;
+    }
+
+    &__transfers {
+        border: 1px solid blue;
+    }
+}
