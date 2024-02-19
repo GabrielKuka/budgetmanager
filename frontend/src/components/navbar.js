@@ -59,6 +59,20 @@ const LoggedInNavbar = () => {
         />
         <label className={"fullname"}>{fullname.current}</label>
       </div>
+      <div className={"search-container"}>
+        <input
+          type="text"
+          id="search-field"
+          className={"search-field"}
+          placeholder="Search..."
+        />
+        <input
+          className={"search-button"}
+          type="image"
+          src={process.env.PUBLIC_URL + "/search_icon.png"}
+          alt="search_icon"
+        />
+      </div>
       <button id="dashboard" onClick={(e) => handlePage(e)}>
         Dashboard
       </button>
