@@ -7,9 +7,27 @@ const SearchResults = (props) => {
       <div className={"searchresults-wrapper__header"}>
         <label>Search results for: 'query here'</label>
       </div>
-      <div className={"searchresults-wrapper__incomes"}>Incomes here</div>
-      <div className={"searchresults-wrapper__expenses"}>Expenses here</div>
-      <div className={"searchresults-wrapper__transfers"}>Transfers here</div>
+      <div className={"searchresults-wrapper__incomes"}>
+        <div className={"header"}>
+          <label>INCOMES: </label>
+          <div className={"line"}></div>
+        </div>
+        <div className={"content"}>Incomes here</div>
+      </div>
+      <div className={"searchresults-wrapper__expenses"}>
+        <div className={"header"}>
+          <label>EXPENSES:</label>
+        </div>
+        <div className={"content"}>Expenses here</div>
+      </div>
+      <div className={"searchresults-wrapper__transfers"}>
+        <div className={"header"}>
+          <label>TRANSFERS:</label>
+        </div>
+        <div herediv className={"content"}>
+          Transfers here
+        </div>
+      </div>
     </div>
   );
 };
