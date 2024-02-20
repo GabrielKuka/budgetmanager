@@ -4,22 +4,22 @@ import { helper } from "../helper";
 
 const TemplateItem = (props) => {
   const type = () => {
-    if (props.i.type == 0) return "income";
-    if (props.i.type == 1) return "expense";
-    if (props.i.type == 2) return "transfer";
+    if (props.i?.type == 0) return "income";
+    if (props.i?.type == 1) return "expense";
+    if (props.i?.type == 2) return "transfer";
   };
 
   const allAccounts = props.accounts;
 
-  const account = props.i.account;
-  const from_account = props.i.from_account;
-  const to_account = props.i.to_account;
+  const account = props.i?.account;
+  const from_account = props.i?.from_account;
+  const to_account = props.i?.to_account;
 
-  const amount = props.i.amount;
-  const category = props.i.category;
+  const amount = props.i?.amount;
+  const category = props.i?.category;
 
   function getAccountCurrency(id) {
-    const account = props.accounts.filter((a) => a.id === id);
+    const account = props.accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -28,16 +28,16 @@ const TemplateItem = (props) => {
   }
 
   function getAccount(id) {
-    const res = allAccounts.filter((a) => a.id == id);
+    const res = allAccounts?.filter((a) => a.id == id);
     return res.length == 1 ? res[0].name : "";
   }
   function getCategory(id) {
     if (props.i.type == 0) {
-      const res = props.incomeCategories.filter((c) => c.id == id);
+      const res = props.incomeCategories?.filter((c) => c.id == id);
       return res.length == 1 ? res[0].category_type : "";
     }
     if (props.i.type == 1) {
-      const res = props.expenseCategories.filter((c) => c.id == id);
+      const res = props.expenseCategories?.filter((c) => c.id == id);
       return res.length == 1 ? res[0].category_type : "";
     }
   }

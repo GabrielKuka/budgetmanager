@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import transactionService from "../../services/transactionService/transactionService";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Formik, Form, Field } from "formik";
 import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
@@ -11,39 +10,31 @@ import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
+import { useGlobalContext } from "../../context/GlobalContext";
 
 const Incomes = ({ dateRange }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [categories, setCategories] = useState([]);
-  const [accounts, setAccounts] = useState([]);
+  const global = useGlobalContext();
+  const [categories, setCategories] = useState(global.incomeCategories);
+  const [accounts, setAccounts] = useState(global.accounts);
 
-  const [incomes, setIncomes] = useState([]);
+  const [incomes, setIncomes] = useState(global.incomes);
   const [shownIncomes = incomes, setShownIncomes] = useState();
   const [transactionPopup, setTransactionPopup] = useState(false);
 
   useEffect(() => {
-    getAccounts();
-    getCategories();
-    getIncomes();
-  }, []);
+    setIncomes(global.incomes);
+  }, [global.incomes]);
 
-  async function getAccounts() {
-    const accounts = await transactionService.getAllUserAccounts();
-    setAccounts(accounts);
-  }
-  async function getCategories() {
-    const categories = await transactionService.getAllIncomeCategories();
-    setCategories(categories);
-  }
-  async function getIncomes() {
-    const incomes = await transactionService
-      .getAllUserIncomes()
-      .finally(() => setIsLoading(false));
-    setIncomes(incomes);
-  }
+  useEffect(() => {
+    setAccounts(global.accounts);
+  }, [global.accounts]);
+
+  useEffect(() => {
+    setCategories(global.incomeCategories);
+  }, [global.incomeCategories]);
 
   function getAccountCurrency(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -56,41 +47,37 @@ const Incomes = ({ dateRange }) => {
       <Sidebar
         accounts={accounts}
         categories={categories}
-        refreshIncomes={getIncomes}
-        refreshAccounts={getAccounts}
+        refreshIncomes={global.updateIncomes}
+        refreshAccounts={global.updateAccounts}
         shownIncomes={shownIncomes}
         dateRange={dateRange}
         getAccountCurrency={getAccountCurrency}
       />
-      {!isLoading && (
-        <>
-          {!incomes.length ? (
-            <NoDataCard
-              header={"No incomes found."}
-              label={"Add an income."}
-              focusOn={"date"}
-            />
-          ) : (
-            <IncomesList
-              incomes={incomes}
-              shownIncomes={shownIncomes}
-              setShownIncomes={setShownIncomes}
-              categories={categories}
-              accounts={accounts}
-              dateRange={dateRange}
-              getAccountCurrency={getAccountCurrency}
-              refreshIncomes={getIncomes}
-              setTransactionPopup={setTransactionPopup}
-            />
-          )}
-        </>
+      {!incomes?.length ? (
+        <NoDataCard
+          header={"No incomes found."}
+          label={"Add an income."}
+          focusOn={"date"}
+        />
+      ) : (
+        <IncomesList
+          incomes={incomes}
+          shownIncomes={shownIncomes}
+          setShownIncomes={setShownIncomes}
+          categories={categories}
+          accounts={accounts}
+          dateRange={dateRange}
+          getAccountCurrency={getAccountCurrency}
+          refreshIncomes={global.updateIncomes}
+          setTransactionPopup={setTransactionPopup}
+        />
       )}
       {transactionPopup && (
         <TransactionPopup
           transaction={transactionPopup}
           type={0}
           showPopup={setTransactionPopup}
-          refreshTransactions={getIncomes}
+          refreshTransactions={global.updateIncomes}
           getAccountCurrency={getAccountCurrency}
           accounts={accounts}
           categories={categories}
@@ -106,7 +93,10 @@ const Sidebar = (props) => {
 
   useEffect(() => {
     async function getTotal() {
-      let promises = props.shownIncomes.map(async (e) => {
+      if (!props.shownIncomes) {
+        return;
+      }
+      let promises = props.shownIncomes?.map(async (e) => {
         return await currencyService.convert(
           props.getAccountCurrency(e.account),
           "EUR",
@@ -121,11 +111,14 @@ const Sidebar = (props) => {
     }
 
     async function getIncomesPerCategory() {
+      if (!props.categories) {
+        return;
+      }
       const data = [];
       for (const c of props.categories) {
         let promises = props.shownIncomes
-          .filter((e) => e.income_category == c.id)
-          .map(async (e) => {
+          ?.filter((e) => e.income_category == c.id)
+          ?.map(async (e) => {
             return await currencyService.convert(
               props.getAccountCurrency(e.account),
               "EUR",
@@ -283,7 +276,9 @@ const AddIncome = ({
                       <button
                         type="button"
                         className={"remove-tag-button"}
-                        onClick={() => setTags(tags.filter((tag) => tag !== t))}
+                        onClick={() =>
+                          setTags(tags?.filter((tag) => tag !== t))
+                        }
                       >
                         x
                       </button>
@@ -329,22 +324,22 @@ const IncomesList = (props) => {
 
     const accountFilter =
       selectedAccount >= 0
-        ? props.incomes.filter((e) => e.account == selectedAccount)
+        ? props.incomes?.filter((e) => e.account == selectedAccount)
         : props.incomes;
 
     const categoryFilter =
       selectedCategory >= 0
-        ? props.incomes.filter((e) => e.income_category == selectedCategory)
+        ? props.incomes?.filter((e) => e.income_category == selectedCategory)
         : props.incomes;
 
-    const dateFilter = props.incomes.filter(
+    const dateFilter = props.incomes?.filter(
       (e) => new Date(e.date) >= fromDate && new Date(e.date) <= toDate
     );
 
     const filteredincomes = accountFilter
-      .filter((e) => categoryFilter.includes(e))
-      .filter((e) => dateFilter.includes(e))
-      .sort((a, b) => (a.date > b.date ? -1 : 1));
+      ?.filter((e) => categoryFilter.includes(e))
+      ?.filter((e) => dateFilter.includes(e))
+      ?.sort((a, b) => (a.date > b.date ? -1 : 1));
     props.setShownIncomes(filteredincomes);
   }
 
@@ -541,7 +536,7 @@ const IncomeItem = ({
   }, []);
 
   function getAccountName(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].name;
     }
@@ -549,7 +544,7 @@ const IncomeItem = ({
   }
 
   function getIncomeCategory(id) {
-    const category = categories.filter((c) => c.id === id);
+    const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
       return category[0].category_type;
     }

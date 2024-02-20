@@ -1,5 +1,6 @@
 import React from "react";
 import "./searchresults.scss";
+import { useGlobalContext } from "../context/GlobalContext";
 
 const SearchResults = (props) => {
   return (
@@ -24,9 +25,7 @@ const SearchResults = (props) => {
         <div className={"header"}>
           <label>TRANSFERS:</label>
         </div>
-        <div herediv className={"content"}>
-          Transfers here
-        </div>
+        <div className={"content"}>Transfers here</div>
       </div>
     </div>
   );

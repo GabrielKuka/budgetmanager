@@ -10,41 +10,32 @@ import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
 import CurrentExpensesBarChart from "../stats/currentExpensesBarChart";
+import { useGlobalContext } from "../../context/GlobalContext";
 
 const Expenses = ({ dateRange }) => {
+  const global = useGlobalContext();
   const [isLoading, setIsLoading] = useState(true);
-  const [categories, setCategories] = useState([]);
-  const [accounts, setAccounts] = useState([]);
+  const [categories, setCategories] = useState(global.expenseCategories);
+  const [accounts, setAccounts] = useState(global.accounts);
 
-  const [expenses, setExpenses] = useState([]);
+  const [expenses, setExpenses] = useState(global.expenses);
   const [shownExpenses, setShownExpenses] = useState([]);
   const [transactionPopup, setTransactionPopup] = useState(false);
 
   useEffect(() => {
-    getCategories();
-    getAccounts();
-    getExpenses();
-  }, []);
+    setAccounts(global.accounts);
+  }, [global.accounts]);
 
-  async function getCategories() {
-    const categories = await transactionService.getAllExpenseCategories();
-    setCategories(categories);
-  }
+  useEffect(() => {
+    setExpenses(global.expenses);
+  }, [global.expenses]);
 
-  async function getAccounts() {
-    const accounts = await transactionService.getAllUserAccounts();
-    setAccounts(accounts);
-  }
-
-  async function getExpenses() {
-    const expenses = await transactionService
-      .getAllUserExpenses()
-      .finally(() => setIsLoading(false));
-    setExpenses(expenses);
-  }
+  useEffect(() => {
+    setCategories(global.expenseCategories);
+  }, [global.expenseCategories]);
 
   function getAccountCurrency(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -56,43 +47,39 @@ const Expenses = ({ dateRange }) => {
     <div className={"expenses-wrapper"}>
       <Sidebar
         accounts={accounts}
-        refreshAccounts={getAccounts}
+        refreshAccounts={global.updateAccounts}
         categories={categories}
         expenses={expenses}
         shownExpenses={shownExpenses}
-        refreshExpenses={getExpenses}
+        refreshExpenses={global.updateExpenses}
         dateRange={dateRange}
         getAccountCurrency={getAccountCurrency}
       />
-      {!isLoading && (
-        <>
-          {!expenses.length ? (
-            <NoDataCard
-              header={"No expenses found."}
-              label={"Add an expense"}
-              focusOn={"date"}
-            />
-          ) : (
-            <ExpensesList
-              expenses={expenses}
-              shownExpenses={shownExpenses}
-              setShownExpenses={setShownExpenses}
-              accounts={accounts}
-              categories={categories}
-              dateRange={dateRange}
-              getAccountCurrency={getAccountCurrency}
-              refreshExpenses={getExpenses}
-              setTransactionPopup={setTransactionPopup}
-            />
-          )}
-        </>
+      {expenses == null || expenses == "undefined" || expenses?.length == 0 ? (
+        <NoDataCard
+          header={"No expenses found."}
+          label={"Add an expense"}
+          focusOn={"date"}
+        />
+      ) : (
+        <ExpensesList
+          expenses={expenses}
+          shownExpenses={shownExpenses}
+          setShownExpenses={setShownExpenses}
+          accounts={accounts}
+          categories={categories}
+          dateRange={dateRange}
+          getAccountCurrency={getAccountCurrency}
+          refreshExpenses={global.updateExpenses}
+          setTransactionPopup={setTransactionPopup}
+        />
       )}
       {transactionPopup && (
         <TransactionPopup
           transaction={transactionPopup}
           type={1}
           showPopup={setTransactionPopup}
-          refreshTransactions={getExpenses}
+          refreshTransactions={global.updateExpenses}
           getAccountCurrency={getAccountCurrency}
           accounts={accounts}
           categories={categories}
@@ -107,7 +94,7 @@ const Sidebar = (props) => {
 
   useEffect(() => {
     async function getTotal() {
-      let promises = props.shownExpenses.map(async (e) => {
+      let promises = props.shownExpenses?.map(async (e) => {
         return await currencyService.convert(
           props.getAccountCurrency(e.account),
           "EUR",
@@ -115,12 +102,14 @@ const Sidebar = (props) => {
         );
       });
 
+      if (!promises) {
+        return;
+      }
       const results = await Promise.all(promises);
       let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
 
       setTotalShownExpenses(parseFloat(total).toFixed(2));
     }
-
     getTotal();
   }, [props.shownExpenses]);
 
@@ -136,8 +125,8 @@ const Sidebar = (props) => {
       <div className={"summary"}>
         <b>{totalShownExpenses}€</b> spent{" "}
         <small>
-          from {props.dateRange.from.toDateString()} to{" "}
-          {props.dateRange.to.toDateString()}.
+          from {props.dateRange?.from.toDateString()} to{" "}
+          {props.dateRange?.to.toDateString()}.
         </small>
       </div>
       <CurrentExpensesBarChart
@@ -183,7 +172,7 @@ const AddExpense = ({
         }}
         onSubmit={async (values, { setSubmitting, resetForm }) => {
           values["type"] = 1;
-          values["tags"] = tags.map((tag) => ({
+          values["tags"] = tags?.map((tag) => ({
             name: tag,
           }));
           await transactionService.addExpense(values);
@@ -207,7 +196,7 @@ const AddExpense = ({
               </option>
               {accounts
                 ?.sort((a, b) => (a.name > b.name ? 1 : -1))
-                .map((a) => (
+                ?.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
                     {helper.getCurrency(getAccountCurrency(a.id))}
@@ -233,13 +222,15 @@ const AddExpense = ({
               </div>
               {tags && (
                 <div className={"tags_container__shown-tags"}>
-                  {tags.map((t) => (
+                  {tags?.map((t) => (
                     <span className={"tag"} key={t}>
                       {t}
                       <button
                         type="button"
                         className={"remove-tag-button"}
-                        onClick={() => setTags(tags.filter((tag) => tag !== t))}
+                        onClick={() =>
+                          setTags(tags?.filter((tag) => tag !== t))
+                        }
                       >
                         x
                       </button>
@@ -285,23 +276,22 @@ const ExpensesList = (props) => {
 
     const accountFilter =
       selectedAccount >= 0
-        ? props.expenses.filter((e) => e.account == selectedAccount)
+        ? props.expenses?.filter((e) => e.account == selectedAccount)
         : props.expenses;
 
     const categoryFilter =
       selectedCategory >= 0
-        ? props.expenses.filter((e) => e.expense_category == selectedCategory)
+        ? props.expenses?.filter((e) => e.expense_category == selectedCategory)
         : props.expenses;
 
-    const dateFilter = props.expenses.filter(
+    const dateFilter = props.expenses?.filter(
       (e) => new Date(e.date) >= fromDate && new Date(e.date) <= toDate
     );
 
     const filteredExpenses = accountFilter
-      .filter((e) => categoryFilter.includes(e))
-      .filter((e) => dateFilter.includes(e))
+      ?.filter((e) => categoryFilter.includes(e))
+      ?.filter((e) => dateFilter.includes(e))
       .sort((a, b) => (a.date > b.date ? -1 : 1));
-
     props.setShownExpenses(filteredExpenses);
   }
 
@@ -447,7 +437,7 @@ const ExpensesList = (props) => {
       </div>
       <div className={"expenses"}>
         {props.shownExpenses?.length > 0 &&
-          props.shownExpenses.map((expense) => (
+          props.shownExpenses?.map((expense) => (
             <ExpenseItem
               key={expense.id}
               expense={expense}
@@ -498,7 +488,7 @@ const ExpenseItem = ({
   }, []);
 
   function getAccountName(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].name;
     }
@@ -506,7 +496,7 @@ const ExpenseItem = ({
   }
 
   function getExpenseCategory(id) {
-    const category = categories.filter((c) => c.id === id);
+    const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
       return category[0].category_type;
     }

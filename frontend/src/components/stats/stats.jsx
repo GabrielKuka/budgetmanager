@@ -7,14 +7,20 @@ import NetworthBasedOnCurrencyChart from "./currencyChart";
 import CurrentExpensesBarChart from "./currentExpensesBarChart";
 import IncomeVsExpenseChart from "./incomeVsExpenseChart";
 import FoodExpensesChart from "./foodExpensesChart";
+import { useGlobalContext } from "../../context/GlobalContext";
 
 const Stats = (props) => {
-  const [accounts, setAccounts] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [expenseCategories, setExpenseCategories] = useState([]);
+  const global = useGlobalContext();
+  const [accounts, setAccounts] = useState(global.accounts);
+  const [expenses, setExpenses] = useState(global.expenses);
+  const [expenseCategories, setExpenseCategories] = useState(
+    global.expenseCategories
+  );
 
-  const [incomes, setIncomes] = useState([]);
-  const [incomeCategories, setIncomeCategories] = useState([]);
+  const [incomes, setIncomes] = useState(global.incomes);
+  const [incomeCategories, setIncomeCategories] = useState(
+    global.incomeCategories
+  );
 
   const [dateRange, setDateRange] = useState({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -22,41 +28,27 @@ const Stats = (props) => {
   });
 
   useEffect(() => {
-    getAccounts();
+    setAccounts(global.accounts);
+  }, [global.accounts]);
 
-    getExpenseCategories();
-    getExpenses();
+  useEffect(() => {
+    setExpenses(global.expenses);
+  }, [global.expenses]);
 
-    getIncomeCategories();
-    getIncomes();
-  }, []);
+  useEffect(() => {
+    setIncomes(global.incomes);
+  }, [global.incomes]);
 
-  async function getIncomeCategories() {
-    const categories = await transactionService.getAllIncomeCategories();
-    setIncomeCategories(categories);
-  }
-  async function getIncomes() {
-    const incomes = await transactionService.getAllUserIncomes();
-    setIncomes(incomes);
-  }
+  useEffect(() => {
+    setIncomeCategories(global.incomeCategories);
+  }, [global.incomesCategories]);
 
-  async function getExpenseCategories() {
-    const categories = await transactionService.getAllExpenseCategories();
-    setExpenseCategories(categories);
-  }
-
-  async function getExpenses() {
-    const expenses = await transactionService.getAllUserExpenses();
-    setExpenses(expenses);
-  }
-
-  async function getAccounts() {
-    const accounts = await transactionService.getAllUserAccounts();
-    setAccounts(accounts);
-  }
+  useEffect(() => {
+    setExpenseCategories(global.expenseCategories);
+  }, [global.expenseCategories]);
 
   function getAccountCurrency(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -66,43 +58,53 @@ const Stats = (props) => {
 
   return (
     <div className={"stats-wrapper"}>
-      <div className={"chart-container"}>
-        <NetworthPieChart accounts={accounts} />
-      </div>
-      <div className={"chart-container"}>
-        <NetworthBasedOnCurrencyChart accounts={accounts} />
-      </div>
-      <div className={"chart-container"}>
-        <CurrentExpensesBarChart
-          expenses={expenses.filter(
-            (e) =>
-              new Date(e.date) >= dateRange.from &&
-              new Date(e.date) <= dateRange.to
-          )}
-          categories={expenseCategories}
-          getAccountCurrency={getAccountCurrency}
-          height={310}
-          width={480}
-        />
-      </div>
-      <div className={"chart-container"}>
-        <IncomeVsExpenseChart
-          getAccountCurrency={getAccountCurrency}
-          height={310}
-          width={580}
-          expenses={expenses}
-          incomes={incomes}
-        />
-      </div>
-      <div className={"chart-container"}>
-        <FoodExpensesChart
-          height={310}
-          width={580}
-          expenses={expenses.filter((e) => e.expense_category == 1)}
-          incomes={incomes}
-          getAccountCurrency={getAccountCurrency}
-        />
-      </div>
+      {accounts?.length > 0 && (
+        <>
+          <div className={"chart-container"}>
+            <NetworthPieChart accounts={accounts} />
+          </div>
+          <div className={"chart-container"}>
+            <NetworthBasedOnCurrencyChart accounts={accounts} />
+          </div>
+        </>
+      )}
+      {incomes?.length > 0 &&
+        expenses?.length > 0 &&
+        expenseCategories?.length > 0 && (
+          <>
+            <div className={"chart-container"}>
+              <CurrentExpensesBarChart
+                expenses={expenses?.filter(
+                  (e) =>
+                    new Date(e.date) >= dateRange.from &&
+                    new Date(e.date) <= dateRange.to
+                )}
+                categories={expenseCategories}
+                getAccountCurrency={getAccountCurrency}
+                height={310}
+                width={480}
+              />
+            </div>
+            <div className={"chart-container"}>
+              <IncomeVsExpenseChart
+                getAccountCurrency={getAccountCurrency}
+                height={310}
+                width={580}
+                expenses={expenses}
+                incomes={incomes}
+              />
+            </div>
+            <div className={"chart-container"}>
+              <FoodExpensesChart
+                height={310}
+                width={580}
+                expenses={expenses?.filter((e) => e.expense_category == 1)}
+                incomes={incomes}
+                getAccountCurrency={getAccountCurrency}
+              />
+            </div>
+          </>
+        )}
     </div>
   );
 };

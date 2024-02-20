@@ -8,29 +8,22 @@ import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import TransactionPopup from "../core/transaction_popup";
 import currencyService from "../../services/currencyService";
+import { useGlobalContext } from "../../context/GlobalContext";
 
 const Transfers = ({ dateRange }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [transfers, setTransfers] = useState([]);
-  const [accounts, setAccounts] = useState([]);
+  const global = useGlobalContext();
+  const [transfers, setTransfers] = useState(global.transfers);
+  const [accounts, setAccounts] = useState(global.accounts);
 
   const [transactionPopup, setTransactionPopup] = useState(false);
 
   useEffect(() => {
-    getTransfers();
-    getAccounts();
-  }, []);
+    setAccounts(global.accounts);
+  }, [global.accounts]);
 
-  async function getAccounts() {
-    const accounts = await transactionService.getAllUserAccounts();
-    setAccounts(accounts);
-  }
-  async function getTransfers() {
-    const transfers = await transactionService
-      .getAllUserTransfers()
-      .finally(() => setIsLoading(false));
-    setTransfers(transfers);
-  }
+  useEffect(() => {
+    setTransfers(global.transfers);
+  }, [global.transfers]);
 
   function getAccountCurrency(id) {
     const account = accounts.filter((a) => a.id === id);
@@ -45,36 +38,32 @@ const Transfers = ({ dateRange }) => {
     <div className={"transfers-wrapper"}>
       <Sidebar
         accounts={accounts}
-        refreshTransfers={getTransfers}
-        refreshAccounts={getAccounts}
+        refreshTransfers={global.updateTransfers}
+        refreshAccounts={global.updateAccounts}
         getAccountCurrency={getAccountCurrency}
       />
-      {!isLoading && (
-        <>
-          {!transfers.length ? (
-            <NoDataCard
-              header={"No transfers found."}
-              label={"Add a transfer"}
-              focusOn={"date"}
-            />
-          ) : (
-            <TransfersList
-              transfers={transfers}
-              accounts={accounts}
-              getAccountCurrency={getAccountCurrency}
-              refreshTransfers={getTransfers}
-              setTransactionPopup={setTransactionPopup}
-              dateRange={dateRange}
-            />
-          )}
-        </>
+      {!transfers?.length ? (
+        <NoDataCard
+          header={"No transfers found."}
+          label={"Add a transfer"}
+          focusOn={"date"}
+        />
+      ) : (
+        <TransfersList
+          transfers={transfers}
+          accounts={accounts}
+          getAccountCurrency={getAccountCurrency}
+          refreshTransfers={global.updateTransfers}
+          setTransactionPopup={setTransactionPopup}
+          dateRange={dateRange}
+        />
       )}
       {transactionPopup && (
         <TransactionPopup
           transaction={transactionPopup}
           type={2}
           showPopup={setTransactionPopup}
-          refreshTransactions={getTransfers}
+          refreshTransactions={global.updateTransfers}
           getAccountCurrency={getAccountCurrency}
           accounts={accounts}
         />
