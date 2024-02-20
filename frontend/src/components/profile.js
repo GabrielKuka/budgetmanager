@@ -8,68 +8,57 @@ import { useConfirm } from "../context/ConfirmContext";
 import { useToast } from "../context/ToastContext";
 
 import * as XLSX from "xlsx";
+import { useGlobalContext } from "../context/GlobalContext";
 
 const Profile = () => {
+  const global = useGlobalContext();
   const [userData, setUserData] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [expenseCategories, setExpenseCategories] = useState([]);
-  const [incomeCategories, setIncomeCategories] = useState([]);
-  const [accounts, setAccounts] = useState([]);
+  const [expenseCategories, setExpenseCategories] = useState(
+    global.expenseCategories
+  );
+  const [incomeCategories, setIncomeCategories] = useState(
+    global.incomeCategories
+  );
+  const [accounts, setAccounts] = useState(global.accounts);
 
-  const [incomes, setIncomes] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [transfers, setTransfers] = useState([]);
+  const [incomes, setIncomes] = useState(global.incomes);
+  const [expenses, setExpenses] = useState(global.expenses);
+  const [transfers, setTransfers] = useState(global.transfers);
 
   useEffect(() => {
     getUserData();
-    getAccounts();
-
-    getExpenseCategories();
-    getIncomeCategories();
-
-    getIncomes();
-    getExpenses();
-    getTransfers();
   }, []);
 
-  async function getExpenseCategories() {
-    const categories = await transactionService.getAllExpenseCategories();
-    setExpenseCategories(categories);
-  }
+  useEffect(() => {
+    setAccounts(global.accounts);
+  }, [global.accounts]);
 
-  async function getIncomeCategories() {
-    const categories = await transactionService.getAllIncomeCategories();
-    setIncomeCategories(categories);
-  }
+  useEffect(() => {
+    setIncomeCategories(global.incomeCategories);
+  }, [global.incomeCategories]);
 
-  async function getAccounts() {
-    let accounts = await transactionService.getAllUserAccounts();
-    setAccounts(accounts);
-  }
+  useEffect(() => {
+    setExpenseCategories(global.expenseCategories);
+  }, [global.expenseCategories]);
 
-  async function getIncomes() {
-    let incomes = await transactionService
-      .getAllUserIncomes()
-      .finally(() => setIsLoading(false));
-    incomes.sort((a, b) => (a.date > b.date ? -1 : 1));
+  useEffect(() => {
+    const incomes = global.incomes?.sort((a, b) => (a.date > b.date ? -1 : 1));
     setIncomes(incomes);
-  }
+  }, [global.incomes]);
 
-  async function getExpenses() {
-    let expenses = await transactionService
-      .getAllUserExpenses()
-      .finally(() => setIsLoading(false));
-    expenses.sort((a, b) => (a.date > b.date ? -1 : 1));
+  useEffect(() => {
+    const expenses = global.expenses?.sort((a, b) =>
+      a.date > b.date ? -1 : 1
+    );
     setExpenses(expenses);
-  }
+  }, [global.expenses]);
 
-  async function getTransfers() {
-    let transfers = await transactionService
-      .getAllUserTransfers()
-      .finally(() => setIsLoading(false));
-    transfers.sort((a, b) => (a.date > b.date ? -1 : 1));
+  useEffect(() => {
+    const transfers = global.transfers?.sort((a, b) =>
+      a.date > b.date ? -1 : 1
+    );
     setTransfers(transfers);
-  }
+  }, [global.transfers]);
 
   async function getUserData() {
     const response = await userService.getUserData();
@@ -167,9 +156,9 @@ const Sidebar = (props) => {
         <div className={"accounts-list"}>
           {props.accounts?.length > 0 &&
             props.accounts
-              .filter((a) => a.amount > 0)
+              ?.filter((a) => a.amount > 0)
               .slice(0, 5)
-              .map((a) => (
+              ?.map((a) => (
                 <div key={a.id} className={"account-item"}>
                   <label className={"name"}>{a.name}</label>
                   <label className={"amount"}>
@@ -237,7 +226,7 @@ const RecentExpenses = (props) => {
 
 const ExpenseItem = ({ expense, accounts, categories }) => {
   function getAccountName(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].name;
     }
@@ -245,7 +234,7 @@ const ExpenseItem = ({ expense, accounts, categories }) => {
   }
 
   function getExpenseCategory(id) {
-    const category = categories.filter((c) => c.id === id);
+    const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
       return category[0].category_type;
     }
@@ -261,7 +250,7 @@ const ExpenseItem = ({ expense, accounts, categories }) => {
   }
 
   function getAccountCurrency(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -316,7 +305,7 @@ const RecentIncomes = (props) => {
 
 const IncomeItem = ({ income, accounts, categories }) => {
   function getAccountName(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].name;
     }
@@ -324,7 +313,7 @@ const IncomeItem = ({ income, accounts, categories }) => {
   }
 
   function getIncomeCategory(id) {
-    const category = categories.filter((c) => c.id === id);
+    const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
       return category[0].category_type;
     }
@@ -339,7 +328,7 @@ const IncomeItem = ({ income, accounts, categories }) => {
   }
 
   function getAccountCurrency(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -391,7 +380,7 @@ const RecentTransfers = ({ transfers, accounts }) => {
 
 const TransferItem = ({ transfer, accounts }) => {
   function getAccountName(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].name;
     }
@@ -406,7 +395,7 @@ const TransferItem = ({ transfer, accounts }) => {
     return diffInHrs <= 5;
   }
   function getAccountCurrency(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }

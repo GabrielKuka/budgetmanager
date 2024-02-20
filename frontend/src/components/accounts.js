@@ -7,41 +7,31 @@ import { useToast } from "../context/ToastContext";
 import { useConfirm } from "../context/ConfirmContext";
 import { helper } from "./helper";
 import currencyService from "../services/currencyService";
+import { useGlobalContext } from "../context/GlobalContext";
 
 const Accounts = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [accounts, setAccounts] = useState([]);
+  const global = useGlobalContext();
+
+  const [accounts, setAccounts] = useState(global.accounts);
 
   useEffect(() => {
-    getAccounts();
-  }, []);
-
-  async function getAccounts() {
-    const accounts = await transactionService
-      .getAllUserAccounts()
-      .finally(() => setIsLoading(false));
-    setAccounts(accounts);
-  }
+    setAccounts(global.accounts);
+  }, [global.accounts]);
 
   return (
     <div className={"accounts-wrapper"}>
-      <Sidebar accounts={accounts} refreshAccounts={getAccounts} />
-      {!isLoading && (
-        <>
-          {!accounts.length ? (
-            <NoDataCard
-              header={"No accounts found."}
-              label={"Add an account"}
-              focusOn={"name"}
-            />
-          ) : (
-            <AccountsList
-              accounts={accounts}
-              refreshAccounts={getAccounts}
-              setAccounts={setAccounts}
-            />
-          )}
-        </>
+      <Sidebar accounts={accounts} refreshAccounts={global.updateAccounts} />
+      {!accounts?.length ? (
+        <NoDataCard
+          header={"No accounts found."}
+          label={"Add an account"}
+          focusOn={"name"}
+        />
+      ) : (
+        <AccountsList
+          accounts={accounts}
+          refreshAccounts={global.updateAccounts}
+        />
       )}
     </div>
   );
@@ -65,8 +55,11 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
   }, [investments, cash, bankAssets]);
 
   useEffect(() => {
+    if (accounts == null) {
+      return;
+    }
     async function convertInvestments() {
-      let promises = accounts.map(async (a) => {
+      let promises = accounts?.map(async (a) => {
         if (a.type == 1) {
           return await currencyService.convert(a.currency, "EUR", a.amount);
         }
@@ -78,19 +71,18 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
       setInvestments(total.toFixed(2));
     }
     async function convertCash() {
-      let promises = accounts.map(async (a) => {
+      let promises = accounts?.map(async (a) => {
         if (a.type == 2) {
           return await currencyService.convert(a.currency, "EUR", a.amount);
         }
         return 0;
       });
-
       let results = await Promise.all(promises);
       let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
       setCash(total.toFixed(2));
     }
     async function convertBankAssets() {
-      let promises = accounts.map(async (a) => {
+      let promises = accounts?.map(async (a) => {
         if (a.type == 0) {
           return await currencyService.convert(a.currency, "EUR", a.amount);
         }
@@ -227,13 +219,13 @@ const CreateAccount = ({ refreshAccounts }) => {
   );
 };
 
-const AccountsList = ({ accounts, refreshAccounts, setAccounts }) => {
+const AccountsList = ({ accounts, refreshAccounts }) => {
   const [showEmptyAccounts, setShowEmptyAccounts] = useState(false);
   const [shownAccounts, setShownAccounts] = useState(accounts);
 
   useEffect(() => {
     filterAccounts();
-  }, [showEmptyAccounts]);
+  }, [showEmptyAccounts, accounts]);
 
   function sortShownAccounts(by) {
     let sortedAccounts = shownAccounts;

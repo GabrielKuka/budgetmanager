@@ -11,6 +11,7 @@ import DatePicker from "react-datepicker";
 const Dashboard = () => {
   const global = useGlobalContext();
   const navigate = useNavigate();
+
   const initLocation =
     window.location.pathname.endsWith("dashboard") ||
     window.location.pathname.endsWith("dashboard/") ||

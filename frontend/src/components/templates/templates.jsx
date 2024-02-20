@@ -4,40 +4,40 @@ import TemplateForm from "./templateForm";
 import transactionService from "../../services/transactionService/transactionService";
 import TemplateGroupForm from "./templateGroupForm";
 import TemplateGroups from "./templateGroups";
+import { useGlobalContext } from "../../context/GlobalContext";
 
 const Template = () => {
   const types = ["Income", "Expense", "Transfer"];
-  const [accounts, setAccounts] = useState([]);
+  const global = useGlobalContext();
+  const [accounts, setAccounts] = useState(global.accounts);
   const [templateGroups, setTemplateGroups] = useState([]);
 
-  const [incomeCategories, setIncomeCategories] = useState([]);
-  const [expenseCategories, setExpenseCategories] = useState([]);
+  const [incomeCategories, setIncomeCategories] = useState(
+    global.incomeCategories
+  );
+  const [expenseCategories, setExpenseCategories] = useState(
+    global.expenseCategories
+  );
 
   useEffect(() => {
-    getAccounts();
-    getIncomeCategories();
-    getExpenseCategories();
     getTemplateGroups();
   }, []);
+
+  useEffect(() => {
+    setAccounts(global.accounts);
+  }, [global.accounts]);
+
+  useEffect(() => {
+    setIncomeCategories(global.incomeCategories);
+  }, [global.incomeCategories]);
+
+  useEffect(() => {
+    setExpenseCategories(global.expenseCategories);
+  }, [global.expenseCategories]);
 
   async function getTemplateGroups() {
     const response = await transactionService.getTemplateGroups();
     setTemplateGroups(response);
-  }
-
-  async function getAccounts() {
-    const response = await transactionService.getAllUserAccounts();
-    setAccounts(response);
-  }
-
-  async function getIncomeCategories() {
-    const response = await transactionService.getAllIncomeCategories();
-    setIncomeCategories(response);
-  }
-
-  async function getExpenseCategories() {
-    const response = await transactionService.getAllExpenseCategories();
-    setExpenseCategories(response);
   }
 
   return (
@@ -50,15 +50,17 @@ const Template = () => {
         templateGroups={templateGroups}
         refreshTemplateGroups={getTemplateGroups}
       />
-      {templateGroups?.length > 0 && (
-        <TemplateGroups
-          templateGroups={templateGroups}
-          refreshTemplateGroups={getTemplateGroups}
-          accounts={accounts}
-          incomeCategories={incomeCategories}
-          expenseCategories={expenseCategories}
-        />
-      )}
+      {incomeCategories?.length > 0 &&
+        expenseCategories?.length > 0 &&
+        templateGroups?.length > 0 && (
+          <TemplateGroups
+            templateGroups={templateGroups}
+            refreshTemplateGroups={getTemplateGroups}
+            accounts={accounts}
+            incomeCategories={incomeCategories}
+            expenseCategories={expenseCategories}
+          />
+        )}
     </div>
   );
 };
