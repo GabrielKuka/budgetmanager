@@ -18,6 +18,30 @@ export default Navbar;
 const LoggedInNavbar = () => {
   const global = useGlobalContext();
   const navigate = useNavigate();
+
+  const [accounts, setAccounts] = useState(global.accounts);
+  const [expenses, setExpenses] = useState(global.expenses);
+  const [incomes, setIncomes] = useState(global.incomes);
+  const [transfers, setTransfers] = useState(global.transfers);
+  const [searchResults, setSearchResults] = useState(null);
+  const [searchValue, setSearchValue] = useState(null);
+
+  useEffect(() => {
+    setAccounts(global.accounts);
+  }, [global.accounts]);
+
+  useEffect(() => {
+    setExpenses(global.expenses);
+  }, [global.expenses]);
+
+  useEffect(() => {
+    setIncomes(global.incomes);
+  }, [global.incomes]);
+
+  useEffect(() => {
+    setTransfers(global.transfers);
+  }, [global.transfers]);
+
   const handleLogout = () => {
     global.logoutUser();
   };
@@ -49,6 +73,42 @@ const LoggedInNavbar = () => {
     });
   }
 
+  function search(e) {
+    const searchValue = e.target.value.toLowerCase();
+    const results = [];
+    expenses?.forEach((expense) => {
+      const tagsLowerCase = expense.tags?.map((t) => t?.name?.toLowerCase());
+      if (
+        expense.description?.toLowerCase().includes(searchValue) ||
+        tagsLowerCase.includes(searchValue)
+      ) {
+        results.push(expense);
+      }
+    });
+
+    incomes?.forEach((income) => {
+      const tagsLowerCase = income.tags?.map((t) => t?.name?.toLowerCase());
+      if (
+        income.description?.toLowerCase().includes(searchValue) ||
+        tagsLowerCase.includes(searchValue)
+      ) {
+        results.push(income);
+      }
+    });
+
+    transfers?.forEach((transfer) => {
+      const tagsLowerCase = transfer.tags?.map((t) => t?.name?.toLowerCase());
+      if (
+        transfer.description?.toLowerCase().includes(searchValue) ||
+        tagsLowerCase.includes(searchValue)
+      ) {
+        results.push(transfer);
+      }
+    });
+    setSearchValue(searchValue);
+    setSearchResults(results);
+  }
+
   return (
     <div className={"navbar-wrapper__loggedin"}>
       <div className={"fullname-container"} onClick={() => navigate("profile")}>
@@ -65,12 +125,31 @@ const LoggedInNavbar = () => {
           id="search-field"
           className={"search-field"}
           placeholder="Search..."
+          onChange={(e) => search(e)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              document.getElementById("search-field").value = "";
+              navigate("/searchresults", {
+                state: {
+                  searchResults: searchResults,
+                  searchValue: searchValue,
+                },
+              });
+            }
+          }}
         />
         <input
           className={"search-button"}
+          id={"search-button"}
           type="image"
           src={process.env.PUBLIC_URL + "/search_icon.png"}
           alt="search_icon"
+          onClick={() => {
+            document.getElementById("search-field").value = "";
+            navigate("/searchresults", {
+              state: { searchResults, searchValue },
+            });
+          }}
         />
       </div>
       <button id="dashboard" onClick={(e) => handlePage(e)}>

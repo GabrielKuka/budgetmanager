@@ -77,12 +77,9 @@ const Expenses = ({ dateRange }) => {
       {transactionPopup && (
         <TransactionPopup
           transaction={transactionPopup}
-          type={1}
           showPopup={setTransactionPopup}
           refreshTransactions={global.updateExpenses}
           getAccountCurrency={getAccountCurrency}
-          accounts={accounts}
-          categories={categories}
         />
       )}
     </div>

@@ -1,4 +1,5 @@
 import { useConfirm } from "../../context/ConfirmContext";
+import { useGlobalContext } from "../../context/GlobalContext";
 import { useToast } from "../../context/ToastContext";
 import transactionService from "../../services/transactionService/transactionService";
 import { helper } from "../helper";
@@ -6,15 +7,27 @@ import "./transaction_popup.scss";
 
 const TransactionPopup = ({
   transaction,
-  type,
   showPopup,
-  refreshTransactions,
   getAccountCurrency,
-  accounts,
-  categories,
+  refreshTransactions,
+  refreshSearchResults,
 }) => {
+  const global = useGlobalContext();
+  const accounts = global.accounts;
   const showConfirm = useConfirm();
   const showToast = useToast();
+
+  let type = -1;
+  let categories = [];
+  if ("income_category" in transaction) {
+    type = 0;
+    categories = global.incomeCategories;
+  } else if ("expense_category" in transaction) {
+    type = 1;
+    categories = global.expenseCategories;
+  } else if ("from_account" in transaction) {
+    type = 2;
+  }
 
   function getTransactionType() {
     switch (type) {
@@ -93,7 +106,18 @@ const TransactionPopup = ({
         type: type,
         id: transaction.id,
       };
-      await transactionService.deleteExpense(payload);
+      if (typeStr === "expense") {
+        await transactionService.deleteExpense(payload);
+      } else if (typeStr === "income") {
+        await transactionService.deleteIncome(payload);
+      } else {
+        await transactionService.deleteTransfer(payload);
+      }
+
+      // Remove from search results if it exists
+      if (refreshSearchResults) {
+        refreshSearchResults(transaction.id);
+      }
 
       closePopup();
       refreshTransactions();
