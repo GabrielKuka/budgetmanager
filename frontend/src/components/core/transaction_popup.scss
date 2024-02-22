@@ -11,9 +11,9 @@
 }
 
 .transaction-popup-wrapper {
-    position: absolute;
+    position: fixed;
     left: 20%;
-    top: 0;
+    top: 15%;
     height: 500px;
     width: 900px;
     background-color: white;

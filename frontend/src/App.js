@@ -12,6 +12,7 @@ import Register from "./components/authentication/register";
 import ToastProvider from "./context/ToastContext";
 import ConfirmProvider from "./context/ConfirmContext";
 import Stats from "./components/stats/stats";
+import SearchResults from "./components/searchresults";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <Route path="/stats" element={<Stats />} />
             <Route path="/" element={<Dashboard />} />
             <Route path="/accounts" element={<Accounts />} />
+            <Route path="/searchresults" element={<SearchResults />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

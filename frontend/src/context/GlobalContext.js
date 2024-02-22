@@ -48,6 +48,22 @@ const GlobalProvider = ({ children }) => {
     setTransfers(response);
   };
 
+  const updateTransactions = async () => {
+    let response = null;
+    response = await transactionService.getAllUserExpenses();
+    setExpenses(response);
+    response = await transactionService.getAllUserIncomes();
+    setIncomes(response);
+    response = await transactionService.getAllUserTransfers();
+    setTransfers(response);
+  };
+
+  const resetTransactions = () => {
+    setIncomes([]);
+    setExpenses([]);
+    setTransfers([]);
+  };
+
   const updateExpenseCategories = async () => {
     const response = await transactionService.getAllExpenseCategories();
     setExpenseCategories(response);
@@ -87,9 +103,7 @@ const GlobalProvider = ({ children }) => {
       localStorage.setItem("user", JSON.stringify(localUser));
 
       await updateAccounts();
-      await updateIncomes();
-      await updateExpenses();
-      await updateTransfers();
+      await updateTransactions();
 
       await updateExpenseCategories();
       await updateIncomeCategories();
@@ -105,9 +119,7 @@ const GlobalProvider = ({ children }) => {
     setUser(null);
 
     setAccounts([]);
-    setIncomes([]);
-    setExpenses([]);
-    setTransfers([]);
+    resetTransactions();
 
     setExpenseCategories([]);
     setIncomeCategories([]);
@@ -153,6 +165,7 @@ const GlobalProvider = ({ children }) => {
     updateExpenses,
     updateIncomes,
     updateTransfers,
+    updateTransactions,
 
     incomeCategories,
     expenseCategories,
