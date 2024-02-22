@@ -128,6 +128,7 @@ const LoggedInNavbar = () => {
           onChange={(e) => search(e)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
+              console.log(searchResults);
               document.getElementById("search-field").value = "";
               navigate("/searchresults", {
                 state: {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./searchresults.scss";
 import { useGlobalContext } from "../context/GlobalContext";
 import { useLocation } from "react-router-dom";
@@ -13,6 +13,10 @@ const SearchResults = (props) => {
   const searchValue = state.searchValue;
 
   const [transactionPopup, setTransactionPopup] = useState(false);
+
+  useEffect(() => {
+    setSearchResults(state.searchResults);
+  }, [state.searchResults]);
 
   const incomes = searchResults
     .filter((t) => "income_category" in t)
