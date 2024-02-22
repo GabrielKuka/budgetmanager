@@ -6,8 +6,10 @@ import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
+import { useGlobalContext } from "../../context/GlobalContext";
 
 const TemplateGroups = (props) => {
+  const global = useGlobalContext();
   const [currentTemplateGroup, setCurrentTemplateGroup] = useState(false);
   const showToast = useToast();
   const showConfirm = useConfirm();
@@ -160,6 +162,7 @@ const TemplateGroups = (props) => {
     });
 
     showToast("Transactions Added", "success");
+    global.updateTransactions();
   }
 
   return (
