@@ -96,7 +96,7 @@ const TransactionPopup = ({
   }
 
   function closePopup() {
-    showPopup(() => false);
+    showPopup(false);
   }
 
   function handleDelete() {

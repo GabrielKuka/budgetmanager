@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./navbar.scss";
 import ConversionTool from "./core/conversiontool";
 import { helper } from "./helper";
+import TransactionPopup from "./core/transaction_popup";
 
 const Navbar = () => {
   const global = useGlobalContext();
@@ -27,6 +28,7 @@ const LoggedInNavbar = () => {
   const [searchResults, setSearchResults] = useState(null);
   const [searchValue, setSearchValue] = useState(null);
   const [suggestionBox, setSuggestionBox] = useState(false);
+  const [transactionPopup, setTransactionPopup] = useState(false);
 
   useEffect(() => {
     let location = window.location.pathname.replace("/", "");
@@ -69,6 +71,10 @@ const LoggedInNavbar = () => {
     }
 
     return "Not Found";
+  }
+
+  function refreshSearchResults(id) {
+    setSearchResults(searchResults.filter((t) => t.id != id));
   }
 
   const handleLogout = () => {
@@ -144,6 +150,7 @@ const LoggedInNavbar = () => {
           id="search-field"
           className={"search-field"}
           placeholder="Search..."
+          autoComplete="off"
           onChange={(e) => search(e)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -175,13 +182,14 @@ const LoggedInNavbar = () => {
         {suggestionBox && (
           <div className={"suggestions-container"}>
             {searchResults
-              .sort((a, b) => (a.date > b.date ? -1 : 1))
-              .slice(0, 5)
+              ?.sort((a, b) => (a.date > b.date ? -1 : 1))
+              ?.slice(0, 5)
               ?.map((s) => (
                 <SuggestionItem
                   key={`${s.id}-${s.date}`}
                   suggestion={s}
                   getAccountCurrency={getAccountCurrency}
+                  setTransactionPopup={setTransactionPopup}
                 />
               ))}
           </div>
@@ -206,11 +214,28 @@ const LoggedInNavbar = () => {
         <ConversionTool closePopup={() => setConversionTool(false)} />
       )}
       <button onClick={handleLogout}>Log out</button>
+      {transactionPopup && (
+        <TransactionPopup
+          transaction={transactionPopup}
+          showPopup={setTransactionPopup}
+          getAccountCurrency={getAccountCurrency}
+          refreshTransactions={global.updateTransactions}
+          refreshSearchResults={refreshSearchResults}
+        />
+      )}
     </div>
   );
 };
 
-const SuggestionItem = ({ suggestion, getAccountCurrency }) => {
+const SuggestionItem = ({
+  suggestion,
+  getAccountCurrency,
+  setTransactionPopup,
+}) => {
+  const account =
+    "account" in suggestion ? suggestion.account : suggestion.from_account;
+  const currency = helper.getCurrency(getAccountCurrency(account));
+
   function getSuggestionType() {
     if ("income_category" in suggestion) {
       return "income";
@@ -220,11 +245,14 @@ const SuggestionItem = ({ suggestion, getAccountCurrency }) => {
       return "transfer";
     }
   }
-  const account =
-    "account" in suggestion ? suggestion.account : suggestion.from_account;
-  const currency = helper.getCurrency(getAccountCurrency(account));
+
   return (
-    <div className={"suggestion-item"}>
+    <div
+      className={"suggestion-item"}
+      onClick={() => {
+        setTransactionPopup(suggestion);
+      }}
+    >
       <div className={"date"}>
         <b>Date: </b>
         <span>{suggestion.date}</span>
