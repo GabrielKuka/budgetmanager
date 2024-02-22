@@ -156,6 +156,7 @@ const LoggedInNavbar = () => {
             if (e.key === "Enter") {
               setSuggestionBox(!suggestionBox);
               document.getElementById("search-field").value = "";
+              document.getElementById("search-field").blur();
               navigate("/searchresults", {
                 state: {
                   searchResults: searchResults,
@@ -171,9 +172,10 @@ const LoggedInNavbar = () => {
           type="image"
           src={process.env.PUBLIC_URL + "/search_icon.png"}
           alt="search_icon"
-          onClick={() => {
+          onFocus={() => {
             setSuggestionBox(!suggestionBox);
             document.getElementById("search-field").value = "";
+
             navigate("/searchresults", {
               state: { searchResults, searchValue },
             });
