@@ -39,6 +39,57 @@
         height: 25px;
         width: 25px;
       }
+
+      .suggestions-container {
+        position: absolute;
+        background-color: white;
+        box-shadow: 4px 4px 10px #DADADA;
+        top: 70px;
+        border-radius: 3px;
+        width: 350px;
+        z-index: 1900;
+        padding: 5px 10px;
+
+        .suggestion-item {
+          @include flex(column, flex-start, flex-start);
+          gap: 5px;
+          padding: 5px;
+          cursor: pointer;
+          .date {
+            width: 100%;
+            .suggestion-type {
+              background-color: white;
+              border: 1px solid cadetblue;
+              color: cadetblue;
+              float: right;
+              padding: 0px 5px;
+              border-radius: 3px;
+              font-size: 13px;
+              text-transform: uppercase;
+              transition: background-color 0.3s, color 0.3s;
+
+              &:hover {
+                background-color: cadetblue;
+                color: white;
+              }
+            }
+          }
+          .tags {
+              .tag {
+                  background-color: cadetblue;
+                  color: white;
+                  font-weight: bold;
+                  border-radius: 3px;
+                  padding: 1px 6px 1px 6px;
+                  margin-left: 5px;
+              }
+          }
+          hr {
+            width: 100%;
+            border-color: transparent transparent cadetblue transparent;
+          }
+        }
+      }
     }
     
     .fullname-container{

@@ -3,6 +3,7 @@ import { useGlobalContext } from "../context/GlobalContext";
 import { useNavigate } from "react-router-dom";
 import "./navbar.scss";
 import ConversionTool from "./core/conversiontool";
+import { helper } from "./helper";
 
 const Navbar = () => {
   const global = useGlobalContext();
@@ -25,6 +26,25 @@ const LoggedInNavbar = () => {
   const [transfers, setTransfers] = useState(global.transfers);
   const [searchResults, setSearchResults] = useState(null);
   const [searchValue, setSearchValue] = useState(null);
+  const [suggestionBox, setSuggestionBox] = useState(false);
+
+  useEffect(() => {
+    let location = window.location.pathname.replace("/", "");
+    const activeButton = location
+      ? document.getElementById(location)
+      : document.getElementById("dashboard");
+    if (activeButton) {
+      activeButton.style.fontWeight = "bold";
+    }
+  }, []);
+
+  useEffect(() => {
+    if (searchValue && searchResults?.length > 0) {
+      setSuggestionBox(true);
+    } else {
+      setSuggestionBox(false);
+    }
+  }, [searchValue, searchResults]);
 
   useEffect(() => {
     setAccounts(global.accounts);
@@ -42,6 +62,15 @@ const LoggedInNavbar = () => {
     setTransfers(global.transfers);
   }, [global.transfers]);
 
+  function getAccountCurrency(id) {
+    const account = accounts?.filter((a) => a.id === id);
+    if (account?.length === 1) {
+      return account[0].currency;
+    }
+
+    return "Not Found";
+  }
+
   const handleLogout = () => {
     global.logoutUser();
   };
@@ -50,16 +79,6 @@ const LoggedInNavbar = () => {
 
   const buttons = ["dashboard", "accounts", "profile", "stats", "templates"];
   const [conversionTool, setConversionTool] = useState(false);
-
-  useEffect(() => {
-    let location = window.location.pathname.replace("/", "");
-    const activeButton = location
-      ? document.getElementById(location)
-      : document.getElementById("dashboard");
-    if (activeButton) {
-      activeButton.style.fontWeight = "bold";
-    }
-  }, []);
 
   function handlePage(e) {
     const selected = e.target.innerText.toLowerCase();
@@ -128,7 +147,7 @@ const LoggedInNavbar = () => {
           onChange={(e) => search(e)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              console.log(searchResults);
+              setSuggestionBox(!suggestionBox);
               document.getElementById("search-field").value = "";
               navigate("/searchresults", {
                 state: {
@@ -146,12 +165,27 @@ const LoggedInNavbar = () => {
           src={process.env.PUBLIC_URL + "/search_icon.png"}
           alt="search_icon"
           onClick={() => {
+            setSuggestionBox(!suggestionBox);
             document.getElementById("search-field").value = "";
             navigate("/searchresults", {
               state: { searchResults, searchValue },
             });
           }}
         />
+        {suggestionBox && (
+          <div className={"suggestions-container"}>
+            {searchResults
+              .sort((a, b) => (a.date > b.date ? -1 : 1))
+              .slice(0, 5)
+              ?.map((s) => (
+                <SuggestionItem
+                  key={`${s.id}-${s.date}`}
+                  suggestion={s}
+                  getAccountCurrency={getAccountCurrency}
+                />
+              ))}
+          </div>
+        )}
       </div>
       <button id="dashboard" onClick={(e) => handlePage(e)}>
         Dashboard
@@ -172,6 +206,54 @@ const LoggedInNavbar = () => {
         <ConversionTool closePopup={() => setConversionTool(false)} />
       )}
       <button onClick={handleLogout}>Log out</button>
+    </div>
+  );
+};
+
+const SuggestionItem = ({ suggestion, getAccountCurrency }) => {
+  function getSuggestionType() {
+    if ("income_category" in suggestion) {
+      return "income";
+    } else if ("expense_category" in suggestion) {
+      return "expense";
+    } else {
+      return "transfer";
+    }
+  }
+  const account =
+    "account" in suggestion ? suggestion.account : suggestion.from_account;
+  const currency = helper.getCurrency(getAccountCurrency(account));
+  return (
+    <div className={"suggestion-item"}>
+      <div className={"date"}>
+        <b>Date: </b>
+        <span>{suggestion.date}</span>
+        <span className={"suggestion-type"}>{getSuggestionType()}</span>
+      </div>
+      {suggestion.description?.length > 0 && (
+        <div className={"description"}>
+          <b>Description: </b>
+          <span>{suggestion.description}</span>
+        </div>
+      )}
+      <div className={"amount"}>
+        <b>Amount: </b>
+        <span>
+          {parseFloat(suggestion.amount).toFixed(2)} {currency}
+        </span>
+      </div>
+      {suggestion.tags?.length > 0 && (
+        <div className={"tags"}>
+          <b>Tags: </b>
+
+          {suggestion?.tags?.map((tag) => (
+            <span key={tag.name} className={"tag"}>
+              {tag.name}
+            </span>
+          ))}
+        </div>
+      )}
+      <hr />
     </div>
   );
 };
