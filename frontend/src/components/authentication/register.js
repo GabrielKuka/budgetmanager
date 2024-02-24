@@ -60,8 +60,12 @@ const Register = () => {
               className={"field_password"}
               placeholder="Password"
             />
-            <button type="submit">Register</button>
-            <Link to="/login">Log in</Link>
+            <button type="submit" id="submit-button">
+              Register
+            </button>
+            <Link to="/login" id="login-link">
+              Already have an account? Log in.
+            </Link>
           </Form>
         )}
       </Formik>

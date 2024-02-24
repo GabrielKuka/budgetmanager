@@ -37,10 +37,12 @@ const Login = () => {
               className={"field_password"}
               placeholder="Password"
             />
-            <button type="submit">
+            <button type="submit" id="submit-button">
               {props.isSubmitting ? "Logging in.." : "Log in"}
             </button>
-            <Link to="/register">Register</Link>
+            <Link to="/register" id={"register-link"}>
+              New? Register an account here.
+            </Link>
           </Form>
         )}
       </Formik>

@@ -41,6 +41,35 @@
       cursor: pointer;
       transition: padding-left 0.3s;
     }
+
+    #submit-button {
+      border: 1px solid cadetblue;
+      background-color: cadetblue;
+      border-radius: 3px;
+      color: white;
+      padding: 5px;
+      font-weight: bold;
+      transition: background-color 0.3s, color 0.3s;
+      font-size: 16px;
+
+      &:active {
+        background-color: white;
+        color: cadetblue;
+      }
+    }
+
+    #login-link {
+      color: cadetblue;
+      font-weight: bold;
+      transition: color 0.3s;
+      text-decoration: none;
+      cursor: pointer;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+    
   }
 
   &__form:hover {
