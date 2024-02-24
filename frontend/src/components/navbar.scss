@@ -90,6 +90,19 @@
           }
         }
       }
+
+    }
+    #logout-button {
+      background-color: rgb(95, 158, 160);
+      width: 25px;
+      height: 25px;
+      border-radius: 3px;
+      padding: 5px;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: rgb(255, 0, 0, 0.5);
+      }
     }
     
     .fullname-container{

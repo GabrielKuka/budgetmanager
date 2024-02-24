@@ -218,7 +218,14 @@ const LoggedInNavbar = () => {
       {conversionTool && (
         <ConversionTool closePopup={() => setConversionTool(false)} />
       )}
-      <button onClick={handleLogout}>Log out</button>
+      <input
+        className={"logout-button"}
+        id={"logout-button"}
+        type="image"
+        src={process.env.PUBLIC_URL + "/logout_icon.png"}
+        alt="logout_icon"
+        onClick={handleLogout}
+      />
       {transactionPopup && (
         <TransactionPopup
           transaction={transactionPopup}
