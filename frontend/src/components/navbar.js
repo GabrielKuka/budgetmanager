@@ -212,9 +212,14 @@ const LoggedInNavbar = () => {
       <button id="stats" onClick={(e) => handlePage(e)}>
         Stats
       </button>
-      <button id="converter" onClick={() => setConversionTool(true)}>
-        Convert Currency
-      </button>
+      <input
+        id={"converter"}
+        title="Convert Currencies"
+        type="image"
+        src={process.env.PUBLIC_URL + "/currency_convert_icon.png"}
+        alt="currency_convert_icon"
+        onClick={() => setConversionTool(true)}
+      />
       {conversionTool && (
         <ConversionTool closePopup={() => setConversionTool(false)} />
       )}
