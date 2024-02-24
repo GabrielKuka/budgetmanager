@@ -160,7 +160,6 @@
     .transfers {
       @include flex(column, flex-start, center);
       gap: 15px;
-      height: calc(100vh - 280px);
       width: 100%;
       overflow-x: hidden;
       overflow-y: scroll;
