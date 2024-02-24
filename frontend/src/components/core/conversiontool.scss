@@ -83,10 +83,21 @@
             background-color: cadetblue; 
             margin: 5px 0;
           }
-        button {
+        #submit-button {
             align-self: flex-end;
             padding: 10px;
             margin-right: 20px;
+            border: 1px solid cadetblue;
+            border-radius: 3px;
+            background-color: cadetblue;
+            color: white;
+            font-weight: bold;
+            transition: background-color 0.3s, color 0.3s;
+
+            &:active {
+                background-color: white;
+                color: cadetblue;
+            }
         }
     }
 }

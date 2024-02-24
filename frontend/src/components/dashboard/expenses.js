@@ -251,7 +251,9 @@ const AddExpense = ({
                 </option>
               ))}
             </Field>
-            <button type="submit">Submit</button>
+            <button type="submit" id={"submit-button"}>
+              Add Expense
+            </button>
           </Form>
         )}
       </Formik>

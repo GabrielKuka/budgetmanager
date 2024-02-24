@@ -71,7 +71,7 @@ const ConversionTool = ({ closePopup }) => {
                 <label>{result}</label>
               </div>
               <div className={"separator"}></div>
-              <button type="submit" className={"submit-button"}>
+              <button type="submit" id={"submit-button"}>
                 Convert
               </button>
             </Form>

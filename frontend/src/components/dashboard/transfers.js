@@ -221,7 +221,9 @@ const AddTransfer = ({
               name="description"
               placeholder="Enter a description"
             />
-            <button type="submit">Submit</button>
+            <button type="submit" id={"submit-button"}>
+              Add Transfer
+            </button>
           </Form>
         )}
       </Formik>

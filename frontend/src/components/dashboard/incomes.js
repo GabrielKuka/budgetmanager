@@ -302,7 +302,9 @@ const AddIncome = ({
                 </option>
               ))}
             </Field>
-            <button type="submit">Submit</button>
+            <button type="submit" id="submit-button">
+              Add Income
+            </button>
           </Form>
         )}
       </Formik>
