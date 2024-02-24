@@ -153,7 +153,7 @@ const LoggedInNavbar = () => {
           autoComplete="off"
           onChange={(e) => search(e)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && searchValue) {
               setSuggestionBox(!suggestionBox);
               document.getElementById("search-field").value = "";
               document.getElementById("search-field").blur();
@@ -173,6 +173,9 @@ const LoggedInNavbar = () => {
           src={process.env.PUBLIC_URL + "/search_icon.png"}
           alt="search_icon"
           onFocus={() => {
+            if (!searchValue) {
+              return;
+            }
             setSuggestionBox(!suggestionBox);
             document.getElementById("search-field").value = "";
 
