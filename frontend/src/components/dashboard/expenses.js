@@ -247,7 +247,7 @@ const AddExpense = ({
               </option>
               {categories?.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.category_type}
+                  {c.category}
                 </option>
               ))}
             </Field>
@@ -428,7 +428,7 @@ const ExpensesList = (props) => {
             <option value="-1">All</option>
             {props.categories?.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.category_type}
+                {c.category}
               </option>
             ))}
           </select>
@@ -497,7 +497,7 @@ const ExpenseItem = ({
   function getExpenseCategory(id) {
     const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
-      return category[0].category_type;
+      return category[0].category;
     }
     return "Not found.";
   }

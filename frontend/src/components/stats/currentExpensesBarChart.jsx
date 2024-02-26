@@ -10,6 +10,7 @@ const CurrentExpensesBarChart = (props) => {
     if (!props.categories) {
       return;
     }
+    console.log(props.categories);
     const data = [];
     for (const c of props.categories) {
       let promises = props.expenses
@@ -21,11 +22,11 @@ const CurrentExpensesBarChart = (props) => {
             e.amount
           );
         });
-
+      console.log(props.expenses);
       const results = await Promise.all(promises);
       const total = results.reduce((t, curr) => (t += parseFloat(curr)), 0);
       data.push({
-        category: c.category_type,
+        category: c.category,
         amount: parseFloat(total).toFixed(2),
       });
     }

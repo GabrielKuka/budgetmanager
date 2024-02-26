@@ -5,12 +5,14 @@ from Accounts.models import Account
 from tags.models import Tag
 
 
-class ExpenseCategory(models.Model):
-    category_type = models.CharField(max_length=100, default="")
+class TransactionCategory(models.Model):
 
+    valid_types = [(0, "income"), (1, "expense")]
 
-class IncomeCategory(models.Model):
-    category_type = models.CharField(max_length=100, default="")
+    category = models.CharField(max_length=100, default="")
+    category_type = models.IntegerField(
+        choices=valid_types, default=valid_types[1]
+    )
 
 
 class Expense(models.Model):
@@ -29,7 +31,7 @@ class Expense(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     amount = models.FloatField(default=0.0)
     expense_category = models.ForeignKey(
-        ExpenseCategory,
+        TransactionCategory,
         related_name="expense_category",
         on_delete=models.CASCADE,
         null=True,
@@ -55,7 +57,7 @@ class Income(models.Model):
     amount = models.FloatField(default=0.0)
     description = models.CharField(max_length=100, null=True, blank=True)
     income_category = models.ForeignKey(
-        IncomeCategory,
+        TransactionCategory,
         related_name="income_category",
         on_delete=models.CASCADE,
         null=True,

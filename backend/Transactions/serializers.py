@@ -1,10 +1,13 @@
 from rest_framework import serializers
 
-from Users.models import User
-from Users.serializers import UserSerializer
 from tags.serializers import TagSerializer
 
-from .models import Expense, ExpenseCategory, Income, IncomeCategory, Transfer
+from .models import (
+    Expense,
+    Income,
+    Transfer,
+    TransactionCategory,
+)
 from tags.models import Tag
 
 
@@ -62,13 +65,7 @@ class TransferSerializer(serializers.ModelSerializer):
         return transfer
 
 
-class ExpenseCategorySerializer(serializers.ModelSerializer):
+class TransactionCategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = ExpenseCategory
-        fields = "__all__"
-
-
-class IncomeCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = IncomeCategory
+        model = TransactionCategory
         fields = "__all__"

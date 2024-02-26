@@ -7,6 +7,7 @@ async function getAllExpenseCategories() {
   const response = await axios.get(`${ENDPOINT}/expensecategories`);
 
   if (response.status === 200) {
+    console.log(response.data);
     return response.data;
   } else {
     alert("Error fetching categories");

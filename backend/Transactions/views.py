@@ -7,14 +7,13 @@ from Accounts.models import Account
 from Users.models import User
 from tags.models import Tag
 
-from .models import Expense, ExpenseCategory, Income, IncomeCategory, Transfer
+from .models import Expense, Income, Transfer, TransactionCategory
 from Accounts.serialzers import AccountSerializer
 from .serializers import (
-    ExpenseCategorySerializer,
     ExpenseSerializer,
-    IncomeCategorySerializer,
     IncomeSerializer,
     TransferSerializer,
+    TransactionCategorySerializer,
 )
 
 
@@ -223,15 +222,15 @@ def get_all_transactions(request):
 
 @api_view(["GET"])
 def get_income_categories(request):
-    categories = IncomeCategory.objects.all()
-    serializer = IncomeCategorySerializer(categories, many=True)
+    categories = TransactionCategory.objects.filter(category_type="0")
+    serializer = TransactionCategorySerializer(categories, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
 def get_expense_categories(request):
-    categories = ExpenseCategory.objects.all()
-    serializer = ExpenseCategorySerializer(categories, many=True)
+    categories = TransactionCategory.objects.filter(category_type="1")
+    serializer = TransactionCategorySerializer(categories, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
