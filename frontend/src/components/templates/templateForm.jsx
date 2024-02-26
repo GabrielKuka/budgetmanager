@@ -90,7 +90,7 @@ const TemplateForm = (props) => {
                 </option>
                 {props.incomeCategories?.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.category_type}
+                    {c.category}
                   </option>
                 ))}
               </Field>
@@ -116,7 +116,7 @@ const TemplateForm = (props) => {
                 </option>
                 {props.expenseCategories?.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.category_type}
+                    {c.category}
                   </option>
                 ))}
               </Field>

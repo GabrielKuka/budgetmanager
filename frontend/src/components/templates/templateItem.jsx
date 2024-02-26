@@ -34,11 +34,11 @@ const TemplateItem = (props) => {
   function getCategory(id) {
     if (props.i.type == 0) {
       const res = props.incomeCategories?.filter((c) => c.id == id);
-      return res.length == 1 ? res[0].category_type : "";
+      return res.length == 1 ? res[0].category : "";
     }
     if (props.i.type == 1) {
       const res = props.expenseCategories?.filter((c) => c.id == id);
-      return res.length == 1 ? res[0].category_type : "";
+      return res.length == 1 ? res[0].category : "";
     }
   }
 

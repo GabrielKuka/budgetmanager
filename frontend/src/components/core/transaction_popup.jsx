@@ -53,7 +53,7 @@ const TransactionPopup = ({
   function getCategory(id) {
     const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
-      return category[0]?.category_type;
+      return category[0]?.category;
     }
     return "Not found.";
   }

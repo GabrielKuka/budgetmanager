@@ -129,7 +129,7 @@ const Sidebar = (props) => {
         const results = await Promise.all(promises);
         const total = results.reduce((t, curr) => (t += parseFloat(curr)), 0);
         data.push({
-          category: c.category_type,
+          category: c.category,
           amount: parseFloat(total).toFixed(2),
         });
       }
@@ -298,7 +298,7 @@ const AddIncome = ({
               </option>
               {categories?.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.category_type}
+                  {c.category}
                 </option>
               ))}
             </Field>
@@ -479,7 +479,7 @@ const IncomesList = (props) => {
             <option value="-1">All</option>
             {props.categories?.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.category_type}
+                {c.category}
               </option>
             ))}
           </select>
@@ -548,7 +548,7 @@ const IncomeItem = ({
   function getIncomeCategory(id) {
     const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
-      return category[0].category_type;
+      return category[0].category;
     }
     return "Not found.";
   }
