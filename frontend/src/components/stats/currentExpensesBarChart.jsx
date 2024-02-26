@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import currencyService from "../../services/currencyService";
-import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, Legend, Tooltip, XAxis, YAxis } from "recharts";
 
 const CurrentExpensesBarChart = (props) => {
   const [yMaxValue, setYMaxValue] = useState({});
@@ -62,6 +62,7 @@ const CurrentExpensesBarChart = (props) => {
         wrapperStyle={{ border: "none" }}
       />
       <Bar dataKey="amount" fill="#8884d8" />
+      <Legend content={<CustomLenged />} />
     </BarChart>
   );
 };
@@ -89,4 +90,24 @@ const BarChartToolTip = ({ active, payload }) => {
   }
 
   return null;
+};
+
+const CustomLenged = () => {
+  return (
+    <div
+      style={{
+        fontSize: "13px",
+        margin: "10px 0px 10px 40px",
+        backgroundColor: "#D3D3D3",
+        color: "black",
+        padding: "7px",
+        width: "80%",
+        borderRadius: "3px",
+        cursor: "pointer",
+        textAlign: "left",
+      }}
+    >
+      Expenses by category for the current month
+    </div>
+  );
 };

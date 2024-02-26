@@ -7,11 +7,7 @@ import PieChartCustomizedLabel from "./pieChartCustomLabel";
 const NetworthBasedOnCurrencyChart = ({ accounts }) => {
   const [data, setData] = useState(null);
 
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
-
-  useEffect(() => {
-    getWealthBasedOnCurrency();
-  }, [accounts]);
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF0000"];
 
   useEffect(() => {
     getWealthBasedOnCurrency();
