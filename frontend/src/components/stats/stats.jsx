@@ -74,6 +74,7 @@ const Stats = (props) => {
           <>
             <div className={"chart-container"}>
               <CurrentExpensesBarChart
+                stats={true}
                 expenses={expenses?.filter(
                   (e) =>
                     new Date(e.date) >= dateRange.from &&

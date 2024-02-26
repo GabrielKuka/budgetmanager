@@ -62,7 +62,7 @@ const CurrentExpensesBarChart = (props) => {
         wrapperStyle={{ border: "none" }}
       />
       <Bar dataKey="amount" fill="#8884d8" />
-      <Legend content={<CustomLenged />} />
+      {props.stats && <Legend content={<CustomLenged />} />}
     </BarChart>
   );
 };
