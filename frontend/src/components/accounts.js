@@ -68,7 +68,7 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
 
       let results = await Promise.all(promises);
       let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
-      setInvestments(total.toFixed(2));
+      setInvestments(total);
     }
     async function convertCash() {
       let promises = accounts?.map(async (a) => {
@@ -79,7 +79,7 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
       });
       let results = await Promise.all(promises);
       let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
-      setCash(total.toFixed(2));
+      setCash(total);
     }
     async function convertBankAssets() {
       let promises = accounts?.map(async (a) => {
@@ -91,7 +91,7 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
 
       let results = await Promise.all(promises);
       let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
-      setBankAssets(total.toFixed(2));
+      setBankAssets(total);
     }
 
     convertInvestments();
@@ -124,7 +124,7 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
             />
           }
           <span>Investments: </span>
-          <small>{investments} €</small>
+          <small>{helper.formatNumber(investments)} €</small>
         </label>
         <label>
           {
@@ -137,7 +137,7 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
             />
           }
           <span>Hard cash: </span>
-          <small>{cash} €</small>
+          <small>{helper.formatNumber(cash)} €</small>
         </label>
         <label>
           {
@@ -150,13 +150,15 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
             />
           }
           <span>Money in banks: </span>
-          <small>{bankAssets} €</small>
+          <small>{helper.formatNumber(bankAssets)} €</small>
         </label>
         <label>
           <span>
             <b>TOTAL ASSETS:</b>{" "}
           </span>
-          <b style={{ borderBottom: "2px solid #5F9EA0" }}>{networth} €</b>
+          <b style={{ borderBottom: "2px solid #5F9EA0" }}>
+            {helper.formatNumber(networth)} €
+          </b>
         </label>
       </div>
     </div>
@@ -317,7 +319,7 @@ const AccountItem = ({ account, refreshAccounts }) => {
   function amountColor(amount) {
     let color = "#000";
 
-    if (parseInt(amount) == 0) {
+    if (parseFloat(amount) == 0.0) {
       color = "gray";
     }
     if (parseFloat(amount) < 0) {
@@ -353,8 +355,11 @@ const AccountItem = ({ account, refreshAccounts }) => {
         )}
         {account.name}
       </label>
-      <label id="amount" style={amountColor(account.amount)}>
-        {parseFloat(account.amount).toFixed(2)}{" "}
+      <label
+        id="amount"
+        style={amountColor(helper.formatNumber(account.amount))}
+      >
+        {helper.formatNumber(account.amount)}{" "}
         {helper.getCurrency(account.currency)}
       </label>
       <label id="type">

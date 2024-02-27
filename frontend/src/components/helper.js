@@ -1,6 +1,6 @@
 export const helper = {
-   getCurrency: (currency)=>{
-    switch(currency){
+  getCurrency: (currency) => {
+    switch (currency) {
       case "EUR":
         return "€";
       case "USD":
@@ -10,7 +10,13 @@ export const helper = {
       case "BGN":
         return "лв";
       default:
-        return currency
+        return currency;
     }
-   }  
-}
+  },
+  formatNumber: (number, decimal = 2) => {
+    const formatter = new Intl.NumberFormat("en-US", {
+      maximumFractionDigits: decimal,
+    });
+    return formatter.format(number);
+  },
+};
