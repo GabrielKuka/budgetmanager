@@ -1,11 +1,11 @@
 import { React, useEffect, useState } from "react";
 import userService from "../services/userService";
-import transactionService from "../services/transactionService/transactionService";
 import { Link } from "react-router-dom";
 import { helper } from "./helper";
 import "./profile.scss";
 import { useConfirm } from "../context/ConfirmContext";
 import { useToast } from "../context/ToastContext";
+import TransactionPopup from "./core/transaction_popup";
 
 import * as XLSX from "xlsx";
 import { useGlobalContext } from "../context/GlobalContext";
@@ -24,6 +24,8 @@ const Profile = () => {
   const [incomes, setIncomes] = useState(global.incomes);
   const [expenses, setExpenses] = useState(global.expenses);
   const [transfers, setTransfers] = useState(global.transfers);
+
+  const [transactionPopup, setTransactionPopup] = useState(false);
 
   useEffect(() => {
     getUserData();
@@ -65,6 +67,15 @@ const Profile = () => {
     setUserData(response);
   }
 
+  function getAccountCurrency(id) {
+    const account = accounts.filter((a) => a.id === id);
+    if (account?.length === 1) {
+      return account[0].currency;
+    }
+
+    return "Not Found";
+  }
+
   return (
     <div className={"profile-wrapper"}>
       <Sidebar
@@ -79,13 +90,27 @@ const Profile = () => {
           expenses={expenses}
           accounts={accounts}
           categories={expenseCategories}
+          setTransactionPopup={setTransactionPopup}
         />
         <RecentIncomes
           incomes={incomes}
           accounts={accounts}
           categories={incomeCategories}
+          setTransactionPopup={setTransactionPopup}
         />
-        <RecentTransfers transfers={transfers} accounts={accounts} />
+        <RecentTransfers
+          transfers={transfers}
+          accounts={accounts}
+          setTransactionPopup={setTransactionPopup}
+        />
+        {transactionPopup && (
+          <TransactionPopup
+            transaction={transactionPopup}
+            showPopup={setTransactionPopup}
+            getAccountCurrency={getAccountCurrency}
+            refreshTransactions={global.updateTransactions}
+          />
+        )}
       </div>
     </div>
   );
@@ -218,13 +243,19 @@ const RecentExpenses = (props) => {
               expense={expense}
               accounts={props.accounts}
               categories={props.categories}
+              setTransactionPopup={props.setTransactionPopup}
             />
           ))}
     </div>
   );
 };
 
-const ExpenseItem = ({ expense, accounts, categories }) => {
+const ExpenseItem = ({
+  expense,
+  accounts,
+  categories,
+  setTransactionPopup,
+}) => {
   function getAccountName(id) {
     const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -259,7 +290,7 @@ const ExpenseItem = ({ expense, accounts, categories }) => {
   }
 
   return (
-    <div className="expense-item">
+    <div className="expense-item" onClick={() => setTransactionPopup(expense)}>
       {isRecent(expense.created_on) && (
         <label className="new-transaction">NEW!</label>
       )}
@@ -296,6 +327,7 @@ const RecentIncomes = (props) => {
                 income={income}
                 accounts={props.accounts}
                 categories={props.categories}
+                setTransactionPopup={props.setTransactionPopup}
               />
             ))}
       </div>
@@ -303,7 +335,7 @@ const RecentIncomes = (props) => {
   );
 };
 
-const IncomeItem = ({ income, accounts, categories }) => {
+const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
   function getAccountName(id) {
     const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -337,7 +369,7 @@ const IncomeItem = ({ income, accounts, categories }) => {
   }
 
   return (
-    <div className="income-item">
+    <div className="income-item" onClick={() => setTransactionPopup(income)}>
       {isRecent(income.created_on) && (
         <label className="new-transaction">NEW!</label>
       )}
@@ -353,7 +385,7 @@ const IncomeItem = ({ income, accounts, categories }) => {
   );
 };
 
-const RecentTransfers = ({ transfers, accounts }) => {
+const RecentTransfers = ({ transfers, accounts, setTransactionPopup }) => {
   return (
     <div className={"transfers"}>
       <div className={"header"}>
@@ -371,6 +403,7 @@ const RecentTransfers = ({ transfers, accounts }) => {
                 key={transfer.id}
                 transfer={transfer}
                 accounts={accounts}
+                setTransactionPopup={setTransactionPopup}
               />
             ))}
       </div>
@@ -378,7 +411,7 @@ const RecentTransfers = ({ transfers, accounts }) => {
   );
 };
 
-const TransferItem = ({ transfer, accounts }) => {
+const TransferItem = ({ transfer, accounts, setTransactionPopup }) => {
   function getAccountName(id) {
     const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -404,7 +437,10 @@ const TransferItem = ({ transfer, accounts }) => {
   }
 
   return (
-    <div className="transfer-item">
+    <div
+      className="transfer-item"
+      onClick={() => setTransactionPopup(transfer)}
+    >
       {isRecent(transfer.created_on) && (
         <label className="new-transaction">NEW!</label>
       )}
