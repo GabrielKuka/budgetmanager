@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import transactionService from "../../services/transactionService/transactionService";
 import NetworthPieChart from "./networthPieChart";
 
 import "./stats.scss";

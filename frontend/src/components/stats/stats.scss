@@ -2,9 +2,8 @@
 
 .stats-wrapper {
   position: relative;
-  margin-top: 80px;
-  width: 100%;
   height: 100%;
+  margin: 100px 10px 30px 10px;
 
   @include flex(row, space-around, center, wrap);
   flex: 0 0 calc(33.00% - 20px); 
