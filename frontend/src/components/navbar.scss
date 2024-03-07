@@ -39,6 +39,11 @@
         background-color: cadetblue;
         height: 25px;
         width: 25px;
+        transition: transform 0.3s ease;
+
+        &:hover {
+          transform: scale(1.2)
+        }
       }
 
       .suggestions-container {
