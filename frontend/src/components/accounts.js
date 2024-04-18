@@ -38,6 +38,7 @@ const Accounts = () => {
 };
 
 const Sidebar = ({ accounts, refreshAccounts }) => {
+  const global = useGlobalContext();
   const [investments, setInvestments] = useState("");
   const [bankAssets, setBankAssets] = useState("");
   const [cash, setCash] = useState("");
@@ -124,7 +125,13 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
             />
           }
           <span>Investments: </span>
-          <small>{helper.formatNumber(investments)} €</small>
+          <small>
+            {helper.showOrMask(
+              global.privacyMode,
+              helper.formatNumber(investments)
+            )}{" "}
+            €
+          </small>
         </label>
         <label>
           {
@@ -137,7 +144,9 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
             />
           }
           <span>Hard cash: </span>
-          <small>{helper.formatNumber(cash)} €</small>
+          <small>
+            {helper.showOrMask(global.privacyMode, helper.formatNumber(cash))} €
+          </small>
         </label>
         <label>
           {
@@ -150,14 +159,24 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
             />
           }
           <span>Money in banks: </span>
-          <small>{helper.formatNumber(bankAssets)} €</small>
+          <small>
+            {helper.showOrMask(
+              global.privacyMode,
+              helper.formatNumber(bankAssets)
+            )}{" "}
+            €
+          </small>
         </label>
         <label>
           <span>
             <b>TOTAL ASSETS:</b>{" "}
           </span>
           <b style={{ borderBottom: "2px solid #5F9EA0" }}>
-            {helper.formatNumber(networth)} €
+            {helper.showOrMask(
+              global.privacyMode,
+              helper.formatNumber(networth)
+            )}{" "}
+            €
           </b>
         </label>
       </div>
@@ -297,6 +316,7 @@ const AccountsList = ({ accounts, refreshAccounts }) => {
 };
 
 const AccountItem = ({ account, refreshAccounts }) => {
+  const global = useGlobalContext();
   const accountTypes = [
     { source: `${process.env.PUBLIC_URL}/bank_icon.png`, name: "Bank Account" },
     {
@@ -359,7 +379,10 @@ const AccountItem = ({ account, refreshAccounts }) => {
         id="amount"
         style={amountColor(helper.formatNumber(account.amount))}
       >
-        {helper.formatNumber(account.amount)}{" "}
+        {helper.showOrMask(
+          global.privacyMode,
+          helper.formatNumber(account.amount)
+        )}{" "}
         {helper.getCurrency(account.currency)}
       </label>
       <label id="type">

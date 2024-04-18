@@ -84,6 +84,7 @@ const Profile = () => {
         expenses={expenses}
         incomes={incomes}
         transfers={transfers}
+        global={global}
       />
       <div className={"profile-wrapper__board"}>
         <RecentExpenses
@@ -187,7 +188,10 @@ const Sidebar = (props) => {
                 <div key={a.id} className={"account-item"}>
                   <label className={"name"}>{a.name}</label>
                   <label className={"amount"}>
-                    {parseFloat(a.amount).toFixed(2)}{" "}
+                    {helper.showOrMask(
+                      props.global.privacyMode,
+                      parseFloat(a.amount).toFixed(2)
+                    )}{" "}
                     {helper.getCurrency(getAccountCurrency(a.id))}
                   </label>
                 </div>
@@ -256,6 +260,7 @@ const ExpenseItem = ({
   categories,
   setTransactionPopup,
 }) => {
+  const global = useGlobalContext();
   function getAccountName(id) {
     const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -298,7 +303,10 @@ const ExpenseItem = ({
       <label id="description">{expense.description}</label>
       <label id="account">{getAccountName(expense.account)}</label>
       <label id="amount">
-        {parseFloat(expense.amount).toFixed(2)}{" "}
+        {helper.showOrMask(
+          global.privacyMode,
+          parseFloat(expense.amount).toFixed(2)
+        )}{" "}
         {helper.getCurrency(getAccountCurrency(expense.account))}
       </label>
       <label id="category">
@@ -336,6 +344,7 @@ const RecentIncomes = (props) => {
 };
 
 const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
+  const global = useGlobalContext();
   function getAccountName(id) {
     const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -377,7 +386,10 @@ const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
       <label id="description">{income.description}</label>
       <label id="account">{getAccountName(income.account)}</label>
       <label id="amount">
-        {parseFloat(income.amount).toFixed(2)}{" "}
+        {helper.showOrMask(
+          global.privacyMode,
+          parseFloat(income.amount).toFixed(2)
+        )}{" "}
         {helper.getCurrency(getAccountCurrency(income.account))}
       </label>
       <label id="category">{getIncomeCategory(income.income_category)}</label>
@@ -412,6 +424,7 @@ const RecentTransfers = ({ transfers, accounts, setTransactionPopup }) => {
 };
 
 const TransferItem = ({ transfer, accounts, setTransactionPopup }) => {
+  const global = useGlobalContext();
   function getAccountName(id) {
     const account = accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -449,7 +462,10 @@ const TransferItem = ({ transfer, accounts, setTransactionPopup }) => {
       <label id="from_account">{getAccountName(transfer.from_account)}</label>
       <label id="to_account">{getAccountName(transfer.to_account)}</label>
       <label id="amount">
-        {parseFloat(transfer.amount).toFixed(2)}{" "}
+        {helper.showOrMask(
+          global.privacyMode,
+          parseFloat(transfer.amount).toFixed(2)
+        )}{" "}
         {helper.getCurrency(getAccountCurrency(transfer.from_account))}
       </label>
     </div>

@@ -87,6 +87,7 @@ const Expenses = ({ dateRange }) => {
 };
 
 const Sidebar = (props) => {
+  const global = useGlobalContext();
   const [totalShownExpenses, setTotalShownExpenses] = useState(0);
 
   useEffect(() => {
@@ -120,7 +121,8 @@ const Sidebar = (props) => {
         getAccountCurrency={props.getAccountCurrency}
       />
       <div className={"summary"}>
-        <b>{totalShownExpenses}€</b> spent{" "}
+        <b>{helper.showOrMask(global.privacyMode, totalShownExpenses)}€</b>{" "}
+        spent{" "}
         <small>
           from {props.dateRange?.from.toDateString()} to{" "}
           {props.dateRange?.to.toDateString()}.
@@ -466,6 +468,7 @@ const ExpenseItem = ({
   const showConfirm = useConfirm();
   const showToast = useToast();
   const kebabMenu = useRef(null);
+  const global = useGlobalContext();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -549,7 +552,11 @@ const ExpenseItem = ({
       <label id="description">{expense.description}</label>
       <label id="account">{getAccountName(expense.account)}</label>
       <label id="amount">
-        {parseFloat(expense.amount).toFixed(2)} {currency}
+        {helper.showOrMask(
+          global.privacyMode,
+          parseFloat(expense.amount).toFixed(2)
+        )}{" "}
+        {currency}
       </label>
       <label id="category">
         {getExpenseCategory(expense.expense_category)}

@@ -88,6 +88,7 @@ const Incomes = ({ dateRange }) => {
 };
 
 const Sidebar = (props) => {
+  const global = useGlobalContext();
   const [totalShownIncomes, setShownIncomes] = useState(0);
   const [incomesPerCategory, setIncomesPerCategory] = useState("");
 
@@ -151,7 +152,8 @@ const Sidebar = (props) => {
         getAccountCurrency={props.getAccountCurrency}
       />
       <div className={"summary"}>
-        <b>{totalShownIncomes}€</b> earned{" "}
+        <b>{helper.showOrMask(global.privacyMode, totalShownIncomes)}€</b>{" "}
+        earned{" "}
         <small>
           from {props.dateRange.from.toDateString()} to{" "}
           {props.dateRange.to.toDateString()}.
@@ -517,6 +519,7 @@ const IncomeItem = ({
   const showConfirm = useConfirm();
   const showToast = useToast();
   const kebabMenu = useRef(null);
+  const global = useGlobalContext();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -599,7 +602,11 @@ const IncomeItem = ({
       <label id="description">{income.description}</label>
       <label id="account">{getAccountName(income.account)}</label>
       <label id="amount">
-        {parseFloat(income.amount).toFixed(2)} {currency}
+        {helper.showOrMask(
+          global.privacyMode,
+          parseFloat(income.amount).toFixed(2)
+        )}{" "}
+        {currency}
       </label>
       <label id="category">{getIncomeCategory(income.income_category)}</label>
       <button className={"kebab-button"} onClick={toggleKebab}>

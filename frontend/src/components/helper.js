@@ -1,4 +1,7 @@
 export const helper = {
+  showOrMask: (priv_mode, value) => {
+    return priv_mode ? "******" : value;
+  },
   getCurrency: (currency) => {
     switch (currency) {
       case "EUR":

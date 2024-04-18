@@ -213,9 +213,6 @@ const LoggedInNavbar = () => {
       <button id="stats" onClick={(e) => handlePage(e)}>
         Stats
       </button>
-      <button id="privacy" onClick={() => global.togglePrivacyMode()}>
-        Privacy
-      </button>
       <input
         id={"privacy_btn"}
         title="Toggle Privacy Mode"

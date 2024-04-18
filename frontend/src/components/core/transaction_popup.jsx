@@ -60,7 +60,10 @@ const TransactionPopup = ({
 
   function getTitle() {
     if (getTransactionType() === "expense") {
-      return `Spent ${transaction.amount} ${helper.getCurrency(
+      return `Spent ${helper.showOrMask(
+        global.privacyMode,
+        transaction.amount
+      )} ${helper.getCurrency(
         getAccountCurrency(transaction.account)
       )} on ${getCategory(
         getCategoryType()
@@ -68,7 +71,10 @@ const TransactionPopup = ({
     }
 
     if (getTransactionType() === "income") {
-      return `Earned ${transaction.amount} ${helper.getCurrency(
+      return `Earned ${helper.showOrMask(
+        global.privacyMode,
+        transaction.amount
+      )} ${helper.getCurrency(
         getAccountCurrency(transaction.account)
       )} from ${getCategory(
         getCategoryType()
@@ -76,7 +82,10 @@ const TransactionPopup = ({
     }
 
     if (getTransactionType() === "transfer") {
-      return `Transfered ${transaction.amount} ${helper.getCurrency(
+      return `Transfered ${helper.showOrMask(
+        global.privacyMode,
+        transaction.amount
+      )} ${helper.getCurrency(
         getAccountCurrency(transaction.from_account)
       )} from ${getAccountName(transaction.from_account)} to ${getAccountName(
         transaction.to_account
@@ -152,7 +161,10 @@ const TransactionPopup = ({
               <div>
                 <label>Amount: </label>
                 <span>
-                  {parseFloat(transaction.amount).toFixed(2)}{" "}
+                  {helper.showOrMask(
+                    global.privacyMode,
+                    parseFloat(transaction.amount).toFixed(2)
+                  )}{" "}
                   {helper.getCurrency(
                     getAccountCurrency(transaction.from_account)
                   )}
@@ -173,7 +185,10 @@ const TransactionPopup = ({
               <div>
                 <label>Amount: </label>
                 <span>
-                  {parseFloat(transaction.amount).toFixed(2)}{" "}
+                  {helper.showOrMask(
+                    global.privacyMode,
+                    parseFloat(transaction.amount).toFixed(2)
+                  )}{" "}
                   {helper.getCurrency(getAccountCurrency(transaction.account))}
                 </span>
               </div>

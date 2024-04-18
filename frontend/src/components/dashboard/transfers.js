@@ -448,6 +448,7 @@ const TransferItem = ({
   const showConfirm = useConfirm();
   const showToast = useToast();
   const kebabMenu = useRef(null);
+  const global = useGlobalContext();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -524,7 +525,11 @@ const TransferItem = ({
       <label id="from_account">{getAccountName(transfer.from_account)}</label>
       <label id="to_account">{getAccountName(transfer.to_account)}</label>
       <label id="amount">
-        {parseFloat(transfer.amount).toFixed(2)} {currency}
+        {helper.showOrMask(
+          global.privacyMode,
+          parseFloat(transfer.amount).toFixed(2)
+        )}{" "}
+        {currency}
       </label>
       <button className={"kebab-button"} onClick={toggleKebab}>
         <img src={`${process.env.PUBLIC_URL}/kebab_icon.png`} />
