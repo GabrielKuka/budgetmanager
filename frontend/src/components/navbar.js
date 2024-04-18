@@ -19,6 +19,7 @@ export default Navbar;
 
 const LoggedInNavbar = () => {
   const global = useGlobalContext();
+  console.log(global.privacyMode);
   const navigate = useNavigate();
 
   const [accounts, setAccounts] = useState(global.accounts);
@@ -212,6 +213,20 @@ const LoggedInNavbar = () => {
       <button id="stats" onClick={(e) => handlePage(e)}>
         Stats
       </button>
+      <button id="privacy" onClick={() => global.togglePrivacyMode()}>
+        Privacy
+      </button>
+      <input
+        id={"privacy_btn"}
+        title="Toggle Privacy Mode"
+        type="image"
+        src={
+          process.env.PUBLIC_URL +
+          (global.privacyMode ? "/locker_closed.png" : "/locker_open.png")
+        }
+        alt="privacy_mode_icon"
+        onClick={() => global.togglePrivacyMode()}
+      />
       <input
         id={"converter"}
         title="Convert Currencies"

@@ -92,7 +92,7 @@
       }
 
     }
-    #logout-button, #converter {
+    #logout-button, #converter, #privacy_btn {
       width: 25px;
       height: 25px;
       border-radius: 3px;
@@ -106,7 +106,7 @@
       }
     }
 
-    #converter {
+    #converter, #privacy_btn {
       &:hover {
         background-color: rgb(70, 130, 180, 0.5);
       }

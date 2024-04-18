@@ -18,6 +18,8 @@ const GlobalProvider = ({ children }) => {
   const [incomeCategories, setIncomeCategories] = useState(null);
   const [expenseCategories, setExpenseCategories] = useState(null);
 
+  const [privacyMode, setPrivacyMode] = useState(false);
+
   useEffect(() => {
     updateAccounts();
     updateExpenses();
@@ -26,7 +28,18 @@ const GlobalProvider = ({ children }) => {
 
     updateExpenseCategories();
     updateIncomeCategories();
+
+    const storedPrivacyMode = localStorage.getItem("privacyMode");
+    if (storedPrivacyMode) {
+      setPrivacyMode(JSON.parse(storedPrivacyMode));
+    }
   }, []);
+
+  const togglePrivacyMode = () => {
+    const newPrivacyMode = !privacyMode;
+    setPrivacyMode(newPrivacyMode);
+    localStorage.setItem("privacyMode", JSON.stringify(newPrivacyMode));
+  };
 
   const updateAccounts = async () => {
     const response = await accountService.getAllUserAccounts();
@@ -172,6 +185,9 @@ const GlobalProvider = ({ children }) => {
 
     updateExpenseCategories,
     updateIncomeCategories,
+
+    privacyMode,
+    togglePrivacyMode,
   };
 
   return (
