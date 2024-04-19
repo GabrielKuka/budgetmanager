@@ -204,6 +204,7 @@ const LoggedInNavbar = () => {
                   suggestion={s}
                   getAccountCurrency={getAccountCurrency}
                   setTransactionPopup={setTransactionPopup}
+                  global={global}
                 />
               ))}
           </div>
@@ -268,6 +269,7 @@ const SuggestionItem = ({
   suggestion,
   getAccountCurrency,
   setTransactionPopup,
+  global,
 }) => {
   const account =
     "account" in suggestion ? suggestion.account : suggestion.from_account;
@@ -304,7 +306,11 @@ const SuggestionItem = ({
       <div className={"amount"}>
         <b>Amount: </b>
         <span>
-          {parseFloat(suggestion.amount).toFixed(2)} {currency}
+          {helper.showOrMask(
+            global.privacyMode,
+            parseFloat(suggestion.amount).toFixed(2)
+          )}{" "}
+          {currency}
         </span>
       </div>
       {suggestion.tags?.length > 0 && (

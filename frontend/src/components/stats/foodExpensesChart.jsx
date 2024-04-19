@@ -9,8 +9,11 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
+import { helper } from "../helper";
+import { useGlobalContext } from "../../context/GlobalContext";
 
 const FoodExpensesChart = (props) => {
+  const global = useGlobalContext();
   const [data, setData] = useState(null);
 
   useEffect(() => {
@@ -121,8 +124,9 @@ const CustomLenged = () => {
 };
 
 const CustomTooltip = ({ active, payload }) => {
+  const global = useGlobalContext();
   if (active && payload && payload.length) {
-    const data = payload[0].payload;
+    const data = payload[0]?.payload;
     return (
       <div
         style={{
@@ -134,9 +138,23 @@ const CustomTooltip = ({ active, payload }) => {
           height: "fit-content",
         }}
       >
-        Income: <b>{`${parseFloat(data.income).toFixed(2)}`} €</b>
+        Income:{" "}
+        <b>
+          {`${helper.showOrMask(
+            global.privacyMode,
+            parseFloat(data.income).toFixed(2)
+          )}`}{" "}
+          €
+        </b>
         <br />
-        Food: <b>{`${parseFloat(data.food).toFixed(2)}`} € </b>
+        Food:{" "}
+        <b>
+          {`${helper.showOrMask(
+            global.privacyMode,
+            parseFloat(data.food).toFixed(2)
+          )}`}{" "}
+          €{" "}
+        </b>
         <br />
         Ratio: <b>{`${parseFloat(data.ratio).toFixed(2)}`} %</b>
       </div>

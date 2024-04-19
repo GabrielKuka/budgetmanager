@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import transactionService from "../../services/transactionService/transactionService";
 import NetworthPieChart from "./networthPieChart";
 
 import "./stats.scss";
@@ -9,7 +8,7 @@ import IncomeVsExpenseChart from "./incomeVsExpenseChart";
 import FoodExpensesChart from "./foodExpensesChart";
 import { useGlobalContext } from "../../context/GlobalContext";
 
-const Stats = (props) => {
+const Stats = () => {
   const global = useGlobalContext();
   const [accounts, setAccounts] = useState(global.accounts);
   const [expenses, setExpenses] = useState(global.expenses);

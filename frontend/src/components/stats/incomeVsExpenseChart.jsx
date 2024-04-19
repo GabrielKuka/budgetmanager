@@ -9,6 +9,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useGlobalContext } from "../../context/GlobalContext";
+import { helper } from "../helper";
 
 const IncomeVsExpenseChart = (props) => {
   const [data, setData] = useState(null);
@@ -139,6 +141,7 @@ const IncomeVsExpenseChart = (props) => {
 };
 
 const AreaChartChartToolTip = ({ active, payload }) => {
+  const global = useGlobalContext();
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -154,11 +157,20 @@ const AreaChartChartToolTip = ({ active, payload }) => {
       >
         {`${data.date}`}
         <br />
-        Earned: <b>{`${data.income}`} €</b>
+        Earned:{" "}
+        <b>{`${helper.showOrMask(global.privacyMode, data.income)}`} €</b>
         <br />
-        Spent: <b>{`${data.expense}`} €</b>
+        Spent:{" "}
+        <b>{`${helper.showOrMask(global.privacyMode, data.expense)}`} €</b>
         <br />
-        Saved: <b>{parseFloat(data.income - data.expense).toFixed(2)} €</b>
+        Saved:{" "}
+        <b>
+          {helper.showOrMask(
+            global.privacyMode,
+            parseFloat(data.income - data.expense).toFixed(2)
+          )}{" "}
+          €
+        </b>
       </div>
     );
   }

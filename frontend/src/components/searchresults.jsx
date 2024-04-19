@@ -59,6 +59,7 @@ const SearchResults = (props) => {
                 transaction={t}
                 setTransactionPopup={setTransactionPopup}
                 getAccountCurrency={getAccountCurrency}
+                global={global}
               />
             ))}
           </div>
@@ -76,6 +77,7 @@ const SearchResults = (props) => {
                 transaction={t}
                 setTransactionPopup={setTransactionPopup}
                 getAccountCurrency={getAccountCurrency}
+                global={global}
               />
             ))}
           </div>
@@ -93,6 +95,7 @@ const SearchResults = (props) => {
                 transaction={t}
                 setTransactionPopup={setTransactionPopup}
                 getAccountCurrency={getAccountCurrency}
+                global={global}
               />
             ))}
           </div>
@@ -116,6 +119,7 @@ const TransactionItem = ({
   transaction,
   getAccountCurrency,
   setTransactionPopup,
+  global,
 }) => {
   const account =
     "account" in transaction ? transaction.account : transaction.from_account;
@@ -139,7 +143,11 @@ const TransactionItem = ({
       <div className={"amount"}>
         <b>Amount: </b>
         <span>
-          {parseFloat(transaction.amount).toFixed(2)} {currency}
+          {helper.showOrMask(
+            global.privacyMode,
+            parseFloat(transaction.amount).toFixed(2)
+          )}{" "}
+          {currency}
         </span>
       </div>
       {transaction.tags?.length > 0 && (
