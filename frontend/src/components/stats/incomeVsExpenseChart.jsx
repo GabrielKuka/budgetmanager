@@ -121,7 +121,6 @@ const IncomeVsExpenseChart = (props) => {
       <XAxis dataKey="date" />
       <YAxis />
       <Tooltip content={<AreaChartChartToolTip />} />
-      <Legend />
       <Area
         type="monotone"
         dataKey="income"
@@ -136,6 +135,7 @@ const IncomeVsExpenseChart = (props) => {
         fillOpacity={1}
         fill="url(#colorExpense)"
       />
+      <Legend content={<CustomLenged />} />
     </AreaChart>
   );
 };
@@ -176,6 +176,25 @@ const AreaChartChartToolTip = ({ active, payload }) => {
   }
 
   return null;
+};
+
+const CustomLenged = () => {
+  return (
+    <div
+      style={{
+        fontSize: "13px",
+        margin: "10px 0px 10px 40px",
+        backgroundColor: "#D3D3D3",
+        color: "black",
+        padding: "7px",
+        width: "90%",
+        borderRadius: "3px",
+        cursor: "pointer",
+      }}
+    >
+      Shows monthly incomes vs expenses for the last 12 months.
+    </div>
+  );
 };
 
 export default IncomeVsExpenseChart;
