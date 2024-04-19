@@ -5,6 +5,7 @@ import "./navbar.scss";
 import ConversionTool from "./core/conversiontool";
 import { helper } from "./helper";
 import TransactionPopup from "./core/transaction_popup";
+import { useToast } from "../context/ToastContext";
 
 const Navbar = () => {
   const global = useGlobalContext();
@@ -19,7 +20,7 @@ export default Navbar;
 
 const LoggedInNavbar = () => {
   const global = useGlobalContext();
-  console.log(global.privacyMode);
+  const showToast = useToast();
   const navigate = useNavigate();
 
   const [accounts, setAccounts] = useState(global.accounts);
@@ -40,6 +41,13 @@ const LoggedInNavbar = () => {
       activeButton.style.fontWeight = "bold";
     }
   }, []);
+
+  useEffect(() => {
+    showToast(
+      "Privacy mode is now " + (global?.privacyMode ? "enabled." : "disabled."),
+      "info"
+    );
+  }, [global.privacyMode]);
 
   useEffect(() => {
     if (searchValue && searchResults?.length > 0) {
@@ -222,7 +230,7 @@ const LoggedInNavbar = () => {
           (global.privacyMode ? "/locker_closed.png" : "/locker_open.png")
         }
         alt="privacy_mode_icon"
-        onClick={() => global.togglePrivacyMode()}
+        onClick={global.togglePrivacyMode}
       />
       <input
         id={"converter"}
