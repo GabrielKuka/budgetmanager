@@ -42,12 +42,7 @@ const LoggedInNavbar = () => {
     }
   }, []);
 
-  useEffect(() => {
-    showToast(
-      "Privacy mode is now " + (global?.privacyMode ? "enabled." : "disabled."),
-      "info"
-    );
-  }, [global.privacyMode]);
+  useEffect(() => {}, [global.privacyMode]);
 
   useEffect(() => {
     if (searchValue && searchResults?.length > 0) {
