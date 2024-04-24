@@ -12,18 +12,12 @@ import { useGlobalContext } from "../../context/GlobalContext";
 
 const Transfers = ({ dateRange }) => {
   const global = useGlobalContext();
-  const [transfers, setTransfers] = useState(global.transfers);
   const [accounts, setAccounts] = useState(global.accounts);
-
   const [transactionPopup, setTransactionPopup] = useState(false);
 
   useEffect(() => {
     setAccounts(global.accounts);
   }, [global.accounts]);
-
-  useEffect(() => {
-    setTransfers(global.transfers);
-  }, [global.transfers]);
 
   function getAccountCurrency(id) {
     const account = accounts.filter((a) => a.id === id);
@@ -42,7 +36,7 @@ const Transfers = ({ dateRange }) => {
         refreshAccounts={global.updateAccounts}
         getAccountCurrency={getAccountCurrency}
       />
-      {!transfers?.length ? (
+      {!global.transfers?.length ? (
         <NoDataCard
           header={"No transfers found."}
           label={"Add a transfer"}
@@ -50,7 +44,7 @@ const Transfers = ({ dateRange }) => {
         />
       ) : (
         <TransfersList
-          transfers={transfers}
+          transfers={global.transfers}
           accounts={accounts}
           getAccountCurrency={getAccountCurrency}
           refreshTransfers={global.updateTransfers}

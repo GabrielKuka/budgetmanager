@@ -162,7 +162,7 @@ const TemplateGroups = (props) => {
     });
 
     showToast("Transactions Added", "success");
-    global.updateTransactions();
+    await global.updateTransactions();
   }
 
   return (

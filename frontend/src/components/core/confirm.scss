@@ -73,7 +73,6 @@ div[class$="show"] {
   }
 
   .action-buttons {
-    //border: 1px solid red;
     @include flex(row, flex-start, center);
     gap: 20px;
 

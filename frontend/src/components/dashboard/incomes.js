@@ -17,13 +17,8 @@ const Incomes = ({ dateRange }) => {
   const [categories, setCategories] = useState(global.incomeCategories);
   const [accounts, setAccounts] = useState(global.accounts);
 
-  const [incomes, setIncomes] = useState(global.incomes);
-  const [shownIncomes = incomes, setShownIncomes] = useState();
+  const [shownIncomes = global.incomes, setShownIncomes] = useState();
   const [transactionPopup, setTransactionPopup] = useState(false);
-
-  useEffect(() => {
-    setIncomes(global.incomes);
-  }, [global.incomes]);
 
   useEffect(() => {
     setAccounts(global.accounts);
@@ -53,7 +48,7 @@ const Incomes = ({ dateRange }) => {
         dateRange={dateRange}
         getAccountCurrency={getAccountCurrency}
       />
-      {!incomes?.length ? (
+      {!global.incomes?.length ? (
         <NoDataCard
           header={"No incomes found."}
           label={"Add an income."}
@@ -61,7 +56,7 @@ const Incomes = ({ dateRange }) => {
         />
       ) : (
         <IncomesList
-          incomes={incomes}
+          incomes={global.incomes}
           shownIncomes={shownIncomes}
           setShownIncomes={setShownIncomes}
           categories={categories}

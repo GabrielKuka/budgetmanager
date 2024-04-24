@@ -14,25 +14,14 @@ import { useGlobalContext } from "../../context/GlobalContext";
 
 const Expenses = ({ dateRange }) => {
   const global = useGlobalContext();
-  const [isLoading, setIsLoading] = useState(true);
-  const [categories, setCategories] = useState(global.expenseCategories);
   const [accounts, setAccounts] = useState(global.accounts);
 
-  const [expenses, setExpenses] = useState(global.expenses);
   const [shownExpenses, setShownExpenses] = useState([]);
   const [transactionPopup, setTransactionPopup] = useState(false);
 
   useEffect(() => {
     setAccounts(global.accounts);
   }, [global.accounts]);
-
-  useEffect(() => {
-    setExpenses(global.expenses);
-  }, [global.expenses]);
-
-  useEffect(() => {
-    setCategories(global.expenseCategories);
-  }, [global.expenseCategories]);
 
   function getAccountCurrency(id) {
     const account = accounts?.filter((a) => a.id === id);
@@ -48,14 +37,13 @@ const Expenses = ({ dateRange }) => {
       <Sidebar
         accounts={accounts}
         refreshAccounts={global.updateAccounts}
-        categories={categories}
-        expenses={expenses}
+        categories={global.expenseCategories}
         shownExpenses={shownExpenses}
         refreshExpenses={global.updateExpenses}
         dateRange={dateRange}
         getAccountCurrency={getAccountCurrency}
       />
-      {expenses == null || expenses == "undefined" || expenses?.length == 0 ? (
+      {!global.expenses?.length ? (
         <NoDataCard
           header={"No expenses found."}
           label={"Add an expense"}
@@ -63,11 +51,11 @@ const Expenses = ({ dateRange }) => {
         />
       ) : (
         <ExpensesList
-          expenses={expenses}
+          expenses={global.expenses}
           shownExpenses={shownExpenses}
           setShownExpenses={setShownExpenses}
           accounts={accounts}
-          categories={categories}
+          categories={global.expenseCategories}
           dateRange={dateRange}
           getAccountCurrency={getAccountCurrency}
           refreshExpenses={global.updateExpenses}

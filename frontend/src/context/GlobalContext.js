@@ -41,35 +41,32 @@ const GlobalProvider = ({ children }) => {
     localStorage.setItem("privacyMode", JSON.stringify(newPrivacyMode));
   };
 
-  const updateAccounts = async () => {
+  async function updateAccounts() {
     const response = await accountService.getAllUserAccounts();
     setAccounts(response);
-  };
+  }
 
-  const updateExpenses = async () => {
+  async function updateExpenses() {
     const response = await transactionService.getAllUserExpenses();
     setExpenses(response);
-  };
+  }
 
-  const updateIncomes = async () => {
+  async function updateIncomes() {
     const response = await transactionService.getAllUserIncomes();
     setIncomes(response);
-  };
+  }
 
-  const updateTransfers = async () => {
+  async function updateTransfers() {
     const response = await transactionService.getAllUserTransfers();
     setTransfers(response);
-  };
+  }
 
-  const updateTransactions = async () => {
-    let response = null;
-    response = await transactionService.getAllUserExpenses();
-    setExpenses(response);
-    response = await transactionService.getAllUserIncomes();
-    setIncomes(response);
-    response = await transactionService.getAllUserTransfers();
-    setTransfers(response);
-  };
+  async function updateTransactions() {
+    await updateIncomes();
+    await updateExpenses();
+    await updateTransfers();
+    await updateAccounts();
+  }
 
   const resetTransactions = () => {
     setIncomes([]);
