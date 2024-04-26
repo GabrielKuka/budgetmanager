@@ -150,13 +150,16 @@
       border: none;
       text-decoration: none;
       border-bottom: 2px solid cadetblue;
-      transition: border-bottom 0.2s ease-in;
+      transition: border-bottom 0.2s ease-in, transform 0.2s ease;
       font-size: 14px;
       text-transform: uppercase;
     }
 
     button:hover{
       border-bottom: 2px solid white;
+    }
+    button:active {
+      transform: scale(1.04)
     }
     .currency-converter-form {
       margin-left: 50px;
