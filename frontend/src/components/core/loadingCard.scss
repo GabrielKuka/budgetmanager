@@ -1,0 +1,16 @@
+.loading-card {
+  left: 450px;
+  position: absolute;
+  border: 1px solid #dadada;
+  box-shadow: 1px 1px 2px #dadada;
+  border-radius: 3px;
+  padding-bottom: 20px;
+  width: 500px;
+  padding: 20px 30px;
+
+  label {
+    text-decoration: underline;
+    color: cadetblue;
+    cursor: pointer;
+  }
+}

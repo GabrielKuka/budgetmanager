@@ -9,6 +9,7 @@ import { helper } from "../helper";
 import TransactionPopup from "../core/transaction_popup";
 import currencyService from "../../services/currencyService";
 import { useGlobalContext } from "../../context/GlobalContext";
+import LoadingCard from "../core/LoadingCard";
 
 const Transfers = ({ dateRange }) => {
   const global = useGlobalContext();
@@ -36,7 +37,9 @@ const Transfers = ({ dateRange }) => {
         refreshAccounts={global.updateAccounts}
         getAccountCurrency={getAccountCurrency}
       />
-      {!global.transfers?.length ? (
+      {!global.transfers ? (
+        <LoadingCard header="Loading Transfers..." />
+      ) : global.transfers && !global.transfers?.length ? (
         <NoDataCard
           header={"No transfers found."}
           label={"Add a transfer"}

@@ -11,6 +11,7 @@ import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
 import CurrentExpensesBarChart from "../stats/currentExpensesBarChart";
 import { useGlobalContext } from "../../context/GlobalContext";
+import LoadingCard from "../core/LoadingCard";
 
 const Expenses = ({ dateRange }) => {
   const global = useGlobalContext();
@@ -43,7 +44,9 @@ const Expenses = ({ dateRange }) => {
         dateRange={dateRange}
         getAccountCurrency={getAccountCurrency}
       />
-      {!global.expenses?.length ? (
+      {!global.expenses ? (
+        <LoadingCard header="Loading Expenses..." />
+      ) : global.expenses && !global.expenses?.length ? (
         <NoDataCard
           header={"No expenses found."}
           label={"Add an expense"}

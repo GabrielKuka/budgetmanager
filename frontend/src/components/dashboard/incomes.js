@@ -11,6 +11,7 @@ import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
 import { useGlobalContext } from "../../context/GlobalContext";
+import LoadingCard from "../core/LoadingCard";
 
 const Incomes = ({ dateRange }) => {
   const global = useGlobalContext();
@@ -48,7 +49,9 @@ const Incomes = ({ dateRange }) => {
         dateRange={dateRange}
         getAccountCurrency={getAccountCurrency}
       />
-      {!global.incomes?.length ? (
+      {!global.incomes ? (
+        <LoadingCard header="Loading Incomes..." />
+      ) : global.incomes && !global.incomes?.length ? (
         <NoDataCard
           header={"No incomes found."}
           label={"Add an income."}
