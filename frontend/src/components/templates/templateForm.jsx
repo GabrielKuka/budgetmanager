@@ -4,7 +4,6 @@ import { Formik, Form, Field } from "formik";
 import transactionService from "../../services/transactionService/transactionService";
 import { useToast } from "../../context/ToastContext";
 import { helper } from "../helper";
-import currencyService from "../../services/currencyService";
 
 const TemplateForm = (props) => {
   const showToast = useToast();
@@ -209,7 +208,9 @@ const TemplateForm = (props) => {
             name="description"
             placeholder="Enter description"
           />
-          <button type="submit">Submit</button>
+          <button type="submit" id="submit-button">
+            Submit
+          </button>
         </Form>
       )}
     </Formik>

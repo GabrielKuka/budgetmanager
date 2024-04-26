@@ -8,7 +8,6 @@
 
   &__sidebar {
     padding: 20px;
-    //width: 350px;
     border: 1px solid #dadada;
     box-shadow: 1px 1px 2px #dadada;
     border-radius: 1px;
@@ -103,6 +102,21 @@
                 }
               }
             }
+          }
+        }
+
+        #submit-button {
+          border: 1px solid cadetblue;
+          border-radius: 3px;
+          background-color: white;
+          padding: 5px;
+          color: cadetblue;
+          font-weight: bold;
+          transition: background-color 0.3s, color 0.3s;
+
+          &:hover {
+            background-color: cadetblue;
+            color: white;
           }
         }
       }

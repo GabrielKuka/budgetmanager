@@ -232,7 +232,9 @@ const CreateAccount = ({ refreshAccounts }) => {
                   </option>
                 ))}
             </Field>
-            <button type="submit">Add Account</button>
+            <button type="submit" id="submit-button">
+              Add Account
+            </button>
           </Form>
         )}
       </Formik>

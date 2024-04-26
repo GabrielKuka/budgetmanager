@@ -42,13 +42,29 @@
         label {
           font-weight: bold;
         }
+
+        #submit-button {
+          border: 1px solid cadetblue;
+          border-radius: 3px;
+          background-color: white;
+          padding: 5px;
+          color: cadetblue;
+          font-weight: bold;
+          transition: background-color 0.3s, color 0.3s;
+
+          &:hover {
+            background-color: cadetblue;
+            color: white;
+          }
+        }
       }
-    }
-    .add-account:hover {
-      border-color: cadetblue;
-      box-shadow: 1px 1px 5px cadetblue;
-      label {
-        padding-left: 15px;
+
+      &:hover {
+        border-color: cadetblue;
+        box-shadow: 1px 1px 5px cadetblue;
+        label {
+          padding-left: 15px;
+        }
       }
     }
     .accounts-info {
@@ -90,12 +106,13 @@
         width: fit-content;
         font-weight: bold;
       }
-    }
-    .accounts-info:hover {
-      border-color: cadetblue;
-      box-shadow: 1px 1px 5px cadetblue;
-      .card-label {
-        padding-left: 15px;
+
+      &:hover {
+        border-color: cadetblue;
+        box-shadow: 1px 1px 5px cadetblue;
+        .card-label {
+          padding-left: 15px;
+        }
       }
     }
   }
