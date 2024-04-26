@@ -95,6 +95,7 @@ const AddTransfer = ({
 }) => {
   const showToast = useToast();
   const [tags, setTags] = useState([]);
+  const [addingTransfer, setAddingTransfer] = useState(false);
 
   function addTag(e) {
     e.preventDefault();
@@ -117,6 +118,7 @@ const AddTransfer = ({
           date: new Date().toISOString().slice(0, 10),
         }}
         onSubmit={async (values, { resetForm, setSubmitting }) => {
+          setAddingTransfer(true);
           // if from and to accounts have different currencies, convert
           const from_currency = getAccountCurrency(
             parseInt(values["from_account"])
@@ -145,6 +147,7 @@ const AddTransfer = ({
           resetForm();
           setTags([]);
           setSubmitting(false);
+          setAddingTransfer(false);
         }}
       >
         {() => (
@@ -218,9 +221,19 @@ const AddTransfer = ({
               name="description"
               placeholder="Enter a description"
             />
-            <button type="submit" id={"submit-button"}>
-              Add Transfer
-            </button>
+            <div id="submit_wrapper">
+              <button type="submit" id={"submit-button"}>
+                Add Transfer
+              </button>
+              {addingTransfer && (
+                <img
+                  src={process.env.PUBLIC_URL + "/loading_icon.gif"}
+                  alt="loading icon"
+                  width="27"
+                  height="27"
+                />
+              )}
+            </div>
           </Form>
         )}
       </Formik>

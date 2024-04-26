@@ -114,21 +114,28 @@
             }
           }
         }
-      
-        #submit-button {
-          border: 1px solid cadetblue;
-          border-radius: 3px;
-          background-color: white;
-          padding: 5px;
-          color: cadetblue;
-          font-weight: bold;
-          transition: background-color 0.3s, color 0.3s;
 
-          &:hover {
-            background-color: cadetblue;
-            color: white;
+        #submit_wrapper {
+          @include flex(row, flex-end, center);
+          gap: 10px;
+
+          #submit-button {
+            border: 1px solid cadetblue;
+            border-radius: 3px;
+            background-color: white;
+            padding: 5px;
+            color: cadetblue;
+            font-weight: bold;
+            transition: background-color 0.3s, color 0.3s;
+
+            &:hover {
+              background-color: cadetblue;
+              color: white;
+            }
           }
+
         }
+      
       }
 
     }

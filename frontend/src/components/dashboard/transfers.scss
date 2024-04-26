@@ -114,6 +114,10 @@
             }
           }
         }
+        #submit_wrapper {
+        @include flex(row, flex-end, center);
+        gap: 10px;
+
         #submit-button {
           border: 1px solid cadetblue;
           border-radius: 3px;
@@ -127,6 +131,8 @@
             background-color: cadetblue;
             color: white;
           }
+        }
+
         }
       }
     }

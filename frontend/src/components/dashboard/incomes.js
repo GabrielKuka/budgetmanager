@@ -197,6 +197,7 @@ const AddIncome = ({
 }) => {
   const showToast = useToast();
   const [tags, setTags] = useState([]);
+  const [addingIncome, setAddingIncome] = useState(false);
 
   function addTag(e) {
     e.preventDefault();
@@ -219,6 +220,7 @@ const AddIncome = ({
           date: new Date().toISOString().slice(0, 10),
         }}
         onSubmit={async (values, { resetForm, setSubmitting }) => {
+          setAddingIncome(true);
           values["type"] = 0;
           values["tags"] = tags.map((tag) => ({
             name: tag,
@@ -230,6 +232,7 @@ const AddIncome = ({
           setSubmitting(false);
           setTags([]);
           resetForm();
+          setAddingIncome(false);
         }}
       >
         {() => (
@@ -302,9 +305,19 @@ const AddIncome = ({
                 </option>
               ))}
             </Field>
-            <button type="submit" id="submit-button">
-              Add Income
-            </button>
+            <div id={"submit_wrapper"}>
+              <button type="submit" id="submit-button">
+                Add Income
+              </button>
+              {addingIncome && (
+                <img
+                  src={process.env.PUBLIC_URL + "/loading_icon.gif"}
+                  alt="loading icon"
+                  width="27"
+                  height="27"
+                />
+              )}
+            </div>
           </Form>
         )}
       </Formik>

@@ -139,6 +139,7 @@ const AddExpense = ({
 }) => {
   const showToast = useToast();
   const [tags, setTags] = useState([]);
+  const [addingExpense, setAddingExpense] = useState(false);
 
   function addTag(e) {
     e.preventDefault();
@@ -161,6 +162,7 @@ const AddExpense = ({
           expense_category: "",
         }}
         onSubmit={async (values, { setSubmitting, resetForm }) => {
+          setAddingExpense(true);
           values["type"] = 1;
           values["tags"] = tags?.map((tag) => ({
             name: tag,
@@ -168,10 +170,11 @@ const AddExpense = ({
           await transactionService.addExpense(values);
           await refreshExpenses();
           await refreshAccounts();
-          showToast("Expense Added", "info");
           setSubmitting(false);
           setTags([]);
           resetForm();
+          showToast("Expense Added", "info");
+          setAddingExpense(false);
         }}
       >
         {() => (
@@ -244,9 +247,19 @@ const AddExpense = ({
                 </option>
               ))}
             </Field>
-            <button type="submit" id={"submit-button"}>
-              Add Expense
-            </button>
+            <div id="submit_wrapper">
+              <button type="submit" id={"submit-button"}>
+                Add Expense
+              </button>
+              {addingExpense && (
+                <img
+                  src={process.env.PUBLIC_URL + "/loading_icon.gif"}
+                  alt="loading icon"
+                  width="27"
+                  height="27"
+                />
+              )}
+            </div>
           </Form>
         )}
       </Formik>
