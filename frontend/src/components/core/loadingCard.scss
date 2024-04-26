@@ -1,3 +1,5 @@
+@import '../../mixins';
+
 .loading-card {
   left: 450px;
   position: absolute;
@@ -8,9 +10,6 @@
   width: 500px;
   padding: 20px 30px;
 
-  label {
-    text-decoration: underline;
-    color: cadetblue;
-    cursor: pointer;
-  }
+  @include flex(row, flex-start, center);
+  gap: 10px;
 }

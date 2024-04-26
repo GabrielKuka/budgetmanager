@@ -5,11 +5,13 @@ const LoadingCard = (props) => {
   return (
     <div className={"loading-card"}>
       <h1>{props.header}</h1>
-      {props.label && (
-        <label onClick={() => document.getElementById(props.focusOn).focus()}>
-          {props.label}
-        </label>
-      )}
+
+      <img
+        src={process.env.PUBLIC_URL + "/loading_icon.gif"}
+        alt="loading icon"
+        width="40"
+        height="40"
+      />
     </div>
   );
 };
