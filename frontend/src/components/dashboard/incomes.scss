@@ -1,12 +1,14 @@
 @import "../../mixins";
 
 .incomes-wrapper {
-  position: relative;
-  margin-top: 40px;
-  height: 86%;
+  height: 88%;
+  width: 90%;
+  margin-left: 80px;
+  @include flex(row, flex-start, flex-start);
+  gap: 30px;
+  padding-top:20px;
 
   &__sidebar {
-    position: fixed;
     width: 350px;
     border: 1px solid #dadada;
     box-shadow: 1px 1px 2px #dadada;
@@ -14,7 +16,7 @@
     padding: 20px 20px 20px 20px;
     @include flex(column, flex-start, center);
     gap: 15px;
-    max-height: 80%;
+    height: 94%;
     overflow-y: auto;
 
     /* hide scrollbar */
@@ -169,7 +171,6 @@
   }
 
   &__incomes-list {
-    position: absolute;
     border: 1px solid #dadada;
     box-shadow: 1px 1px 2px #dadada;
     border-radius: 3px;

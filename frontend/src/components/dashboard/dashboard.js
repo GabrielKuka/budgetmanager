@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useGlobalContext } from "../../context/GlobalContext";
 import { Navigate } from "react-router-dom";
 import "./dashboard.scss";
@@ -35,7 +35,7 @@ const Dashboard = () => {
 
   return (
     <div className={"dashboard-wrapper"}>
-      <Toolbar
+      <Sidebar
         setPage={setPage}
         page={page}
         dateRange={dateRange}
@@ -48,50 +48,66 @@ const Dashboard = () => {
   );
 };
 
-const Toolbar = ({ page, setPage, dateRange, setDateRange }) => {
+const Sidebar = ({ page, setPage, dateRange, setDateRange }) => {
   const buttons = ["incomes", "expenses", "transfers"];
 
   useEffect(() => {
     if (page) {
       const activeButtonStyle = document.getElementById(page).style;
-      activeButtonStyle.fontWeight = "bold";
-      activeButtonStyle.color = "white";
-      activeButtonStyle.backgroundColor = "cadetblue";
-      activeButtonStyle.borderRadius = "5px";
+      activeButtonStyle.borderRight = "2px solid cadetblue";
     }
   }, []);
 
   function handlePage(e) {
-    const selected = e.target.innerText.toLowerCase();
+    //const selected = e.target.innerText.toLowerCase();
+    const selected = e.target.id;
     setPage(selected);
 
     buttons.forEach((button) => {
       const buttonStyle = document.getElementById(button).style;
       if (selected == button) {
-        buttonStyle.fontWeight = "bold";
-        buttonStyle.color = "white";
-        buttonStyle.backgroundColor = "cadetblue";
-        buttonStyle.borderRadius = "5px";
+        buttonStyle.borderRight = "2px solid cadetblue";
       } else {
-        buttonStyle.fontWeight = "normal";
-        buttonStyle.color = "cadetblue";
-        buttonStyle.backgroundColor = "white";
-        buttonStyle.borderRadius = "2px";
+        buttonStyle.borderRight = "0";
       }
     });
   }
+  return (
+    <div className={"dashboard-wrapper__sidebar"}>
+      <input
+        type="image"
+        id="incomes"
+        onClick={(e) => handlePage(e)}
+        src={process.env.PUBLIC_URL + "/income_icon.png"}
+        width={30}
+        height={30}
+      />
+      <input
+        type="image"
+        id="expenses"
+        onClick={(e) => handlePage(e)}
+        src={process.env.PUBLIC_URL + "/expense_icon.png"}
+        width={30}
+        height={30}
+      />
+      <input
+        type="image"
+        id="transfers"
+        onClick={(e) => handlePage(e)}
+        src={process.env.PUBLIC_URL + "/transfer_icon.png"}
+        width={30}
+        height={30}
+      />
+    </div>
+  );
+};
 
+const Toolbar = ({ page, setPage, dateRange, setDateRange }) => {
   return (
     <div className={"dashboard-wrapper__toolbar"}>
-      <button id="incomes" onClick={(e) => handlePage(e)}>
-        Incomes
-      </button>
-      <button id="expenses" onClick={(e) => handlePage(e)}>
-        Expenses
-      </button>
-      <button id="transfers" onClick={(e) => handlePage(e)}>
-        Transfers
-      </button>
+      <button id="incomes">Incomes</button>
+      <button id="expenses">Expenses</button>
+      <button id="transfers">Transfers</button>
       <div className={"date-filter"}>
         <div className={"fromDatePicker"}>
           <span className={"tooltip"}>From: </span>
