@@ -80,6 +80,7 @@ const Sidebar = ({ page, setPage, dateRange, setDateRange }) => {
         src={process.env.PUBLIC_URL + "/income_icon.png"}
         width={30}
         height={30}
+        title="Incomes"
       />
       <input
         type="image"
@@ -88,6 +89,7 @@ const Sidebar = ({ page, setPage, dateRange, setDateRange }) => {
         src={process.env.PUBLIC_URL + "/expense_icon.png"}
         width={30}
         height={30}
+        title="Expenses"
       />
       <input
         type="image"
@@ -96,55 +98,50 @@ const Sidebar = ({ page, setPage, dateRange, setDateRange }) => {
         src={process.env.PUBLIC_URL + "/transfer_icon.png"}
         width={30}
         height={30}
+        title="Transfers"
       />
-      <div className="datepicker-wrapper">
-        <span className={"tooltip"}>
-          From: {dateRange?.from.toDateString()}
-        </span>
-        <DatePicker
-          className="datepicker"
-          selected={dateRange.from}
-          onChange={(date) =>
-            setDateRange((prev) => ({
-              ...prev,
-              from: date,
-            }))
-          }
-          showMonthDropdown
-          dateFormat={"yyyy-MM-dd"}
-          customInput={
-            <img
-              src={process.env.PUBLIC_URL + "/from_icon.png"}
-              width={30}
-              height={30}
-            />
-          }
-          withPortal
-        />
-      </div>
-      <div className="datepicker-wrapper">
-        <span className={"tooltip"}>To: {dateRange?.to.toDateString()}</span>
-        <DatePicker
-          className="datepicker"
-          selected={dateRange.to}
-          onChange={(date) =>
-            setDateRange((prev) => ({
-              ...prev,
-              to: date,
-            }))
-          }
-          showMonthDropdown
-          dateFormat={"yyyy-MM-dd"}
-          customInput={
-            <img
-              src={process.env.PUBLIC_URL + "/to_icon.png"}
-              width={30}
-              height={30}
-            />
-          }
-          withPortal
-        />
-      </div>
+      <DatePicker
+        className="datepicker"
+        selected={dateRange.from}
+        onChange={(date) =>
+          setDateRange((prev) => ({
+            ...prev,
+            from: date,
+          }))
+        }
+        showMonthDropdown
+        title={`FROM: ${dateRange.from.toDateString()}`}
+        dateFormat={"yyyy-MM-dd"}
+        customInput={
+          <img
+            src={process.env.PUBLIC_URL + "/from_icon.png"}
+            width={30}
+            height={30}
+          />
+        }
+        withPortal
+      />
+      <DatePicker
+        className="datepicker"
+        selected={dateRange.to}
+        title={`TO: ${dateRange.to.toDateString()}`}
+        onChange={(date) =>
+          setDateRange((prev) => ({
+            ...prev,
+            to: date,
+          }))
+        }
+        showMonthDropdown
+        dateFormat={"yyyy-MM-dd"}
+        customInput={
+          <img
+            src={process.env.PUBLIC_URL + "/to_icon.png"}
+            width={30}
+            height={30}
+          />
+        }
+        withPortal
+      />
     </div>
   );
 };
