@@ -10,13 +10,13 @@
 
   &__sidebar {
     width: 350px;
-    border: 1px solid #dadada;
-    box-shadow: 1px 1px 2px #dadada;
-    border-radius: 3px;
-    padding: 20px 20px 20px 20px;
+    //border: 1px solid #dadada;
+    //box-shadow: 1px 1px 2px #dadada;
+    //border-radius: 3px;
+    padding: 0px 20px 20px 20px;
     @include flex(column, flex-start, center);
     gap: 15px;
-    height: 94%;
+    height: 98%;
     overflow-y: auto;
 
     /* hide scrollbar */

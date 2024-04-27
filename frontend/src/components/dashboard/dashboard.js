@@ -67,7 +67,7 @@ const Sidebar = ({ page, setPage, dateRange, setDateRange }) => {
       if (selected == button) {
         buttonStyle.borderRight = "2px solid cadetblue";
       } else {
-        buttonStyle.borderRight = "0";
+        buttonStyle.borderRight = "2px solid white";
       }
     });
   }
