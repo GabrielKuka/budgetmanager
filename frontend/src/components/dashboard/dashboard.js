@@ -59,7 +59,6 @@ const Sidebar = ({ page, setPage, dateRange, setDateRange }) => {
   }, []);
 
   function handlePage(e) {
-    //const selected = e.target.innerText.toLowerCase();
     const selected = e.target.id;
     setPage(selected);
 
@@ -98,6 +97,54 @@ const Sidebar = ({ page, setPage, dateRange, setDateRange }) => {
         width={30}
         height={30}
       />
+      <div className="datepicker-wrapper">
+        <span className={"tooltip"}>
+          From: {dateRange?.from.toDateString()}
+        </span>
+        <DatePicker
+          className="datepicker"
+          selected={dateRange.from}
+          onChange={(date) =>
+            setDateRange((prev) => ({
+              ...prev,
+              from: date,
+            }))
+          }
+          showMonthDropdown
+          dateFormat={"yyyy-MM-dd"}
+          customInput={
+            <img
+              src={process.env.PUBLIC_URL + "/from_icon.png"}
+              width={30}
+              height={30}
+            />
+          }
+          withPortal
+        />
+      </div>
+      <div className="datepicker-wrapper">
+        <span className={"tooltip"}>To: {dateRange?.to.toDateString()}</span>
+        <DatePicker
+          className="datepicker"
+          selected={dateRange.to}
+          onChange={(date) =>
+            setDateRange((prev) => ({
+              ...prev,
+              to: date,
+            }))
+          }
+          showMonthDropdown
+          dateFormat={"yyyy-MM-dd"}
+          customInput={
+            <img
+              src={process.env.PUBLIC_URL + "/to_icon.png"}
+              width={30}
+              height={30}
+            />
+          }
+          withPortal
+        />
+      </div>
     </div>
   );
 };
