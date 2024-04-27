@@ -10,9 +10,6 @@
 
   &__sidebar {
     width: 350px;
-    //border: 1px solid #dadada;
-    //box-shadow: 1px 1px 2px #dadada;
-    //border-radius: 3px;
     padding: 0px 20px 20px 20px;
     @include flex(column, flex-start, center);
     gap: 15px;
@@ -188,7 +185,6 @@
       width: 800px;
       padding: 20px;
       border-bottom: 1px solid cadetblue;
-      margin-bottom: 10px;
 
       label {
         cursor: pointer;
@@ -202,7 +198,6 @@
     }
     .incomes {
       @include flex(column, flex-start, center);
-      gap: 15px;
       width: 100%;
       overflow-x: hidden;
       overflow-y: scroll;
@@ -219,12 +214,10 @@
       .income-item {
         position: relative;
         cursor: pointer;
-        border: 1px solid #dadada;
-        box-shadow: 1px 1px 3px #dadada;
-        border-radius: 5px;
         width: 800px;
         padding: 20px;
-        transition: border-color 0.3s, padding 0.3s ease-in-out, font-size 0.3s;
+        border-bottom: 1px solid #eeebeb;
+        transition: border-bottom 0.3s, background-color 0.3s, padding 0.3s, font-size 0.3s;
 
         display: grid;
         grid-template-columns: 0.6fr 1.5fr 0.9fr 0.8fr 1.1fr;
@@ -246,12 +239,12 @@
             height: 13px;
             width: 3px;
           }
-        }
-        .kebab-button:hover {
-          border: 1px solid #dcdcdc;
-        }
-        .kebab-button:active {
-          background-color: #dcdcdc;
+          &:hover  {
+            border: 1px solid #dcdcdc;
+          }
+          &:active {
+            background-color: #dcdcdc;
+          }
         }
 
         .kebab-menu {
@@ -303,22 +296,24 @@
           right: 0;
           transition: padding 0.3s ease;
         }
-      }
-      .income-item:hover {
-        border-color: cadetblue;
-        #amount {
-          font-weight: bold;
+
+        &:hover {
+          background-color: #eeebeb;
+          #amount {
+            font-weight: bold;
+          }
+          .new-transaction {
+            padding: 2px 10px;
+          }
+          .kebab-button {
+            visibility: visible;
+          }
         }
-        .new-transaction {
-          padding: 2px 10px;
+
+        &:active {
+          padding: 22px 20px 22px 20px;
+          font-size: 16px;
         }
-        .kebab-button {
-          visibility: visible;
-        }
-      }
-      .income-item:active {
-        padding: 22px 20px 22px 20px;
-        font-size: 16px;
       }
     }
   }
