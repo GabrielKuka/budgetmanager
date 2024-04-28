@@ -7,10 +7,7 @@
   gap: 20px;
 
   &__sidebar {
-    padding: 20px;
-    border: 1px solid #dadada;
-    box-shadow: 1px 1px 2px #dadada;
-    border-radius: 1px;
+    padding: 0 20px 20px 20px;
     @include flex(column, flex-start, flex-start);
     gap: 20px;
 
