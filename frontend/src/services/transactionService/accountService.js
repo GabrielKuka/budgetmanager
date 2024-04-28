@@ -42,7 +42,6 @@ async function softDeleteAccount(payload) {
       Authorization: token,
     },
   };
-  console.log(`${ENDPOINT}/soft_delete/${payload}`);
   const response = await axios.put(
     `${ENDPOINT}/soft_delete/${payload}`,
     config
@@ -51,6 +50,21 @@ async function softDeleteAccount(payload) {
     return response.data;
   } else {
     alert("Error deleting account.");
+  }
+}
+
+async function restoreAccount(payload) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+  const response = await axios.put(`${ENDPOINT}/restore/${payload}`, config);
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    alert("Error restoring account.");
   }
 }
 
@@ -73,6 +87,7 @@ async function deleteAccount(payload) {
 const accountService = {
   softDeleteAccount,
   deleteAccount,
+  restoreAccount,
   getAllUserAccounts,
   addAccount,
 };

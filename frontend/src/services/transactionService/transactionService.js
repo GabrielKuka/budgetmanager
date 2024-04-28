@@ -44,6 +44,10 @@ async function softDeleteAccount(payload) {
   return await accountService.softDeleteAccount(payload);
 }
 
+async function restoreAccount(payload) {
+  return await accountService.restoreAccount(payload);
+}
+
 // Expenses
 async function getAllExpenseCategories() {
   return await expenseService.getAllExpenseCategories();
@@ -106,6 +110,7 @@ const transactionService = {
   addAccount,
   softDeleteAccount,
   deleteAccount,
+  restoreAccount,
   getAllUserIncomes,
   getTemplateGroups,
   addTemplateGroup,

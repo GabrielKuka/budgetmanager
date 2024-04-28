@@ -112,6 +112,40 @@
         }
       }
     }
+
+    #account-types-wrapper {
+      border: 1px solid #dadada;
+      box-shadow: 1px 1px 10px #dadada;
+      border-radius: 3px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+
+      width: 270px;
+      padding: 30px;
+
+      .card-label {
+        background-color: cadetblue;
+        color: white;
+        padding: 5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: padding-left 0.3s;
+        width: fit-content;
+        font-weight: bold;
+      }
+
+
+      @include flex(column, flex-start, flex-start);
+      gap: 10px;
+
+      &:hover {
+        border-color: cadetblue;
+        box-shadow: 1px 1px 5px cadetblue;
+        .card-label {
+          padding-left: 15px;
+        }
+      }
+    }
   }
 
   &__accounts-list {
@@ -185,19 +219,48 @@
         grid-template-columns: 0.7fr 1.5fr 1fr 1fr 0.7fr;
         grid-gap: 10px;
 
-        button {
+        #actions-wrapper {
           justify-self: end;
-          background-color: #ffcccb;
-          color: white;
-          width: fit-content;
-          height: 30px;
-          padding: 0 15px 0 15px;
-          font-weight: bold;
-          border: 1px solid #ffcccb;
-          border-radius: 5px;
-          transition: background-color 0.2s ease-in-out, border 0.2s,
-            transform 0.2s ease-in-out;
+          @include flex(row, flex-start, center);
+          gap: 10px;
+
+          #remove_button {
+            background-color: #ffcccb;
+            color: white;
+            width: fit-content;
+            height: 30px;
+            padding: 0 15px 0 15px;
+            font-weight: bold;
+            border: 1px solid #ffcccb;
+            border-radius: 5px;
+            transition: background-color 0.2s ease-in-out, border 0.2s,
+              transform 0.2s ease-in-out;
+
+            &:hover {
+              background-color: rgb(208, 65, 65);
+              border: 1px solid rgb(208, 65, 65);
+            }
+          }
+          #restore_button {
+            background-color: white;
+            color: cadetblue;
+            width: fit-content;
+            height: 30px;
+            padding: 0 15px 0 15px;
+            font-weight: bold;
+            border: 1px solid cadetblue;
+            border-radius: 5px;
+            font-size: 18px;
+            transition: background-color 0.2s ease-in-out, border 0.2s,
+              transform 0.2s ease-in-out;
+
+            &:hover {
+              background-color: cadetblue;
+              color: white;
+            }
+          }
         }
+
         label {
           cursor: pointer;
         }
@@ -217,11 +280,6 @@
         border-color: cadetblue;
         #amount {
           font-weight: bold;
-        }
-        button {
-          background-color: rgb(208, 65, 65);
-          border: 1px solid rgb(208, 65, 65);
-          transform: translateX(-20px);
         }
       }
       .account-item:active {

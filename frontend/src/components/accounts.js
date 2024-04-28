@@ -13,6 +13,7 @@ const Accounts = () => {
   const global = useGlobalContext();
 
   const [accounts, setAccounts] = useState(global.activeAccounts);
+  const [accountTypeSelected, setAccountTypeSelected] = useState("active");
 
   useEffect(() => {
     setAccounts(global.activeAccounts);
@@ -20,7 +21,12 @@ const Accounts = () => {
 
   return (
     <div className={"accounts-wrapper"}>
-      <Sidebar accounts={accounts} refreshAccounts={global.updateAccounts} />
+      <Sidebar
+        accounts={accounts}
+        refreshAccounts={global.updateAccounts}
+        accountTypeSelected={accountTypeSelected}
+        setAccountTypeSelected={setAccountTypeSelected}
+      />
       {!accounts?.length ? (
         <NoDataCard
           header={"No accounts found."}
@@ -31,21 +37,27 @@ const Accounts = () => {
         <AccountsList
           accounts={accounts}
           refreshAccounts={global.updateAccounts}
+          accountTypeSelected={accountTypeSelected}
         />
       )}
     </div>
   );
 };
 
-const Sidebar = ({ accounts, refreshAccounts }) => {
+const Sidebar = ({
+  accounts,
+  refreshAccounts,
+  accountTypeSelected,
+  setAccountTypeSelected,
+}) => {
   const global = useGlobalContext();
-  const [investments, setInvestments] = useState("");
-  const [bankAssets, setBankAssets] = useState("");
-  const [cash, setCash] = useState("");
-  const [networth, setNetworth] = useState("");
+  const [investments, setInvestments] = useState(0);
+  const [bankAssets, setBankAssets] = useState(0);
+  const [cash, setCash] = useState(0);
+  const [networth, setNetworth] = useState(0);
 
   useEffect(() => {
-    if (investments != "" && bankAssets != "" && cash != "") {
+    if (investments || cash || bankAssets) {
       const c = parseFloat(cash);
       const b = parseFloat(bankAssets);
       const i = parseFloat(investments);
@@ -99,15 +111,6 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
     convertCash();
     convertBankAssets();
   }, [accounts]);
-
-  function getAccountCurrency(id) {
-    const account = global.accounts.filter((a) => a.id === id);
-    if (account?.length === 1) {
-      return account[0].currency;
-    }
-
-    return "Not Found";
-  }
 
   return (
     <div className={"accounts-wrapper__sidebar"}>
@@ -180,6 +183,29 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
           </b>
         </label>
       </div>
+      <div id="account-types-wrapper">
+        <div className={"card-label"}>More</div>
+        <div>
+          <input
+            type="radio"
+            id="active_accounts"
+            name="account-type"
+            checked={accountTypeSelected === "active"}
+            onChange={() => setAccountTypeSelected("active")}
+          />
+          <label htmlFor="active_accounts">Active Accounts</label>
+        </div>
+        <div>
+          <input
+            type="radio"
+            id="deleted_accounts"
+            name="account-type"
+            checked={accountTypeSelected === "deleted"}
+            onChange={() => setAccountTypeSelected("deleted")}
+          />
+          <label htmlFor="deleted_accounts">Deleted Accounts</label>
+        </div>
+      </div>
     </div>
   );
 };
@@ -242,7 +268,8 @@ const CreateAccount = ({ refreshAccounts }) => {
   );
 };
 
-const AccountsList = ({ accounts, refreshAccounts }) => {
+const AccountsList = ({ accounts, refreshAccounts, accountTypeSelected }) => {
+  const global = useGlobalContext();
   const [showEmptyAccounts, setShowEmptyAccounts] = useState(false);
   const [shownAccounts, setShownAccounts] = useState(accounts);
 
@@ -287,16 +314,18 @@ const AccountsList = ({ accounts, refreshAccounts }) => {
 
   return (
     <div className={"accounts-wrapper__accounts-list"}>
-      <div className={"extra_filters"}>
-        <label className={"empty_accounts_checkbox"}>
-          <input
-            type="checkbox"
-            checked={showEmptyAccounts}
-            onChange={handleEmptyAccounts}
-          />
-          <span>Empty Accounts</span>
-        </label>
-      </div>
+      {accountTypeSelected === "active" && (
+        <div className={"extra_filters"}>
+          <label className={"empty_accounts_checkbox"}>
+            <input
+              type="checkbox"
+              checked={showEmptyAccounts}
+              onChange={handleEmptyAccounts}
+            />
+            <span>Empty Accounts</span>
+          </label>
+        </div>
+      )}
       <div className={"header"}>
         <label>Date</label>
         <label onClick={() => sortShownAccounts("name")}>Name</label>
@@ -304,14 +333,24 @@ const AccountsList = ({ accounts, refreshAccounts }) => {
         <label onClick={() => sortShownAccounts("type")}>Type</label>
       </div>
       <div className={"accounts"}>
-        {shownAccounts?.length > 0 &&
-          shownAccounts.map((account) => (
-            <AccountItem
-              key={account.id}
-              account={account}
-              refreshAccounts={refreshAccounts}
-            />
-          ))}
+        {accountTypeSelected === "deleted"
+          ? global.accounts
+              ?.filter((a) => a.deleted)
+              .map((account) => (
+                <AccountItem
+                  key={account.id}
+                  account={account}
+                  refreshAccounts={refreshAccounts}
+                />
+              ))
+          : shownAccounts?.length > 0 &&
+            shownAccounts.map((account) => (
+              <AccountItem
+                key={account.id}
+                account={account}
+                refreshAccounts={refreshAccounts}
+              />
+            ))}
       </div>
     </div>
   );
@@ -330,12 +369,20 @@ const AccountItem = ({ account, refreshAccounts }) => {
   const showToast = useToast();
   const showConfirm = useConfirm();
 
-  async function softDeleteAccount() {
-    showConfirm(`Delete ${account.name}?`, async () => {
-      await transactionService.softDeleteAccount(account.id);
-      await refreshAccounts();
-      showToast("Account Deleted", "info");
-    });
+  async function deleteAccount() {
+    if (account.deleted) {
+      showConfirm(`Remove ${account.name} from your records?`, async () => {
+        await transactionService.deleteAccount(account.id);
+        await refreshAccounts();
+        showToast("Account removed", "info");
+      });
+    } else {
+      showConfirm(`Delete ${account.name}?`, async () => {
+        await transactionService.softDeleteAccount(account.id);
+        await refreshAccounts();
+        showToast("Account Deleted", "info");
+      });
+    }
   }
 
   function amountColor(amount) {
@@ -351,6 +398,14 @@ const AccountItem = ({ account, refreshAccounts }) => {
     return {
       color: color,
     };
+  }
+
+  function restoreAccount() {
+    showConfirm(`Restore ${account.name}?`, async () => {
+      await transactionService.restoreAccount(account.id);
+      await refreshAccounts();
+      showToast(`Account ${account.name} Restored.`, "info");
+    });
   }
 
   return (
@@ -398,7 +453,16 @@ const AccountItem = ({ account, refreshAccounts }) => {
         }
         {accountTypes[account.type]["name"]}
       </label>
-      <button onClick={softDeleteAccount}>X</button>
+      <div id="actions-wrapper">
+        {account.deleted && (
+          <button id="restore_button" onClick={restoreAccount}>
+            ⟳
+          </button>
+        )}
+        <button id="remove_button" onClick={deleteAccount}>
+          X
+        </button>
+      </div>
     </div>
   );
 };

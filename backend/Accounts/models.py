@@ -23,3 +23,7 @@ class Account(models.Model):
     def soft_delete(self):
         self.deleted = True
         self.save(update_fields=["deleted"])
+
+    def restore(self):
+        self.deleted = False
+        self.save(update_fields=["deleted"])

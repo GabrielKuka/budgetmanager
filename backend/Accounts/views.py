@@ -38,6 +38,16 @@ def soft_delete(request, account_id):
     )
 
 
+@api_view(["PUT"])
+def restore_account(request, account_id):
+    account = get_object_or_404(Account, id=account_id)
+    account.restore()
+
+    return Response(
+        {"message": "Account restored."}, status=status.HTTP_200_OK
+    )
+
+
 @api_view(["DELETE"])
 def delete_account(request, id):
 
