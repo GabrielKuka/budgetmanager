@@ -13,7 +13,6 @@ const TransactionPopup = ({
   refreshSearchResults,
 }) => {
   const global = useGlobalContext();
-  const accounts = global.accounts;
   const showConfirm = useConfirm();
   const showToast = useToast();
 
@@ -42,14 +41,6 @@ const TransactionPopup = ({
     }
   }
 
-  function getAccountName(id) {
-    const account = accounts.filter((a) => a.id === id);
-    if (account?.length === 1) {
-      return account[0].name;
-    }
-    return "Not found";
-  }
-
   function getCategory(id) {
     const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
@@ -67,7 +58,10 @@ const TransactionPopup = ({
         getAccountCurrency(transaction.account)
       )} on ${getCategory(
         getCategoryType()
-      ).toLowerCase()} from ${getAccountName(transaction.account)} account.`;
+      ).toLowerCase()} from ${helper.getAccountName(
+        global.accounts,
+        transaction.account
+      )} account.`;
     }
 
     if (getTransactionType() === "income") {
@@ -78,7 +72,10 @@ const TransactionPopup = ({
         getAccountCurrency(transaction.account)
       )} from ${getCategory(
         getCategoryType()
-      ).toLowerCase()} to ${getAccountName(transaction.account)} account.`;
+      ).toLowerCase()} to ${helper.getAccountName(
+        global.accounts,
+        transaction.account
+      )} account.`;
     }
 
     if (getTransactionType() === "transfer") {
@@ -87,9 +84,10 @@ const TransactionPopup = ({
         transaction.amount
       )} ${helper.getCurrency(
         getAccountCurrency(transaction.from_account)
-      )} from ${getAccountName(transaction.from_account)} to ${getAccountName(
-        transaction.to_account
-      )}.`;
+      )} from ${helper.getAccountName(
+        global.accounts,
+        transaction.from_account
+      )} to ${helper.getAccountName(global.accounts, transaction.to_account)}.`;
     }
   }
 
@@ -172,11 +170,28 @@ const TransactionPopup = ({
               </div>
               <div>
                 <label>From Account: </label>
-                <span> {getAccountName(transaction.from_account)}</span>
+                <span
+                  style={helper.accountLabelStyle(
+                    global.accounts,
+                    transaction.from_account
+                  )}
+                >
+                  {" "}
+                  {helper.getAccountName(
+                    global.accounts,
+                    transaction.from_account
+                  )}
+                </span>
               </div>
               <div>
                 <label>To Account: </label>
-                <span> {getAccountName(transaction.to_account)}</span>
+                <span>
+                  {" "}
+                  {helper.getAccountName(
+                    global.accouts,
+                    transaction.to_account
+                  )}
+                </span>
               </div>
             </>
           )}
@@ -194,7 +209,15 @@ const TransactionPopup = ({
               </div>
               <div>
                 <label>Account: </label>
-                <span> {getAccountName(transaction.account)}</span>
+                <span
+                  style={helper.accountLabelStyle(
+                    global.accounts,
+                    transaction.account
+                  )}
+                >
+                  {" "}
+                  {helper.getAccountName(global.accounts, transaction.account)}
+                </span>
               </div>
               <div>
                 <label>Category: </label>

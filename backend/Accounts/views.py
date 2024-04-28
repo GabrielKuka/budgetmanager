@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .models import Account
+from django.shortcuts import get_object_or_404, redirect
 from .serialzers import AccountSerializer
 
 
@@ -27,14 +28,21 @@ def create_account(request):
         )
 
 
+@api_view(["PUT"])
+def soft_delete(request, account_id):
+    account = get_object_or_404(Account, id=account_id)
+    account.soft_delete()
+
+    return Response(
+        {"message": "Account soft deleted."}, status=status.HTTP_200_OK
+    )
+
+
 @api_view(["DELETE"])
 def delete_account(request, id):
-    # Retrieve user token
-    token = request.headers["Authorization"]
-    user_id = Token.objects.get(key=token).user_id
 
     try:
-        account = Account.objects.filter(pk=id).delete()
+        Account.objects.filter(pk=id).delete()
         return Response(
             {"message": "Account deleted."}, status=status.HTTP_200_OK
         )

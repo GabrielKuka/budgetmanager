@@ -16,21 +16,21 @@ import LoadingCard from "../core/LoadingCard";
 const Incomes = ({ dateRange }) => {
   const global = useGlobalContext();
   const [categories, setCategories] = useState(global.incomeCategories);
-  const [accounts, setAccounts] = useState(global.accounts);
+  const [accounts, setAccounts] = useState(global.activeAccounts);
 
   const [shownIncomes = global.incomes, setShownIncomes] = useState();
   const [transactionPopup, setTransactionPopup] = useState(false);
 
   useEffect(() => {
-    setAccounts(global.accounts);
-  }, [global.accounts]);
+    setAccounts(global.activeAccounts);
+  }, [global.activeAcounts]);
 
   useEffect(() => {
     setCategories(global.incomeCategories);
   }, [global.incomeCategories]);
 
   function getAccountCurrency(id) {
-    const account = accounts?.filter((a) => a.id === id);
+    const account = global.accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -326,6 +326,7 @@ const AddIncome = ({
 };
 
 const IncomesList = (props) => {
+  const global = useGlobalContext();
   const [sortedBy, setSortedBy] = useState({});
   useEffect(filterIncomes, [props.dateRange, props.incomes]);
   useEffect(filterIncomes, []);
@@ -446,7 +447,7 @@ const IncomesList = (props) => {
           )}
           <select id="account" defaultValue={"-1"} onChange={filterIncomes}>
             <option value="-1">All</option>
-            {props.accounts?.map((a) => (
+            {global.accounts?.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
               </option>
@@ -551,14 +552,6 @@ const IncomeItem = ({
     };
   }, []);
 
-  function getAccountName(id) {
-    const account = accounts?.filter((a) => a.id === id);
-    if (account?.length === 1) {
-      return account[0].name;
-    }
-    return "Not found";
-  }
-
   function getIncomeCategory(id) {
     const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
@@ -611,7 +604,12 @@ const IncomeItem = ({
       )}
       <label id="date">{income.date}</label>
       <label id="description">{income.description}</label>
-      <label id="account">{getAccountName(income.account)}</label>
+      <label
+        id="account"
+        style={helper.accountLabelStyle(global.accounts, income.account)}
+      >
+        {helper.getAccountName(global.accounts, income.account)}
+      </label>
       <label id="amount">
         {helper.showOrMask(
           global.privacyMode,

@@ -12,11 +12,11 @@ import { useGlobalContext } from "../context/GlobalContext";
 const Accounts = () => {
   const global = useGlobalContext();
 
-  const [accounts, setAccounts] = useState(global.accounts);
+  const [accounts, setAccounts] = useState(global.activeAccounts);
 
   useEffect(() => {
-    setAccounts(global.accounts);
-  }, [global.accounts]);
+    setAccounts(global.activeAccounts);
+  }, [global.activeAccounts]);
 
   return (
     <div className={"accounts-wrapper"}>
@@ -101,7 +101,7 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
   }, [accounts]);
 
   function getAccountCurrency(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = global.accounts.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -330,9 +330,9 @@ const AccountItem = ({ account, refreshAccounts }) => {
   const showToast = useToast();
   const showConfirm = useConfirm();
 
-  async function deleteAccount() {
+  async function softDeleteAccount() {
     showConfirm(`Delete ${account.name}?`, async () => {
-      await transactionService.deleteAccount(account.id);
+      await transactionService.softDeleteAccount(account.id);
       await refreshAccounts();
       showToast("Account Deleted", "info");
     });
@@ -398,7 +398,7 @@ const AccountItem = ({ account, refreshAccounts }) => {
         }
         {accountTypes[account.type]["name"]}
       </label>
-      <button onClick={deleteAccount}>X</button>
+      <button onClick={softDeleteAccount}>X</button>
     </div>
   );
 };

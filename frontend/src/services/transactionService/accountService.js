@@ -34,6 +34,26 @@ async function addAccount(payload) {
     alert("Error creating account.");
   }
 }
+
+async function softDeleteAccount(payload) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+  console.log(`${ENDPOINT}/soft_delete/${payload}`);
+  const response = await axios.put(
+    `${ENDPOINT}/soft_delete/${payload}`,
+    config
+  );
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    alert("Error deleting account.");
+  }
+}
+
 async function deleteAccount(payload) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
@@ -46,14 +66,15 @@ async function deleteAccount(payload) {
   if (response.status === 200) {
     return response.data;
   } else {
-    alert("Error creating account.");
+    alert("Error deleting account.");
   }
 }
 
 const accountService = {
+  softDeleteAccount,
   deleteAccount,
   getAllUserAccounts,
   addAccount,
-}
+};
 
 export default accountService;

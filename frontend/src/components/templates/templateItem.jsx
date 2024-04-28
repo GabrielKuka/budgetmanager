@@ -1,8 +1,10 @@
 import React from "react";
 import "./templates.scss";
 import { helper } from "../helper";
+import { useGlobalContext } from "../../context/GlobalContext";
 
 const TemplateItem = (props) => {
+  const global = useGlobalContext();
   const type = () => {
     if (props.i?.type == 0) return "income";
     if (props.i?.type == 1) return "expense";
@@ -19,7 +21,7 @@ const TemplateItem = (props) => {
   const category = props.i?.category;
 
   function getAccountCurrency(id) {
-    const account = props.accounts?.filter((a) => a.id === id);
+    const account = global.accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -28,7 +30,7 @@ const TemplateItem = (props) => {
   }
 
   function getAccount(id) {
-    const res = allAccounts?.filter((a) => a.id == id);
+    const res = global.accounts?.filter((a) => a.id == id);
     return res.length == 1 ? res[0].name : "";
   }
   function getCategory(id) {
@@ -50,7 +52,11 @@ const TemplateItem = (props) => {
           <b>
             {amount} {helper.getCurrency(getAccountCurrency(account))}
           </b>{" "}
-          to <i>{getAccount(account)}</i> as {getCategory(category)}
+          to{" "}
+          <i style={helper.accountLabelStyle(global.accounts, account)}>
+            {getAccount(account)}
+          </i>{" "}
+          as {getCategory(category)}
         </label>
       )}
       {type() == "expense" && (
@@ -59,7 +65,11 @@ const TemplateItem = (props) => {
           <b>
             {amount} {helper.getCurrency(getAccountCurrency(account))}
           </b>{" "}
-          from <i>{getAccount(account)}</i> on {getCategory(category)}
+          from{" "}
+          <i style={helper.accountLabelStyle(global.accounts, account)}>
+            {getAccount(account)}
+          </i>{" "}
+          on {getCategory(category)}
         </label>
       )}
       {type() == "transfer" && (
@@ -68,8 +78,14 @@ const TemplateItem = (props) => {
           <b>
             {amount} {helper.getCurrency(getAccountCurrency(from_account))}
           </b>{" "}
-          from <i>{getAccount(from_account)}</i> to{" "}
-          <i>{getAccount(to_account)}</i>
+          from{" "}
+          <i style={helper.accountLabelStyle(global.accounts, from_account)}>
+            {getAccount(from_account)}
+          </i>{" "}
+          to{" "}
+          <i style={helper.accountLabelStyle(global.accounts, to_account)}>
+            {getAccount(to_account)}
+          </i>
         </label>
       )}
     </div>

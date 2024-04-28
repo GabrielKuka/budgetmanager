@@ -10,6 +10,7 @@ const GlobalContext = createContext();
 const GlobalProvider = ({ children }) => {
   const userURL = `${BASE_URL}:${BACKEND_PORT}/users`;
   const [accounts, setAccounts] = useState(null);
+  const [activeAccounts, setActiveAccounts] = useState(null);
 
   const [expenses, setExpenses] = useState(null);
   const [incomes, setIncomes] = useState(null);
@@ -44,6 +45,9 @@ const GlobalProvider = ({ children }) => {
   async function updateAccounts() {
     const response = await accountService.getAllUserAccounts();
     setAccounts(response);
+
+    const activeAcc = response.filter((a) => a.deleted == false);
+    setActiveAccounts(activeAcc);
   }
 
   async function updateExpenses() {
@@ -166,6 +170,7 @@ const GlobalProvider = ({ children }) => {
     logoutUser,
 
     accounts,
+    activeAccounts,
     updateAccounts,
 
     expenses,

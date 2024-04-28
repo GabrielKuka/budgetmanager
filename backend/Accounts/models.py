@@ -18,3 +18,8 @@ class Account(models.Model):
     amount = models.FloatField(default=0.0)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
+    deleted = models.BooleanField(default=False)
+
+    def soft_delete(self):
+        self.deleted = True
+        self.save(update_fields=["deleted"])

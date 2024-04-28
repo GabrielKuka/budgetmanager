@@ -13,15 +13,15 @@ import LoadingCard from "../core/LoadingCard";
 
 const Transfers = ({ dateRange }) => {
   const global = useGlobalContext();
-  const [accounts, setAccounts] = useState(global.accounts);
+  const [accounts, setAccounts] = useState(global.activeAccounts);
   const [transactionPopup, setTransactionPopup] = useState(false);
 
   useEffect(() => {
-    setAccounts(global.accounts);
-  }, [global.accounts]);
+    setAccounts(global.activeAccounts);
+  }, [global.activeAccounts]);
 
   function getAccountCurrency(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = global.accounts.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -249,6 +249,7 @@ const TransfersList = ({
   setTransactionPopup,
   dateRange,
 }) => {
+  const global = useGlobalContext();
   const [shownTransfers = transfers, setShownTransfers] = useState({});
   const [sortedBy, setSortedBy] = useState({});
 
@@ -372,7 +373,7 @@ const TransfersList = ({
             onChange={filterTransfers}
           >
             <option value="-1">All</option>
-            {accounts?.map((a) => (
+            {global.accounts?.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
               </option>
@@ -403,7 +404,7 @@ const TransfersList = ({
             onChange={filterTransfers}
           >
             <option value="-1">All</option>
-            {accounts?.map((a) => (
+            {global.accounts?.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
               </option>
@@ -509,14 +510,6 @@ const TransferItem = ({
     }
   }
 
-  function getAccountName(id) {
-    const account = accounts.filter((a) => a.id === id);
-    if (account?.length === 1) {
-      return account[0].name;
-    }
-    return "Not found";
-  }
-
   function isRecent(input_datetime) {
     const now = new Date();
     input_datetime = new Date(input_datetime);
@@ -532,8 +525,18 @@ const TransferItem = ({
       )}
       <label id="date">{transfer.date}</label>
       <label id="description">{transfer.description}</label>
-      <label id="from_account">{getAccountName(transfer.from_account)}</label>
-      <label id="to_account">{getAccountName(transfer.to_account)}</label>
+      <label
+        id="from_account"
+        style={helper.accountLabelStyle(global.accounts, transfer.from_account)}
+      >
+        {helper.getAccountName(global.accounts, transfer.from_account)}
+      </label>
+      <label
+        id="to_account"
+        style={helper.accountLabelStyle(global.accounts, transfer.to_account)}
+      >
+        {helper.getAccountName(global.accounts, transfer.to_account)}
+      </label>
       <label id="amount">
         {helper.showOrMask(
           global.privacyMode,

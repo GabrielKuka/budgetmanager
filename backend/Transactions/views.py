@@ -128,32 +128,37 @@ def delete_transaction(request):
             from_account = Account.objects.get(id=from_account_id)
             to_account = Account.objects.get(id=to_account_id)
 
-            account_serializer = AccountSerializer(
-                from_account,
-                data={
-                    "amount": round(from_account.amount, 2)
-                    + transaction.amount
-                },
-                partial=True,
-            )
+            if not from_account.deleted:
+                account_serializer = AccountSerializer(
+                    from_account,
+                    data={
+                        "amount": round(from_account.amount, 2)
+                        + transaction.amount
+                    },
+                    partial=True,
+                )
 
-            if account_serializer.is_valid():
-                account_serializer.save()
-            else:
-                raise Exception("Source Account could not be updated.")
+                if account_serializer.is_valid():
+                    account_serializer.save()
+                else:
+                    raise Exception("Source Account could not be updated.")
 
-            account_serializer = AccountSerializer(
-                to_account,
-                data={
-                    "amount": round(to_account.amount, 2) - transaction.amount
-                },
-                partial=True,
-            )
+            if not to_account.deleted:
+                account_serializer = AccountSerializer(
+                    to_account,
+                    data={
+                        "amount": round(to_account.amount, 2)
+                        - transaction.amount
+                    },
+                    partial=True,
+                )
 
-            if account_serializer.is_valid():
-                account_serializer.save()
-            else:
-                raise Exception("Destination Account could not be updated.")
+                if account_serializer.is_valid():
+                    account_serializer.save()
+                else:
+                    raise Exception(
+                        "Destination Account could not be updated."
+                    )
 
             # Delete transaction
             transaction.delete()
@@ -166,16 +171,19 @@ def delete_transaction(request):
 
             account_id = transaction.account_id
             account = Account.objects.get(id=account_id)
-            account_serializer = AccountSerializer(
-                account,
-                data={"amount": round(account.amount, 2) + transaction.amount},
-                partial=True,
-            )
+            if not account.deleted:
+                account_serializer = AccountSerializer(
+                    account,
+                    data={
+                        "amount": round(account.amount, 2) + transaction.amount
+                    },
+                    partial=True,
+                )
 
-            if account_serializer.is_valid():
-                account_serializer.save()
-            else:
-                raise Exception("Account could not be updated.")
+                if account_serializer.is_valid():
+                    account_serializer.save()
+                else:
+                    raise Exception("Account could not be updated.")
 
             # Delete the expense object
             transaction.delete()
@@ -185,19 +193,22 @@ def delete_transaction(request):
         elif transaction_type == 0:  # An income
             # Decrease the associated account balance
             transaction = Income.objects.get(id=transaction_id)
+
             account_id = transaction.account_id
             account = Account.objects.get(id=account_id)
+            if not account.deleted:
+                account_serializer = AccountSerializer(
+                    account,
+                    data={
+                        "amount": round(account.amount, 2) - transaction.amount
+                    },
+                    partial=True,
+                )
 
-            account_serializer = AccountSerializer(
-                account,
-                data={"amount": round(account.amount, 2) - transaction.amount},
-                partial=True,
-            )
-
-            if account_serializer.is_valid():
-                account_serializer.save()
-            else:
-                raise Exception("Account could not be updated.")
+                if account_serializer.is_valid():
+                    account_serializer.save()
+                else:
+                    raise Exception("Account could not be updated.")
 
             # Delete the expense object
             transaction.delete()

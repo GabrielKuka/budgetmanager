@@ -47,7 +47,7 @@ const TemplateGroups = (props) => {
   }
 
   function getAccountCurrency(id) {
-    const account = props.accounts.filter((a) => a.id === id);
+    const account = global.accounts.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -96,6 +96,36 @@ const TemplateGroups = (props) => {
   }
 
   async function triggerTemplate() {
+    // Check if any of the accounts is deleted
+    let hasDeletedAccounts = false;
+    currentTemplateGroup.template_group.forEach((t) => {
+      if (t.account) {
+        const acc = global.accounts.filter((a) => a.id === t.account)[0];
+        if (acc.deleted) {
+          showToast(
+            `Account ${acc.name} is deleted. You cannot use this template.`,
+            "error"
+          );
+          hasDeletedAccounts = true;
+          return;
+        }
+      } else {
+        const from = global.accounts.filter((a) => a.id === t.from_account)[0];
+        const to = global.accounts.filter((a) => a.id === t.to_account)[0];
+        if (from.deleted || to.deleted) {
+          showToast(
+            `Either ${from.name} or ${to.name} is deleted. You cannot use this template.`,
+            "error"
+          );
+          hasDeletedAccounts = true;
+          return;
+        }
+      }
+    });
+    if (hasDeletedAccounts) {
+      return;
+    }
+
     // Check if there are transactions registered in this template group.
     if (currentTemplateGroup.template_group.length == 0) {
       showToast("This template has not transactions.", "error");

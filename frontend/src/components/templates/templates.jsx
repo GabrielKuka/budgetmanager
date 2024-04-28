@@ -9,7 +9,7 @@ import { useGlobalContext } from "../../context/GlobalContext";
 const Template = () => {
   const types = ["Income", "Expense", "Transfer"];
   const global = useGlobalContext();
-  const [accounts, setAccounts] = useState(global.accounts);
+  const [accounts, setAccounts] = useState(global.activeAccounts);
   const [templateGroups, setTemplateGroups] = useState([]);
 
   const [incomeCategories, setIncomeCategories] = useState(
@@ -24,8 +24,8 @@ const Template = () => {
   }, []);
 
   useEffect(() => {
-    setAccounts(global.accounts);
-  }, [global.accounts]);
+    setAccounts(global.activeAccounts);
+  }, [global.activeAccounts]);
 
   useEffect(() => {
     setIncomeCategories(global.incomeCategories);

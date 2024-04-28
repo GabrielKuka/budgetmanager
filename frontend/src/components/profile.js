@@ -19,7 +19,7 @@ const Profile = () => {
   const [incomeCategories, setIncomeCategories] = useState(
     global.incomeCategories
   );
-  const [accounts, setAccounts] = useState(global.accounts);
+  const [accounts, setAccounts] = useState(global.activeAccounts);
 
   const [incomes, setIncomes] = useState(global.incomes);
   const [expenses, setExpenses] = useState(global.expenses);
@@ -32,8 +32,8 @@ const Profile = () => {
   }, []);
 
   useEffect(() => {
-    setAccounts(global.accounts);
-  }, [global.accounts]);
+    setAccounts(global.activeAccounts);
+  }, [global.activeAccounts]);
 
   useEffect(() => {
     setIncomeCategories(global.incomeCategories);
@@ -68,7 +68,7 @@ const Profile = () => {
   }
 
   function getAccountCurrency(id) {
-    const account = accounts.filter((a) => a.id === id);
+    const account = global.accounts.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -120,9 +120,10 @@ const Profile = () => {
 const Sidebar = (props) => {
   const showConfirm = useConfirm();
   const showToast = useToast();
+  const global = useGlobalContext();
 
   function getAccountCurrency(id) {
-    const account = props.accounts?.filter((a) => a.id === id);
+    const account = global.accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -261,14 +262,6 @@ const ExpenseItem = ({
   setTransactionPopup,
 }) => {
   const global = useGlobalContext();
-  function getAccountName(id) {
-    const account = accounts?.filter((a) => a.id === id);
-    if (account?.length === 1) {
-      return account[0].name;
-    }
-    return "Not found";
-  }
-
   function getExpenseCategory(id) {
     const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
@@ -286,7 +279,7 @@ const ExpenseItem = ({
   }
 
   function getAccountCurrency(id) {
-    const account = accounts?.filter((a) => a.id === id);
+    const account = global.accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -301,7 +294,12 @@ const ExpenseItem = ({
       )}
       <label id="date">{expense.date}</label>
       <label id="description">{expense.description}</label>
-      <label id="account">{getAccountName(expense.account)}</label>
+      <label
+        id="account"
+        style={helper.accountLabelStyle(global.accounts, expense.account)}
+      >
+        {helper.getAccountName(global.accounts, expense.account)}
+      </label>
       <label id="amount">
         {helper.showOrMask(
           global.privacyMode,
@@ -345,13 +343,6 @@ const RecentIncomes = (props) => {
 
 const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
   const global = useGlobalContext();
-  function getAccountName(id) {
-    const account = accounts?.filter((a) => a.id === id);
-    if (account?.length === 1) {
-      return account[0].name;
-    }
-    return "Not found";
-  }
 
   function getIncomeCategory(id) {
     const category = categories?.filter((c) => c.id === id);
@@ -369,7 +360,7 @@ const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
   }
 
   function getAccountCurrency(id) {
-    const account = accounts?.filter((a) => a.id === id);
+    const account = global.accounts.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -384,7 +375,12 @@ const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
       )}
       <label id="date">{income.date}</label>
       <label id="description">{income.description}</label>
-      <label id="account">{getAccountName(income.account)}</label>
+      <label
+        id="account"
+        style={helper.accountLabelStyle(global.accounts, income.account)}
+      >
+        {helper.getAccountName(global.accounts, income.account)}
+      </label>
       <label id="amount">
         {helper.showOrMask(
           global.privacyMode,
@@ -425,13 +421,6 @@ const RecentTransfers = ({ transfers, accounts, setTransactionPopup }) => {
 
 const TransferItem = ({ transfer, accounts, setTransactionPopup }) => {
   const global = useGlobalContext();
-  function getAccountName(id) {
-    const account = accounts?.filter((a) => a.id === id);
-    if (account?.length === 1) {
-      return account[0].name;
-    }
-    return "Not found";
-  }
 
   function isRecent(input_datetime) {
     const now = new Date();
@@ -441,7 +430,7 @@ const TransferItem = ({ transfer, accounts, setTransactionPopup }) => {
     return diffInHrs <= 5;
   }
   function getAccountCurrency(id) {
-    const account = accounts?.filter((a) => a.id === id);
+    const account = global.accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -459,8 +448,18 @@ const TransferItem = ({ transfer, accounts, setTransactionPopup }) => {
       )}
       <label id="date">{transfer.date}</label>
       <label id="description">{transfer.description}</label>
-      <label id="from_account">{getAccountName(transfer.from_account)}</label>
-      <label id="to_account">{getAccountName(transfer.to_account)}</label>
+      <label
+        id="from_account"
+        style={helper.accountLabelStyle(global.accounts, transfer.from_account)}
+      >
+        {helper.getAccountName(global.accounts, transfer.from_account)}
+      </label>
+      <label
+        id="to_account"
+        style={helper.accountLabelStyle(global.accounts, transfer.to_account)}
+      >
+        {helper.getAccountName(global.accounts, transfer.to_account)}
+      </label>
       <label id="amount">
         {helper.showOrMask(
           global.privacyMode,

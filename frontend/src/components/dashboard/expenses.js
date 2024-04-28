@@ -15,17 +15,17 @@ import LoadingCard from "../core/LoadingCard";
 
 const Expenses = ({ dateRange }) => {
   const global = useGlobalContext();
-  const [accounts, setAccounts] = useState(global.accounts);
+  const [accounts, setAccounts] = useState(global.activeAccounts);
 
   const [shownExpenses, setShownExpenses] = useState([]);
   const [transactionPopup, setTransactionPopup] = useState(false);
 
   useEffect(() => {
-    setAccounts(global.accounts);
-  }, [global.accounts]);
+    setAccounts(global.activeAccounts);
+  }, [global.activeAccounts]);
 
   function getAccountCurrency(id) {
-    const account = accounts?.filter((a) => a.id === id);
+    const account = global.accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -271,6 +271,7 @@ const ExpensesList = (props) => {
   const [sortedBy, setSortedBy] = useState({});
   useEffect(filterExpenses, []);
   useEffect(filterExpenses, [props.dateRange, props.expenses]);
+  const global = useGlobalContext();
 
   function filterExpenses() {
     const selectedAccount = document.getElementById("account").value;
@@ -388,7 +389,7 @@ const ExpensesList = (props) => {
           )}
           <select id="account" defaultValue={"-1"} onChange={filterExpenses}>
             <option value="-1">All</option>
-            {props.accounts?.map((a) => (
+            {global.accounts?.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
               </option>
@@ -493,14 +494,6 @@ const ExpenseItem = ({
     };
   }, []);
 
-  function getAccountName(id) {
-    const account = accounts?.filter((a) => a.id === id);
-    if (account?.length === 1) {
-      return account[0].name;
-    }
-    return "Not found";
-  }
-
   function getExpenseCategory(id) {
     const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
@@ -554,7 +547,12 @@ const ExpenseItem = ({
       )}
       <label id="date">{expense.date}</label>
       <label id="description">{expense.description}</label>
-      <label id="account">{getAccountName(expense.account)}</label>
+      <label
+        id="account"
+        style={helper.accountLabelStyle(global.accounts, expense.account)}
+      >
+        {helper.getAccountName(global.accounts, expense.account)}
+      </label>
       <label id="amount">
         {helper.showOrMask(
           global.privacyMode,
