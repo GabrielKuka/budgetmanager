@@ -21,18 +21,33 @@ const GlobalProvider = ({ children }) => {
 
   const [privacyMode, setPrivacyMode] = useState(false);
 
+  const [authToken, setauthToken] = useState(() =>
+    localStorage.getItem("authToken")
+      ? JSON.parse(localStorage.getItem("authToken"))
+      : null
+  );
+  const [user, setUser] = useState(
+    localStorage.getItem("user")
+      ? JSON.parse(localStorage.getItem("user"))
+      : null
+  );
+
   useEffect(() => {
-    updateAccounts();
-    updateExpenses();
-    updateIncomes();
-    updateTransfers();
+    if(authToken){
 
-    updateExpenseCategories();
-    updateIncomeCategories();
+      updateAccounts();
+      updateExpenses();
+      updateIncomes();
+      updateTransfers();
 
-    const storedPrivacyMode = localStorage.getItem("privacyMode");
-    if (storedPrivacyMode) {
-      setPrivacyMode(JSON.parse(storedPrivacyMode));
+      updateExpenseCategories();
+      updateIncomeCategories();
+
+      const storedPrivacyMode = localStorage.getItem("privacyMode");
+      if (storedPrivacyMode) {
+        setPrivacyMode(JSON.parse(storedPrivacyMode));
+      }
+
     }
   }, []);
 
@@ -88,16 +103,6 @@ const GlobalProvider = ({ children }) => {
     setIncomeCategories(response);
   };
 
-  const [authToken, setauthToken] = useState(() =>
-    localStorage.getItem("authToken")
-      ? JSON.parse(localStorage.getItem("authToken"))
-      : null
-  );
-  const [user, setUser] = useState(
-    localStorage.getItem("user")
-      ? JSON.parse(localStorage.getItem("user"))
-      : null
-  );
   const navigate = useNavigate();
 
   const loginUser = async (credentials) => {
