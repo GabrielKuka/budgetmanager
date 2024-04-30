@@ -18,6 +18,7 @@
       @include flex(column, center, center);
       gap: 5px;
       width: 350px;
+
       img {
         height: 100px;
         width: 100px;
@@ -34,6 +35,7 @@
             text-align: right;
             font-weight: bold;
           }
+
           span {
             color: gray;
             font-size: 14px;
@@ -52,6 +54,7 @@
       @include flex(column, center, center);
       gap: 10px;
       width: 350px;
+
       .header {
         @include flex(row, flex-start, center);
         width: 100%;
@@ -98,6 +101,7 @@
             text-align: right;
           }
         }
+
         .account-item:hover {
           box-shadow: 1px 1px 3px cadetblue;
           border-color: cadetblue;
@@ -118,15 +122,18 @@
       transition: background-color 0.3s, color 0.3s, font-size 0.3s;
 
       .download-icon {
-          transition: filter 0.5s;
+        transition: filter 0.5s;
       }
     }
+
     .download-data:active {
       font-size: 16.5px;
     }
+
     .download-data:hover {
       background-color: #00A862;
       color: white;
+
       .download-icon {
         filter: hue-rotate(0deg) brightness(0) invert(1);
       }
@@ -145,11 +152,27 @@
       text-decoration: none;
       transition: background-color 0.2s, color 0.2s;
 
+      &:hover {
+        background-color: cadetblue;
+        color: white;
+        cursor: pointer;
+      }
     }
-    .stats-button:hover {
-      background-color: cadetblue;
-      color: white;
-      cursor: pointer;
+
+    #delete-account-btn {
+      width: 350px;
+      border: 1px solid red;
+      border-radius: 3px;
+      background-color: white;
+      color: red;
+      padding: 6px 0px;
+      font-size: 16px;
+      transition: background-color 0.2s, color 0.2s;
+
+      &:hover {
+        background-color: red;
+        color: white;
+      }
     }
   }
 
@@ -170,9 +193,13 @@
     &::-webkit-scrollbar {
       display: none;
     }
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-    overflow: -moz-scrollbars-none; /* Firefox */
+
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+    overflow: -moz-scrollbars-none;
+    /* Firefox */
 
     .expenses,
     .incomes,
@@ -223,6 +250,7 @@
         #date {
           color: gray;
         }
+
         .new-transaction {
           color: white;
           background-color: cadetblue;
@@ -238,9 +266,11 @@
 
         &:hover {
           background-color: #eeebeb;
+
           #amount {
             font-weight: bold;
           }
+
           .new-transaction {
             padding: 3px 10px;
           }
@@ -273,6 +303,7 @@
         #date {
           color: gray;
         }
+
         .new-transaction {
           color: white;
           background-color: cadetblue;
@@ -288,9 +319,11 @@
 
         &:hover {
           background-color: #eeebeb;
+
           #amount {
             font-weight: bold;
           }
+
           .new-transaction {
             padding: 3px 10px;
           }
@@ -323,6 +356,7 @@
         #date {
           color: gray;
         }
+
         .new-transaction {
           color: white;
           background-color: cadetblue;
@@ -338,9 +372,11 @@
 
         &:hover {
           background-color: #eeebeb;
+
           #amount {
             font-weight: bold;
           }
+
           .new-transaction {
             padding: 3px 10px;
           }

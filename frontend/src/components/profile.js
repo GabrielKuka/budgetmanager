@@ -153,6 +153,13 @@ const Sidebar = (props) => {
     });
   }
 
+  function deleteAccount(){
+    showConfirm("Are you sure you want to delete your account with all your data?", ()=>{
+      // Delete account here
+      showToast("Deleted.")
+    })
+  }
+
   return (
     <div className={"profile-wrapper__sidebar"}>
       <div className={"user-data"}>
@@ -225,6 +232,7 @@ const Sidebar = (props) => {
         />
         Statistics
       </Link>
+      <button id="delete-account-btn" onClick={deleteAccount}>Delete Account</button>
     </div>
   );
 };
