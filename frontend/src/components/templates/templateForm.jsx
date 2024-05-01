@@ -76,12 +76,14 @@ const TemplateForm = (props) => {
                 <option value="" disabled hidden>
                   Select account
                 </option>
-                {props.accounts?.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
-                    {helper.getCurrency(getAccountCurrency(a.id))}
-                  </option>
-                ))}
+                {props.accounts
+                  ?.sort((a, b) => (a.name > b.name ? 1 : -1))
+                  .map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
+                      {helper.getCurrency(getAccountCurrency(a.id))}
+                    </option>
+                  ))}
               </Field>
               <Field as="select" name="category">
                 <option value="" disabled hidden>
@@ -102,12 +104,14 @@ const TemplateForm = (props) => {
                 <option value="" disabled hidden>
                   Select account
                 </option>
-                {props.accounts?.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
-                    {helper.getCurrency(getAccountCurrency(a.id))}
-                  </option>
-                ))}
+                {props.accounts
+                  ?.sort((a, b) => (a.name > b.name ? 1 : -1))
+                  .map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
+                      {helper.getCurrency(getAccountCurrency(a.id))}
+                    </option>
+                  ))}
               </Field>
               <Field as="select" name="category">
                 <option value="" disabled hidden>
@@ -127,23 +131,27 @@ const TemplateForm = (props) => {
                 <option value="" disabled hidden>
                   From account
                 </option>
-                {props.accounts?.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
-                    {helper.getCurrency(getAccountCurrency(a.id))}
-                  </option>
-                ))}
+                {props.accounts
+                  ?.sort((a, b) => (a.name > b.name ? 1 : -1))
+                  .map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
+                      {helper.getCurrency(getAccountCurrency(a.id))}
+                    </option>
+                  ))}
               </Field>
               <Field as="select" name="to_account">
                 <option value="" disabled hidden>
                   To account
                 </option>
-                {props.accounts?.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
-                    {helper.getCurrency(getAccountCurrency(a.id))}
-                  </option>
-                ))}
+                {props.accounts
+                  ?.sort((a, b) => (a.name > b.name ? 1 : -1))
+                  .map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
+                      {helper.getCurrency(getAccountCurrency(a.id))}
+                    </option>
+                  ))}
               </Field>
             </>
           )}
