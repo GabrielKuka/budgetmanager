@@ -2,10 +2,12 @@ import React from "react";
 import { Formik, Form, Field } from "formik";
 import { useGlobalContext } from "../../context/GlobalContext";
 import { Navigate, Link } from "react-router-dom";
+import { useToast } from "../../context/ToastContext";
 import "./login.scss";
 
 const Login = () => {
   const global = useGlobalContext();
+  const showToast = useToast();
 
   if (global.authToken) {
     return <Navigate push to="/dashboard" />;
@@ -15,11 +17,16 @@ const Login = () => {
     <div className={"login-wrapper"}>
       <Formik
         initialValues={{ email: "", password: "" }}
-        onSubmit={(values, { setSubmitting, resetForm }) => {
+        onSubmit={async (values, { setSubmitting, resetForm }) => {
           const payload = { email: values.email, password: values.password };
           resetForm();
           setSubmitting(false);
-          global.loginUser(payload);
+          try {
+            await global.loginUser(payload);
+          } catch (error) {
+            console.log("here");
+            showToast(error.message, "error");
+          }
         }}
       >
         {(props) => (
