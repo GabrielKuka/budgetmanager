@@ -133,7 +133,6 @@ const Sidebar = (props) => {
 
   function exportData() {
     showConfirm("Download all data in Excel? ", async () => {
-      // Export to excel here
       const wb = XLSX.utils.book_new();
 
       const expensesSheet = XLSX.utils.json_to_sheet(props.expenses);
@@ -153,11 +152,19 @@ const Sidebar = (props) => {
     });
   }
 
-  function deleteAccount(){
-    showConfirm("Are you sure you want to delete your account with all your data?", ()=>{
-      // Delete account here
-      showToast("Deleted.")
-    })
+  function deleteAccount() {
+    showConfirm(
+      "Are you sure you want to delete your account with all your data?",
+      async () => {
+        const result = await userService.deleteUser(global.user.data.email);
+        if (result) {
+          showToast("Deleted.");
+          global.logoutUser();
+        } else {
+          showToast("Error deleting user.", "error");
+        }
+      }
+    );
   }
 
   return (
@@ -232,7 +239,9 @@ const Sidebar = (props) => {
         />
         Statistics
       </Link>
-      <button id="delete-account-btn" onClick={deleteAccount}>Delete Account</button>
+      <button id="delete-account-btn" onClick={deleteAccount}>
+        🚫 Delete Account
+      </button>
     </div>
   );
 };

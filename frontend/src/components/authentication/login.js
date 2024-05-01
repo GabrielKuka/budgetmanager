@@ -24,7 +24,6 @@ const Login = () => {
           try {
             await global.loginUser(payload);
           } catch (error) {
-            console.log("here");
             showToast(error.message, "error");
           }
         }}

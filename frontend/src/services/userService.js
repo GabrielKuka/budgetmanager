@@ -20,8 +20,21 @@ async function getUserData() {
   }
 }
 
-const userService = {
-  getUserData
+async function deleteUser(payload) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.delete(`${ENDPOINT}/delete/${payload}`, config);
+  return response.status == 204 ? true : false;
 }
+
+const userService = {
+  getUserData,
+  deleteUser,
+};
 
 export default userService;

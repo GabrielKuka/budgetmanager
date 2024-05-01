@@ -4,7 +4,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
-from rest_framework.exceptions import AuthenticationFailed
+from django.shortcuts import get_object_or_404
 
 from Users.serializers import AuthTokenSerializer, UserSerializer
 
@@ -23,6 +23,13 @@ def get_user_data(request):
     serializer = UserSerializer(user)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(["DELETE"])
+def delete_user(request, email):
+    user = get_object_or_404(User, email=email)
+    user.delete()
+
+    return Response({"message": "User deleted successfully"}, status=204)
 
 
 class CreateUserView(generics.CreateAPIView):
