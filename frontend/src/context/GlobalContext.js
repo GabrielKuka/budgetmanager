@@ -33,8 +33,7 @@ const GlobalProvider = ({ children }) => {
   );
 
   useEffect(() => {
-    if(authToken){
-
+    if (authToken) {
       updateAccounts();
       updateExpenses();
       updateIncomes();
@@ -47,7 +46,6 @@ const GlobalProvider = ({ children }) => {
       if (storedPrivacyMode) {
         setPrivacyMode(JSON.parse(storedPrivacyMode));
       }
-
     }
   }, []);
 
@@ -106,30 +104,40 @@ const GlobalProvider = ({ children }) => {
   const navigate = useNavigate();
 
   const loginUser = async (credentials) => {
-    const response = await axios.post(`${userURL}/token`, credentials);
+    try {
+      const result = await axios
+        .post(`${userURL}/token`, credentials)
+        .then(async (response) => {
+          const data = response.data;
+          if (response.status === 200) {
+            const localUser = {
+              token: data.token,
+              data: await getUser(data.token),
+            };
 
-    const data = response.data;
-    if (response.status === 200) {
-      const localUser = {
-        token: data.token,
-        data: await getUser(data.token),
-      };
+            setauthToken(data.token);
+            setUser(localUser);
 
-      setauthToken(data.token);
-      setUser(localUser);
+            localStorage.setItem("authToken", JSON.stringify(data.token));
+            localStorage.setItem("user", JSON.stringify(localUser));
 
-      localStorage.setItem("authToken", JSON.stringify(data.token));
-      localStorage.setItem("user", JSON.stringify(localUser));
+            await updateAccounts();
+            await updateTransactions();
 
-      await updateAccounts();
-      await updateTransactions();
+            await updateExpenseCategories();
+            await updateIncomeCategories();
 
-      await updateExpenseCategories();
-      await updateIncomeCategories();
-
-      navigate("/dashboard");
-    } else {
-      alert("Something went wrong!");
+            navigate("/dashboard");
+          }
+        });
+    } catch (e) {
+      if (e.response) {
+        if (e.response.data.non_field_errors) {
+          throw new Error(e.response.data.non_field_errors[0]);
+        } else {
+          throw new Error(e.response.data);
+        }
+      }
     }
   };
 

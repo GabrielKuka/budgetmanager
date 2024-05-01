@@ -4,6 +4,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
+from rest_framework.exceptions import AuthenticationFailed
 
 from Users.serializers import AuthTokenSerializer, UserSerializer
 
@@ -53,7 +54,18 @@ class CreateTokenView(ObtainAuthToken):
                 "Access-Control-Allow-Headers": "*",
             },
         )
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        if serializer.is_valid():
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data['user']
+            token, created = Token.objects.get_or_create(user=user)
 
+            return Response({'token': token.key})
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ManageUserView(generics.RetrieveUpdateAPIView):
     """Manage the authenticated user"""
