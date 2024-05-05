@@ -40,6 +40,13 @@
           font-weight: bold;
         }
 
+        span {
+          color: red;
+          font-size: 12px;
+          margin-top: 0;
+          margin-bottom: 0;
+        }
+
         #submit-button {
           border: 1px solid cadetblue;
           border-radius: 3px;
@@ -89,7 +96,6 @@
           flex: 1;
           margin-right: 10px;
         }
-
       }
 
       .card-label {
@@ -134,7 +140,6 @@
         font-weight: bold;
       }
 
-
       @include flex(column, flex-start, flex-start);
       gap: 10px;
 
@@ -166,7 +171,7 @@
       label > span {
         font-size: 15px;
         user-select: none;
-        text-transform: uppercase;  
+        text-transform: uppercase;
       }
     }
     .header {

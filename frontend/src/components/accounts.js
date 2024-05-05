@@ -1,5 +1,5 @@
 import { React, useState, useEffect } from "react";
-import { Formik, Form, Field } from "formik";
+import { Formik, Form, Field, ErrorMessage } from "formik";
 import transactionService from "../services/transactionService/transactionService";
 import NoDataCard from "./core/nodata";
 import "./accounts.scss";
@@ -8,6 +8,7 @@ import { useConfirm } from "../context/ConfirmContext";
 import { helper } from "./helper";
 import currencyService from "../services/currencyService";
 import { useGlobalContext } from "../context/GlobalContext";
+import { validationSchemas } from "../validationSchemas";
 
 const Accounts = () => {
   const global = useGlobalContext();
@@ -213,6 +214,7 @@ const Sidebar = ({
 const CreateAccount = ({ refreshAccounts }) => {
   const accountTypes = ["Bank Account", "Investment Account", "Hard Cash"];
   const showToast = useToast();
+
   return (
     <div className={"add-account"}>
       <Formik
@@ -222,6 +224,7 @@ const CreateAccount = ({ refreshAccounts }) => {
           currency: "",
           type: "",
         }}
+        validationSchema={validationSchemas.accountsFormSchema}
         onSubmit={async (values, { setSubmitting, resetForm }) => {
           await transactionService.addAccount(values);
           await refreshAccounts();
@@ -230,7 +233,7 @@ const CreateAccount = ({ refreshAccounts }) => {
           resetForm();
         }}
       >
-        {() => (
+        {({ errors, touched }) => (
           <Form className={"form"}>
             <label onClick={() => document.getElementById("name").focus()}>
               Add an account
@@ -261,6 +264,14 @@ const CreateAccount = ({ refreshAccounts }) => {
             <button type="submit" id="submit-button">
               Add Account
             </button>
+            {errors.name && touched.name ? <span>{errors.name}</span> : null}
+            {errors.currency && touched.currency ? (
+              <span>{errors.currency}</span>
+            ) : null}
+            {errors.type && touched.type ? <span>{errors.type}</span> : null}
+            {errors.amount && touched.amount ? (
+              <span>{errors.amount}</span>
+            ) : null}
           </Form>
         )}
       </Formik>
