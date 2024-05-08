@@ -106,9 +106,8 @@ def add_transaction(request):
             {"message": "Transaction Added."}, status=status.HTTP_201_CREATED
         )
     except Exception as e:
-        print(e)
         return Response(
-            {"error": "Error adding transaction"},
+            {"error": e},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -218,8 +217,7 @@ def delete_transaction(request):
         else:
             raise Exception("Incorrect transaction type.")
     except Exception as e:
-        print(e)
-        return Response({"msg": "Test"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": e}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])
