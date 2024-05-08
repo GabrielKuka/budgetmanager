@@ -12,6 +12,7 @@ import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
 import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
+import { validationSchemas } from "../../validationSchemas";
 
 const Incomes = ({ dateRange }) => {
   const global = useGlobalContext();
@@ -219,23 +220,28 @@ const AddIncome = ({
           income_category: "",
           date: new Date().toISOString().slice(0, 10),
         }}
-        onSubmit={async (values, { resetForm, setSubmitting }) => {
-          setAddingIncome(true);
-          values["type"] = 0;
-          values["tags"] = tags.map((tag) => ({
-            name: tag,
-          }));
-          await transactionService.addIncome(values);
-          await refreshIncomes();
-          await refreshAccounts();
-          showToast("Income Added", "info");
-          setSubmitting(false);
-          setTags([]);
-          resetForm();
-          setAddingIncome(false);
+        validationSchema={validationSchemas.incomeFormSchema}
+        validateOnChange={false}
+        validateOnBlur={false}
+        onSubmit={(values, { resetForm, setSubmitting, validateForm }) => {
+          validateForm().then(async () => {
+            setAddingIncome(true);
+            values["type"] = 0;
+            values["tags"] = tags.map((tag) => ({
+              name: tag,
+            }));
+            await transactionService.addIncome(values);
+            await refreshIncomes();
+            await refreshAccounts();
+            showToast("Income Added", "info");
+            setSubmitting(false);
+            setTags([]);
+            resetForm();
+            setAddingIncome(false);
+          });
         }}
       >
-        {() => (
+        {({ errors, touched }) => (
           <Form className={"form"}>
             <label onClick={() => document.getElementById("date").focus()}>
               Enter Income
@@ -318,6 +324,19 @@ const AddIncome = ({
                 />
               )}
             </div>
+            {errors.date && touched.date ? <span>{errors.date}</span> : null}
+            {errors.account && touched.account ? (
+              <span>{errors.account}</span>
+            ) : null}
+            {errors.amount && touched.amount ? (
+              <span>{errors.amount}</span>
+            ) : null}
+            {errors.description && touched.description ? (
+              <span>{errors.description}</span>
+            ) : null}
+            {errors.income_category && touched.income_category ? (
+              <span>{errors.income_category}</span>
+            ) : null}
           </Form>
         )}
       </Formik>

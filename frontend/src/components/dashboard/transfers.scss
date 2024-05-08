@@ -6,7 +6,7 @@
   margin-left: 100px;
   @include flex(row, flex-start, flex-start);
   gap: 30px;
-  padding-top:20px;
+  padding-top: 20px;
 
   &__sidebar {
     width: 350px;
@@ -50,9 +50,15 @@
           transition: padding-left 0.3s;
         }
 
-        .tags_container{
+        span {
+          color: red;
+          font-size: 12px;
+          margin-top: 0;
+          margin-bottom: 0;
+        }
+        .tags_container {
           @include flex(column, flex-start, flex-start);
-          gap:5px;
+          gap: 5px;
           width: 100%;
           &__input {
             @include flex(row, flex-start, flex-start);
@@ -67,20 +73,19 @@
               color: white;
               font-weight: bold;
             }
-            
-            #add_tag_textfield{
+
+            #add_tag_textfield {
               border: 1px solid cadetblue;
               border-radius: 3px;
               transition: border 0.3s;
 
-              &:hover{
+              &:hover {
                 border-radius: 3px;
               }
-              &:focus{
-                outline:none;
+              &:focus {
+                outline: none;
               }
             }
-
           }
           &__shown-tags {
             @include flex(row, flex-start, flex-start);
@@ -114,24 +119,23 @@
           }
         }
         #submit_wrapper {
-        @include flex(row, flex-end, center);
-        gap: 10px;
+          @include flex(row, flex-end, center);
+          gap: 10px;
 
-        #submit-button {
-          border: 1px solid cadetblue;
-          border-radius: 3px;
-          background-color: white;
-          padding: 5px;
-          color: cadetblue;
-          font-weight: bold;
-          transition: background-color 0.3s, color 0.3s;
+          #submit-button {
+            border: 1px solid cadetblue;
+            border-radius: 3px;
+            background-color: white;
+            padding: 5px;
+            color: cadetblue;
+            font-weight: bold;
+            transition: background-color 0.3s, color 0.3s;
 
-          &:hover {
-            background-color: cadetblue;
-            color: white;
+            &:hover {
+              background-color: cadetblue;
+              color: white;
+            }
           }
-        }
-
         }
       }
     }
@@ -172,7 +176,6 @@
       label:hover {
         @include title-decoration($height: 3px, $width: 100%, $bottom: -1px);
       }
-
     }
     .transfers {
       @include flex(column, flex-start, center);
@@ -195,7 +198,8 @@
         width: 800px;
         padding: 20px;
         border-bottom: 1px solid #eeebeb;
-        transition: border-bottom 0.3s, background-color 0.3s, padding 0.3s, font-size 0.3s;
+        transition: border-bottom 0.3s, background-color 0.3s, padding 0.3s,
+          font-size 0.3s;
 
         display: grid;
         grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
@@ -208,10 +212,10 @@
           border: 1px solid white;
           visibility: hidden;
           padding: 5px 10px 5px 10px;
-          top:34%;
+          top: 34%;
           right: 3%;
           border-radius: 100%;
-          background:none;
+          background: none;
           transition: border 0.2s ease-in-out;
           img {
             height: 13px;
@@ -233,10 +237,10 @@
           width: 120px;
           height: 70px;
 
-          box-shadow: 3px 3px 5px #DADADA;
+          box-shadow: 3px 3px 5px #dadada;
           border-radius: 5px;
 
-          border: 1px solid #DADADA;
+          border: 1px solid #dadada;
           z-index: 1000;
 
           @include flex(column, flex-start, flex-start);
@@ -247,12 +251,13 @@
             background-color: white;
             border: none;
           }
-          button:hover{
-            background-color: #DADADA;
+          button:hover {
+            background-color: #dadada;
           }
         }
 
-        label, .kebab-button {
+        label,
+        .kebab-button {
           cursor: pointer;
         }
 

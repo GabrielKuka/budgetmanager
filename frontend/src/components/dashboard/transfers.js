@@ -10,6 +10,7 @@ import TransactionPopup from "../core/transaction_popup";
 import currencyService from "../../services/currencyService";
 import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
+import { validationSchemas } from "../../validationSchemas";
 
 const Transfers = ({ dateRange }) => {
   const global = useGlobalContext();
@@ -117,40 +118,45 @@ const AddTransfer = ({
           description: "",
           date: new Date().toISOString().slice(0, 10),
         }}
-        onSubmit={async (values, { resetForm, setSubmitting }) => {
-          setAddingTransfer(true);
-          // if from and to accounts have different currencies, convert
-          const from_currency = getAccountCurrency(
-            parseInt(values["from_account"])
-          );
-          const to_currency = getAccountCurrency(
-            parseInt(values["to_account"])
-          );
-          if (from_currency !== to_currency) {
-            values["to_amount"] = await currencyService.convert(
-              from_currency,
-              to_currency,
-              values["from_amount"]
+        validationSchema={validationSchemas.transferFormSchema}
+        validateOnBlur={false}
+        validateOnChange={false}
+        onSubmit={(values, { resetForm, setSubmitting, validateForm }) => {
+          validateForm().then(async () => {
+            setAddingTransfer(true);
+            // if from and to accounts have different currencies, convert
+            const from_currency = getAccountCurrency(
+              parseInt(values["from_account"])
             );
-          } else {
-            values["to_amount"] = values["from_amount"];
-          }
+            const to_currency = getAccountCurrency(
+              parseInt(values["to_account"])
+            );
+            if (from_currency !== to_currency) {
+              values["to_amount"] = await currencyService.convert(
+                from_currency,
+                to_currency,
+                values["from_amount"]
+              );
+            } else {
+              values["to_amount"] = values["from_amount"];
+            }
 
-          values["type"] = 2;
-          values["tags"] = tags.map((tag) => ({
-            name: tag,
-          }));
-          await transactionService.addTransfer(values);
-          await refreshTransfers();
-          await refreshAccounts();
-          showToast("Transfer Added", "info");
-          resetForm();
-          setTags([]);
-          setSubmitting(false);
-          setAddingTransfer(false);
+            values["type"] = 2;
+            values["tags"] = tags.map((tag) => ({
+              name: tag,
+            }));
+            await transactionService.addTransfer(values);
+            await refreshTransfers();
+            await refreshAccounts();
+            showToast("Transfer Added", "info");
+            resetForm();
+            setTags([]);
+            setSubmitting(false);
+            setAddingTransfer(false);
+          });
         }}
       >
-        {() => (
+        {({ errors, touched }) => (
           <Form className={"form"}>
             <label onClick={() => document.getElementById("date").focus()}>
               Enter Tranfer
@@ -234,6 +240,19 @@ const AddTransfer = ({
                 />
               )}
             </div>
+            {errors.date && touched.date ? <span>{errors.date}</span> : null}
+            {errors.from_account && touched.from_account ? (
+              <span>{errors.from_account}</span>
+            ) : null}
+            {errors.to_account && touched.to_account ? (
+              <span>{errors.to_account}</span>
+            ) : null}
+            {errors.from_amount && touched.from_amount ? (
+              <span>{errors.from_amount}</span>
+            ) : null}
+            {errors.description && touched.description ? (
+              <span>{errors.description}</span>
+            ) : null}
           </Form>
         )}
       </Formik>

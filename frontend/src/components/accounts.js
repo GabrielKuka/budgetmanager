@@ -225,12 +225,16 @@ const CreateAccount = ({ refreshAccounts }) => {
           type: "",
         }}
         validationSchema={validationSchemas.accountsFormSchema}
-        onSubmit={async (values, { setSubmitting, resetForm }) => {
-          await transactionService.addAccount(values);
-          await refreshAccounts();
-          showToast("Account Created", "success");
-          setSubmitting(false);
-          resetForm();
+        validateOnChange={false}
+        validateOnBlur={false}
+        onSubmit={(values, { setSubmitting, resetForm, validateForm }) => {
+          validateForm().then(async () => {
+            await transactionService.addAccount(values);
+            await refreshAccounts();
+            showToast("Account Created", "success");
+            setSubmitting(false);
+            resetForm();
+          });
         }}
       >
         {({ errors, touched }) => (
