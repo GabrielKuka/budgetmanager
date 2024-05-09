@@ -82,4 +82,20 @@ export const validationSchemas = {
       .required("Email is required."),
     password: Yup.string().required("Password is required."),
   }),
+  templateFormSchema: Yup.object().shape({
+    type: Yup.string().required("Transaction type is required."),
+    category: Yup.string().required("Category is required."),
+    amount: Yup.number()
+      .required("Amount is required.")
+      .typeError("Amount must be a number.")
+      .positive("Amount must be positive and greater than 0."),
+    description: Yup.string().max(
+      50,
+      "Description can be at most 50 charaters."
+    ),
+    template_group: Yup.string().required("Select a template group."),
+  }),
+  templateGroupFormSchema: Yup.object().shape({
+    name: Yup.string().required("Template group name is required."),
+  }),
 };

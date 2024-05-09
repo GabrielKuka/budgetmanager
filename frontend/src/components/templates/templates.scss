@@ -38,9 +38,16 @@
           transition: padding-left 0.3s;
         }
 
-        .tags_container{
+        span {
+          color: red;
+          font-size: 12px;
+          margin-top: 0;
+          margin-bottom: 0;
+        }
+
+        .tags_container {
           @include flex(column, flex-start, flex-start);
-          gap:5px;
+          gap: 5px;
           width: 100%;
           &__input {
             @include flex(row, flex-start, flex-start);
@@ -55,20 +62,19 @@
               color: white;
               font-weight: bold;
             }
-            
-            #add_tag_textfield{
+
+            #add_tag_textfield {
               border: 1px solid cadetblue;
               border-radius: 3px;
               transition: border 0.3s;
 
-              &:hover{
+              &:hover {
                 border-radius: 3px;
               }
-              &:focus{
-                outline:none;
+              &:focus {
+                outline: none;
               }
             }
-
           }
           &__shown-tags {
             @include flex(row, flex-start, flex-start);

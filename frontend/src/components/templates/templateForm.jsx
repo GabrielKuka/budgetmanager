@@ -4,6 +4,7 @@ import { Formik, Form, Field } from "formik";
 import transactionService from "../../services/transactionService/transactionService";
 import { useToast } from "../../context/ToastContext";
 import { helper } from "../helper";
+import { validationSchemas } from "../../validationSchemas";
 
 const TemplateForm = (props) => {
   const showToast = useToast();
@@ -44,17 +45,22 @@ const TemplateForm = (props) => {
         type: "",
         template_group: "",
       }}
-      onSubmit={async (values, { setSubmitting, resetForm }) => {
-        values["tags"] = tags.map((t) => ({ name: t }));
-        await transactionService.addTemplate(values);
-        await props.refreshTemplateGroups();
-        showToast(`Transaction Added in The Template`, "info");
-        setSubmitting(false);
-        setTags([]);
-        resetForm();
+      validateOnBlur={false}
+      validateOnChange={false}
+      validationSchema={validationSchemas.templateFormSchema}
+      onSubmit={(values, { setSubmitting, resetForm, validateForm }) => {
+        validateForm().then(async () => {
+          values["tags"] = tags.map((t) => ({ name: t }));
+          await transactionService.addTemplate(values);
+          await props.refreshTemplateGroups();
+          showToast(`Transaction Added in The Template`, "info");
+          setSubmitting(false);
+          setTags([]);
+          resetForm();
+        });
       }}
     >
-      {({ values }) => (
+      {({ values, errors, touched }) => (
         <Form className={"form"}>
           <label>Add Template</label>
           <Field as="select" name="type" id="type">
@@ -219,6 +225,28 @@ const TemplateForm = (props) => {
           <button type="submit" id="submit-button">
             Submit
           </button>
+          {errors.type && touched.type ? <span>{errors.type}</span> : null}
+          {errors.category && touched.category ? (
+            <span>{errors.category}</span>
+          ) : null}
+          {errors.amount && touched.amount ? (
+            <span>{errors.amount}</span>
+          ) : null}
+          {errors.account && touched.account ? (
+            <span>{errors.account}</span>
+          ) : null}
+          {errors.from_account && touched.from_account ? (
+            <span>{errors.from_account}</span>
+          ) : null}
+          {errors.to_account && touched.to_account ? (
+            <span>{errors.to_account}</span>
+          ) : null}
+          {errors.description && touched.description ? (
+            <span>{errors.description}</span>
+          ) : null}
+          {errors.template_group && touched.template_group ? (
+            <span>{errors.template_group}</span>
+          ) : null}
         </Form>
       )}
     </Formik>
