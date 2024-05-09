@@ -4,6 +4,7 @@ import { useGlobalContext } from "../../context/GlobalContext";
 import { Navigate, Link } from "react-router-dom";
 import { useToast } from "../../context/ToastContext";
 import "./login.scss";
+import { validationSchemas } from "../../validationSchemas";
 
 const Login = () => {
   const global = useGlobalContext();
@@ -16,19 +17,24 @@ const Login = () => {
   return (
     <div className={"login-wrapper"}>
       <Formik
+        validateOnBlur={false}
+        validateOnChange={false}
+        validationSchema={validationSchemas.loginFormSchema}
         initialValues={{ email: "", password: "" }}
-        onSubmit={async (values, { setSubmitting, resetForm }) => {
-          const payload = { email: values.email, password: values.password };
-          resetForm();
-          setSubmitting(false);
-          try {
-            await global.loginUser(payload);
-          } catch (error) {
-            showToast(error.message, "error");
-          }
+        onSubmit={(values, { setSubmitting, resetForm, validateForm }) => {
+          validateForm().then(async () => {
+            const payload = { email: values.email, password: values.password };
+            resetForm();
+            setSubmitting(false);
+            try {
+              await global.loginUser(payload);
+            } catch (error) {
+              showToast(error.message, "error");
+            }
+          });
         }}
       >
-        {(props) => (
+        {({ errors, touched, isSubmitting }) => (
           <Form className={"login-wrapper__form"}>
             <label>Login</label>
             <Field
@@ -44,8 +50,12 @@ const Login = () => {
               placeholder="Password"
             />
             <button type="submit" id="submit-button">
-              {props.isSubmitting ? "Logging in.." : "Log in"}
+              {isSubmitting ? "Logging in.." : "Log in"}
             </button>
+            {errors.email && touched.email ? <span>{errors.email}</span> : null}
+            {errors.password && touched.password ? (
+              <span>{errors.password}</span>
+            ) : null}
             <Link to="/register" id={"register-link"}>
               New? Register an account here.
             </Link>

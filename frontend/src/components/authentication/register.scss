@@ -42,6 +42,13 @@
       transition: padding-left 0.3s;
     }
 
+    span {
+      color: red;
+      font-size: 12px;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
     #submit-button {
       border: 1px solid cadetblue;
       background-color: cadetblue;
@@ -69,7 +76,6 @@
         text-decoration: underline;
       }
     }
-    
   }
 
   &__form:hover {
