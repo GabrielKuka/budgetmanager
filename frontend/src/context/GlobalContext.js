@@ -131,6 +131,7 @@ const GlobalProvider = ({ children }) => {
           }
         });
     } catch (e) {
+      console.log(e);
       if (e.response) {
         if (e.response.data.non_field_errors) {
           throw new Error(e.response.data.non_field_errors[0]);

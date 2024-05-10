@@ -37,6 +37,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True, null=False)
     name = models.CharField(max_length=255, null=False)
     phone = models.CharField(max_length=15, null=False)
+    created_on = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     objects = UserManager()
