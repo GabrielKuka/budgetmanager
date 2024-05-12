@@ -80,7 +80,8 @@ const Expenses = ({ dateRange }) => {
 
 const Sidebar = (props) => {
   const global = useGlobalContext();
-  const [totalShownExpenses, setTotalShownExpenses] = useState(0);
+  const [totalShownExpenses, setTotalShownExpenses] = useState(false);
+  const [shownExpenseRate, setShownExpenseRate] = useState(false);
 
   useEffect(() => {
     async function getTotal() {
@@ -100,8 +101,50 @@ const Sidebar = (props) => {
 
       setTotalShownExpenses(parseFloat(total).toFixed(2));
     }
+
     getTotal();
   }, [props.shownExpenses]);
+
+  useEffect(() => {
+    async function getExpenseRate() {
+      if (totalShownExpenses) {
+        if (!global.incomes) {
+          return;
+        }
+        let filteredincomes = global.incomes?.filter(
+          (i) =>
+            new Date(i.date) >= props.dateRange.from &&
+            new Date(i.date) <= props.dateRange.to
+        );
+        let promises = filteredincomes?.map(async (e) => {
+          return await currencyService.convert(
+            props.getAccountCurrency(e.account),
+            "EUR",
+            e.amount
+          );
+        });
+
+        const results = await Promise.all(promises);
+        let totalIncome = results.reduce(
+          (acc, curr) => acc + parseFloat(curr),
+          0
+        );
+
+        if (totalIncome === 0 || totalShownExpenses > totalIncome) {
+          setShownExpenseRate(false);
+          return;
+        }
+
+        const rate = (totalShownExpenses / totalIncome) * 100;
+        console.log(`Income: ${totalIncome}`);
+        console.log(`Expenses: ${totalShownExpenses}`);
+        console.log(`Rate: ${rate}`);
+
+        setShownExpenseRate(parseFloat(rate).toFixed(2));
+      }
+    }
+    getExpenseRate();
+  }, [totalShownExpenses]);
 
   return (
     <div className={"expenses-wrapper__sidebar"}>
@@ -116,9 +159,15 @@ const Sidebar = (props) => {
         <b>{helper.showOrMask(global.privacyMode, totalShownExpenses)}€</b>{" "}
         spent{" "}
         <small>
-          from {props.dateRange?.from.toDateString()} to{" "}
-          {props.dateRange?.to.toDateString()}.
+          from{" "}
+          {props.dateRange?.from.toDateString().split(" ").slice(1).join(" ")}{" "}
+          to {props.dateRange?.to.toDateString().split(" ").slice(1).join(" ")}{" "}
         </small>
+        {shownExpenseRate && (
+          <span>
+            or <i>{shownExpenseRate}%</i> of your current income.
+          </span>
+        )}
       </div>
       <CurrentExpensesBarChart
         expenses={props.shownExpenses}
