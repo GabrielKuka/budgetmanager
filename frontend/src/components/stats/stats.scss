@@ -6,13 +6,13 @@
   margin: 100px 10px 30px 10px;
 
   @include flex(row, space-around, center, wrap);
-  flex: 0 0 calc(33.00% - 20px); 
+  flex: 0 0 calc(33% - 20px);
   gap: 20px;
 
   .chart-container {
     @include flex(column, center, center);
-    border: 1px solid #DADADA;
-    box-shadow: 1px 1px 5px #DADADA;
+    border: 1px solid #dadada;
+    box-shadow: 1px 1px 5px #dadada;
     border-radius: 3px;
 
     .chart {
@@ -22,6 +22,15 @@
       text-align: center;
     }
 
+    #sankey-legend {
+      position: absolute;
+      color: black;
+      bottom: 20px;
+      background-color: #d3d3d3;
+      padding: 7px;
+      font-size: 13px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
   }
-
 }
