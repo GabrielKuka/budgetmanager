@@ -9,7 +9,7 @@
   &__sidebar {
     position: fixed;
     width: 70px;
-    border: 1px solid #DADADA;
+    border: 1px solid #dadada;
     box-shadow: 1px 1px 2px #dadada;
     @include flex(column, flex-start, center);
     gap: 15px;
@@ -18,15 +18,14 @@
     padding-top: 20px;
     z-index: 2000;
 
-    input[type="image"]{
-
+    input[type="image"] {
       padding: 10px;
       border-radius: 5px;
       transition: background-color ease-in 0.1s;
       cursor: pointer;
 
       &:hover {
-        background-color: #DCDCDC;
+        background-color: #dcdcdc;
       }
     }
 
@@ -37,10 +36,8 @@
       cursor: pointer;
 
       &:hover {
-        background-color: #DCDCDC;
+        background-color: #dcdcdc;
       }
     }
-
   }
-
 }

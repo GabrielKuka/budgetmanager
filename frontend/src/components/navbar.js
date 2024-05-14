@@ -325,5 +325,5 @@ const SuggestionItem = ({
 };
 
 const LoggedOutNavbar = () => {
-  return <div>Logged out</div>;
+  return false;
 };
