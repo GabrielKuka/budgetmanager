@@ -229,7 +229,10 @@ function CustomNode({ x, y, width, height, index, payload, containerWidth }) {
         stroke="#333"
         strokeOpacity="0.5"
       >
-        {helper.showOrMask(global.privacyMode, payload.value) + "€"}
+        {helper.showOrMask(
+          global.privacyMode,
+          parseFloat(payload.value).toFixed(2)
+        ) + "€"}
       </text>
     </Layer>
   );
