@@ -4,7 +4,7 @@ import currencyService from "../../services/currencyService";
 import "./conversiontool.scss";
 
 const ConversionTool = ({ closePopup }) => {
-  const currencies = ["BGN", "EUR", "USD", "GBP"];
+  const currencies = ["BGN", global.globalCurrency, "USD", "GBP"];
   const [result, setResult] = useState(null);
 
   return (
@@ -21,7 +21,7 @@ const ConversionTool = ({ closePopup }) => {
           initialValues={{
             amount: 0,
             from_currency: "BGN",
-            to_currency: "EUR",
+            to_currency: global.globalCurrency,
           }}
           onSubmit={async (values) => {
             const from = values.from_currency;

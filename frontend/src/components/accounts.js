@@ -75,7 +75,11 @@ const Sidebar = ({
     async function convertInvestments() {
       let promises = accounts?.map(async (a) => {
         if (a.type == 1) {
-          return await currencyService.convert(a.currency, "EUR", a.amount);
+          return await currencyService.convert(
+            a.currency,
+            global.globalCurrency,
+            a.amount
+          );
         }
         return 0;
       });
@@ -87,7 +91,11 @@ const Sidebar = ({
     async function convertCash() {
       let promises = accounts?.map(async (a) => {
         if (a.type == 2) {
-          return await currencyService.convert(a.currency, "EUR", a.amount);
+          return await currencyService.convert(
+            a.currency,
+            global.globalCurrency,
+            a.amount
+          );
         }
         return 0;
       });
@@ -98,7 +106,11 @@ const Sidebar = ({
     async function convertBankAssets() {
       let promises = accounts?.map(async (a) => {
         if (a.type == 0) {
-          return await currencyService.convert(a.currency, "EUR", a.amount);
+          return await currencyService.convert(
+            a.currency,
+            global.globalCurrency,
+            a.amount
+          );
         }
         return 0;
       });
@@ -111,7 +123,7 @@ const Sidebar = ({
     convertInvestments();
     convertCash();
     convertBankAssets();
-  }, [accounts]);
+  }, [accounts, global.globalCurrency]);
 
   return (
     <div className={"accounts-wrapper__sidebar"}>
@@ -134,7 +146,7 @@ const Sidebar = ({
               global.privacyMode,
               helper.formatNumber(investments)
             )}{" "}
-            €
+            {helper.getCurrency(global.globalCurrency)}
           </small>
         </label>
         <label>
@@ -149,7 +161,8 @@ const Sidebar = ({
           }
           <span>Hard cash: </span>
           <small>
-            {helper.showOrMask(global.privacyMode, helper.formatNumber(cash))} €
+            {helper.showOrMask(global.privacyMode, helper.formatNumber(cash))}
+            {helper.getCurrency(global.globalCurrency)}
           </small>
         </label>
         <label>
@@ -168,7 +181,7 @@ const Sidebar = ({
               global.privacyMode,
               helper.formatNumber(bankAssets)
             )}{" "}
-            €
+            {helper.getCurrency(global.globalCurrency)}
           </small>
         </label>
         <label>
@@ -180,7 +193,7 @@ const Sidebar = ({
               global.privacyMode,
               helper.formatNumber(networth)
             )}{" "}
-            €
+            {helper.getCurrency(global.globalCurrency)}
           </b>
         </label>
       </div>

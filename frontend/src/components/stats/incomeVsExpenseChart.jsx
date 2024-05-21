@@ -13,6 +13,7 @@ import { useGlobalContext } from "../../context/GlobalContext";
 import { helper } from "../helper";
 
 const IncomeVsExpenseChart = (props) => {
+  const global = useGlobalContext();
   const [data, setData] = useState(null);
 
   useEffect(() => {
@@ -38,7 +39,7 @@ const IncomeVsExpenseChart = (props) => {
 
             let amount = await currencyService.convert(
               props.getAccountCurrency(e.account),
-              "EUR",
+              global.globalCurrency,
               e.amount
             );
             expensesByMonth[monthYear] += Number(amount) || 0;
@@ -62,7 +63,7 @@ const IncomeVsExpenseChart = (props) => {
 
             const amount = await currencyService.convert(
               props.getAccountCurrency(i.account),
-              "EUR",
+              global.globalCurrency,
               i.amount
             );
 
@@ -158,10 +159,16 @@ const AreaChartChartToolTip = ({ active, payload }) => {
         {`${data.date}`}
         <br />
         Earned:{" "}
-        <b>{`${helper.showOrMask(global.privacyMode, data.income)}`} €</b>
+        <b>
+          {`${helper.showOrMask(global.privacyMode, data.income)}`}{" "}
+          {helper.getCurrency(global.globalCurrency)}
+        </b>
         <br />
         Spent:{" "}
-        <b>{`${helper.showOrMask(global.privacyMode, data.expense)}`} €</b>
+        <b>
+          {`${helper.showOrMask(global.privacyMode, data.expense)}`}{" "}
+          {helper.getCurrency(global.globalCurrency)}
+        </b>
         <br />
         Saved:{" "}
         <b>
@@ -169,7 +176,7 @@ const AreaChartChartToolTip = ({ active, payload }) => {
             global.privacyMode,
             parseFloat(data.income - data.expense).toFixed(2)
           )}{" "}
-          €
+          {helper.getCurrency(global.globalCurrency)}
         </b>
       </div>
     );

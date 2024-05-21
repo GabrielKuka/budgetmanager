@@ -3,9 +3,11 @@ import currencyService from "../../services/currencyService";
 import { Pie, PieChart, Cell, Label, Tooltip, Legend } from "recharts";
 import PieChartToolTip from "./pieChartToolTip";
 import PieChartCustomizedLabel from "./pieChartCustomLabel";
+import { useGlobalContext } from "../../context/GlobalContext";
 
 const NetworthPieChart = ({ accounts }) => {
   const [data, setData] = useState(null);
+  const global = useGlobalContext();
 
   const [investments, setInvestments] = useState("");
   const [bankAssets, setBankAssets] = useState("");
@@ -45,7 +47,11 @@ const NetworthPieChart = ({ accounts }) => {
     async function convertInvestments() {
       let promises = accounts.map(async (a) => {
         if (a.type == 1) {
-          return await currencyService.convert(a.currency, "EUR", a.amount);
+          return await currencyService.convert(
+            a.currency,
+            global.globalCurrency,
+            a.amount
+          );
         }
         return 0;
       });
@@ -57,7 +63,11 @@ const NetworthPieChart = ({ accounts }) => {
     async function convertCash() {
       let promises = accounts.map(async (a) => {
         if (a.type == 2) {
-          return await currencyService.convert(a.currency, "EUR", a.amount);
+          return await currencyService.convert(
+            a.currency,
+            global.globalCurrency,
+            a.amount
+          );
         }
         return 0;
       });
@@ -69,7 +79,11 @@ const NetworthPieChart = ({ accounts }) => {
     async function convertBankAssets() {
       let promises = accounts.map(async (a) => {
         if (a.type == 0) {
-          return await currencyService.convert(a.currency, "EUR", a.amount);
+          return await currencyService.convert(
+            a.currency,
+            global.globalCurrency,
+            a.amount
+          );
         }
         return 0;
       });

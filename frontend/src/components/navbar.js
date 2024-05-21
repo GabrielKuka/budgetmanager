@@ -138,6 +138,10 @@ const LoggedInNavbar = () => {
     setSearchResults(results);
   }
 
+  function changeGlobalCurrency(event) {
+    global.changeGlobalCurrency(event.target.value);
+  }
+
   return (
     <div className={"navbar-wrapper__loggedin"}>
       <div className={"fullname-container"} onClick={() => navigate("profile")}>
@@ -217,6 +221,16 @@ const LoggedInNavbar = () => {
       <button id="stats" onClick={(e) => handlePage(e)}>
         Stats
       </button>
+      <select
+        id="global_currency"
+        value={global.globalCurrency}
+        onChange={changeGlobalCurrency}
+      >
+        <option value="EUR">EUR</option>
+        <option value="USD">USD</option>
+        <option value="ALL">ALL</option>
+        <option value="BGN">BGN</option>
+      </select>
       <input
         id={"privacy_btn"}
         title="Toggle Privacy Mode"

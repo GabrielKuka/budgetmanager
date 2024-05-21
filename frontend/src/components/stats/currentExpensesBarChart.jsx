@@ -5,6 +5,7 @@ import { useGlobalContext } from "../../context/GlobalContext";
 import { helper } from "../helper";
 
 const CurrentExpensesBarChart = (props) => {
+  const global = useGlobalContext();
   const [yMaxValue, setYMaxValue] = useState({});
   const [expensesPerCategory, setExpensesPerCategory] = useState(null);
 
@@ -19,7 +20,7 @@ const CurrentExpensesBarChart = (props) => {
         ?.map(async (e) => {
           return await currencyService.convert(
             props.getAccountCurrency(e.account),
-            "EUR",
+            global.globalCurrency,
             e.amount
           );
         });
@@ -40,7 +41,7 @@ const CurrentExpensesBarChart = (props) => {
 
   useEffect(() => {
     getExpensesPerCategory();
-  }, [props.expenses, props.categories]);
+  }, [props.expenses, props.categories, global.globalCurrency]);
 
   useEffect(() => {
     if (expensesPerCategory) {
@@ -89,7 +90,7 @@ const BarChartToolTip = ({ active, payload }) => {
           <b>{`${data.category} : ${helper.showOrMask(
             global.privacyMode,
             parseFloat(data.amount).toFixed(2)
-          )} €`}</b>
+          )}${helper.getCurrency(global.globalCurrency)}`}</b>
         </p>
       </div>
     );

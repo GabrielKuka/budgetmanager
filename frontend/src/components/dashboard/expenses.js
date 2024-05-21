@@ -88,7 +88,7 @@ const Sidebar = (props) => {
       let promises = props.shownExpenses?.map(async (e) => {
         return await currencyService.convert(
           props.getAccountCurrency(e.account),
-          "EUR",
+          global.globalCurrency,
           e.amount
         );
       });
@@ -103,7 +103,7 @@ const Sidebar = (props) => {
     }
 
     getTotal();
-  }, [props.shownExpenses]);
+  }, [props.shownExpenses, global.globalCurrency]);
 
   useEffect(() => {
     async function getExpenseRate() {
@@ -119,7 +119,7 @@ const Sidebar = (props) => {
         let promises = filteredincomes?.map(async (e) => {
           return await currencyService.convert(
             props.getAccountCurrency(e.account),
-            "EUR",
+            global.globalCurrency,
             e.amount
           );
         });
@@ -136,15 +136,12 @@ const Sidebar = (props) => {
         }
 
         const rate = (totalShownExpenses / totalIncome) * 100;
-        console.log(`Income: ${totalIncome}`);
-        console.log(`Expenses: ${totalShownExpenses}`);
-        console.log(`Rate: ${rate}`);
 
         setShownExpenseRate(parseFloat(rate).toFixed(2));
       }
     }
     getExpenseRate();
-  }, [totalShownExpenses]);
+  }, [totalShownExpenses, global.globalCurrency]);
 
   return (
     <div className={"expenses-wrapper__sidebar"}>
@@ -156,7 +153,10 @@ const Sidebar = (props) => {
         getAccountCurrency={props.getAccountCurrency}
       />
       <div className={"summary"}>
-        <b>{helper.showOrMask(global.privacyMode, totalShownExpenses)}€</b>{" "}
+        <b>
+          {helper.showOrMask(global.privacyMode, totalShownExpenses)}
+          {helper.getCurrency(global.globalCurrency)}
+        </b>{" "}
         spent{" "}
         <small>
           from{" "}

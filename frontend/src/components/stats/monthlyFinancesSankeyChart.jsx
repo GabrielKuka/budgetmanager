@@ -6,6 +6,7 @@ import { useGlobalContext } from "../../context/GlobalContext";
 
 const MonthlyFinancesSankeyChart = (props) => {
   const [chartData, setChartData] = useState(false);
+  const global = useGlobalContext();
   useEffect(() => {
     // Use only incomes/expenses for the current month
     const currentMonthIncomes = props.incomes?.filter(
@@ -25,7 +26,7 @@ const MonthlyFinancesSankeyChart = (props) => {
       let promises = currentMonthIncomes?.map(async (e) => {
         return await currencyService.convert(
           props.getAccountCurrency(e.account),
-          "EUR",
+          global.globalCurrency,
           e.amount
         );
       });
@@ -47,7 +48,7 @@ const MonthlyFinancesSankeyChart = (props) => {
           ?.map(async (e) => {
             return await currencyService.convert(
               props.getAccountCurrency(e.account),
-              "EUR",
+              global.globalCurrency,
               e.amount
             );
           });
@@ -70,7 +71,7 @@ const MonthlyFinancesSankeyChart = (props) => {
       let promises = currentMonthExpenses?.map(async (e) => {
         return await currencyService.convert(
           props.getAccountCurrency(e.account),
-          "EUR",
+          global.globalCurrency,
           e.amount
         );
       });
@@ -94,7 +95,7 @@ const MonthlyFinancesSankeyChart = (props) => {
           ?.map(async (e) => {
             return await currencyService.convert(
               props.getAccountCurrency(e.account),
-              "EUR",
+              global.globalCurrency,
               e.amount
             );
           });
@@ -165,7 +166,7 @@ const MonthlyFinancesSankeyChart = (props) => {
     }
 
     prepareData();
-  }, []);
+  }, [, global.globalCurrency]);
 
   return (
     <>
@@ -232,7 +233,7 @@ function CustomNode({ x, y, width, height, index, payload, containerWidth }) {
         {helper.showOrMask(
           global.privacyMode,
           parseFloat(payload.value).toFixed(2)
-        ) + "€"}
+        ) + helper.getCurrency(global.globalCurrency)}
       </text>
     </Layer>
   );
@@ -266,7 +267,7 @@ const CustomTooltip = ({ active, payload }) => {
           global.privacyMode,
           parseFloat(data.value).toFixed(2)
         )}
-        €{" "}
+        {helper.getCurrency(global.globalCurrency)}{" "}
       </b>
     </div>
   );

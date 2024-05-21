@@ -20,6 +20,11 @@ const GlobalProvider = ({ children }) => {
   const [expenseCategories, setExpenseCategories] = useState(null);
 
   const [privacyMode, setPrivacyMode] = useState(false);
+  const [globalCurrency, setGlobalCurrency] = useState(
+    localStorage.getItem("globalCurrency")
+      ? JSON.parse(localStorage.getItem("globalCurrency"))
+      : "EUR"
+  );
 
   const [authToken, setauthToken] = useState(() =>
     localStorage.getItem("authToken")
@@ -54,6 +59,11 @@ const GlobalProvider = ({ children }) => {
     setPrivacyMode(newPrivacyMode);
     localStorage.setItem("privacyMode", JSON.stringify(newPrivacyMode));
   };
+
+  function changeGlobalCurrency(currency) {
+    setGlobalCurrency(currency);
+    localStorage.setItem("globalCurrency", JSON.stringify(currency));
+  }
 
   async function updateAccounts() {
     const response = await accountService.getAllUserAccounts();
@@ -131,7 +141,6 @@ const GlobalProvider = ({ children }) => {
           }
         });
     } catch (e) {
-      console.log(e);
       if (e.response) {
         if (e.response.data.non_field_errors) {
           throw new Error(e.response.data.non_field_errors[0]);
@@ -204,6 +213,9 @@ const GlobalProvider = ({ children }) => {
 
     privacyMode,
     togglePrivacyMode,
+
+    globalCurrency,
+    changeGlobalCurrency,
   };
 
   return (

@@ -38,7 +38,7 @@ const FoodExpensesChart = (props) => {
 
           const amount = await currencyService.convert(
             props.getAccountCurrency(i.account),
-            "EUR",
+            global.globalCurrency,
             i.amount
           );
 
@@ -61,7 +61,7 @@ const FoodExpensesChart = (props) => {
 
           let amount = await currencyService.convert(
             props.getAccountCurrency(e.account),
-            "EUR",
+            global.globalCurrency,
             e.amount
           );
           foodExpensesByMonth[monthYear] += Number(amount) || 0;
@@ -144,7 +144,7 @@ const CustomTooltip = ({ active, payload }) => {
             global.privacyMode,
             parseFloat(data.income).toFixed(2)
           )}`}{" "}
-          €
+          {helper.getCurrency(global.globalCurrency)}
         </b>
         <br />
         Food:{" "}
@@ -153,7 +153,7 @@ const CustomTooltip = ({ active, payload }) => {
             global.privacyMode,
             parseFloat(data.food).toFixed(2)
           )}`}{" "}
-          €{" "}
+          {helper.getCurrency(global.globalCurrency)}{" "}
         </b>
         <br />
         Ratio: <b>{`${parseFloat(data.ratio).toFixed(2)}`} %</b>

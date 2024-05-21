@@ -99,7 +99,7 @@ const Sidebar = (props) => {
       let promises = props.shownIncomes?.map(async (e) => {
         return await currencyService.convert(
           props.getAccountCurrency(e.account),
-          "EUR",
+          global.globalCurrency,
           e.amount
         );
       });
@@ -121,7 +121,7 @@ const Sidebar = (props) => {
           ?.map(async (e) => {
             return await currencyService.convert(
               props.getAccountCurrency(e.account),
-              "EUR",
+              global.globalCurrency,
               e.amount
             );
           });
@@ -139,7 +139,7 @@ const Sidebar = (props) => {
 
     getIncomesPerCategory();
     getTotal();
-  }, [props.shownIncomes]);
+  }, [props.shownIncomes, global.globalCurrency]);
 
   return (
     <div className={"incomes-wrapper__sidebar"}>
@@ -151,7 +151,10 @@ const Sidebar = (props) => {
         getAccountCurrency={props.getAccountCurrency}
       />
       <div className={"summary"}>
-        <b>{helper.showOrMask(global.privacyMode, totalShownIncomes)}€</b>{" "}
+        <b>
+          {helper.showOrMask(global.privacyMode, totalShownIncomes)}
+          {helper.getCurrency(global.globalCurrency)}
+        </b>{" "}
         earned{" "}
         <small>
           from {props.dateRange.from.toDateString()} to{" "}

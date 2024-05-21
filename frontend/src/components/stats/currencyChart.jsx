@@ -3,9 +3,11 @@ import currencyService from "../../services/currencyService";
 import { Pie, PieChart, Cell, Label, Tooltip, Legend } from "recharts";
 import PieChartToolTip from "./pieChartToolTip";
 import PieChartCustomizedLabel from "./pieChartCustomLabel";
+import { useGlobalContext } from "../../context/GlobalContext";
 
 const NetworthBasedOnCurrencyChart = ({ accounts }) => {
   const [data, setData] = useState(null);
+  const global = useGlobalContext();
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF0000"];
 
@@ -26,7 +28,11 @@ const NetworthBasedOnCurrencyChart = ({ accounts }) => {
 
     let total = 0;
     for (let c in currencies) {
-      currencies[c] = await currencyService.convert(c, "EUR", currencies[c]);
+      currencies[c] = await currencyService.convert(
+        c,
+        global.globalCurrency,
+        currencies[c]
+      );
       total += parseFloat(currencies[c]);
     }
 
