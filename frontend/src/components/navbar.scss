@@ -30,7 +30,7 @@
         font-size: 15px;
 
         &:focus {
-          outline:none;
+          outline: none;
           width: 310px;
         }
       }
@@ -42,14 +42,14 @@
         transition: transform 0.3s ease;
 
         &:hover {
-          transform: scale(1.2)
+          transform: scale(1.2);
         }
       }
 
       .suggestions-container {
         position: absolute;
         background-color: white;
-        box-shadow: 4px 4px 10px #DADADA;
+        box-shadow: 4px 4px 10px #dadada;
         top: 70px;
         border-radius: 3px;
         width: 350px;
@@ -81,14 +81,14 @@
             }
           }
           .tags {
-              .tag {
-                  background-color: cadetblue;
-                  color: white;
-                  font-weight: bold;
-                  border-radius: 3px;
-                  padding: 1px 6px 1px 6px;
-                  margin-left: 5px;
-              }
+            .tag {
+              background-color: cadetblue;
+              color: white;
+              font-weight: bold;
+              border-radius: 3px;
+              padding: 1px 6px 1px 6px;
+              margin-left: 5px;
+            }
           }
           hr {
             width: 100%;
@@ -96,15 +96,15 @@
           }
         }
       }
-
     }
-    #logout-button, #converter, #privacy_btn {
+    #logout-button,
+    #converter,
+    #privacy_btn {
       width: 25px;
       height: 25px;
       border-radius: 3px;
       padding: 5px;
       transition: background-color 0.3s;
-
     }
     #logout-button {
       &:hover {
@@ -112,13 +112,39 @@
       }
     }
 
-    #converter, #privacy_btn {
+    #converter,
+    #privacy_btn {
       &:hover {
         background-color: rgb(70, 130, 180, 0.5);
       }
     }
-    
-    .fullname-container{
+
+    #global_currency {
+      appearance: none;
+      background-color: transparent;
+      outline: none;
+      border: 1px solid white;
+      border-radius: 3px;
+      padding: 5px 12px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+
+      option {
+        color: cadetblue;
+        font-size: 16px;
+      }
+      option:checked {
+        background-color: cadetblue;
+        color: white;
+      }
+      option:hover {
+        background-color: lightgray;
+      }
+    }
+
+    .fullname-container {
       @include flex(row, flex-start, center);
       gap: 8px;
       border-right: 2px solid white;
@@ -126,11 +152,11 @@
       transition: background-color 0.2s ease-in, transform 0.2s ease;
 
       &:active {
-        transform: scale(0.99)
+        transform: scale(0.99);
       }
 
       &:hover {
-       background-color: steelblue; 
+        background-color: steelblue;
       }
 
       .fullname {
@@ -159,11 +185,11 @@
       text-transform: uppercase;
     }
 
-    button:hover{
+    button:hover {
       border-bottom: 2px solid white;
     }
     button:active {
-      transform: scale(0.97)
+      transform: scale(0.97);
     }
     .currency-converter-form {
       margin-left: 50px;
@@ -173,6 +199,5 @@
         width: 70px;
       }
     }
-
   }
 }
