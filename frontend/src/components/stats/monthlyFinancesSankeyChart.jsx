@@ -56,7 +56,7 @@ const MonthlyFinancesSankeyChart = (props) => {
         const results = await Promise.all(promises);
         const total = results.reduce((t, curr) => (t += parseFloat(curr)), 0);
         data.push({
-          category: c.category,
+          category: c.category === "Other" ? "Other " : c.category,
           amount: parseFloat(total).toFixed(2),
         });
       }
@@ -124,7 +124,10 @@ const MonthlyFinancesSankeyChart = (props) => {
         if (parseFloat(obj.amount) === 0.0) {
           continue;
         }
-        data["nodes"]?.push({ name: obj.category, color: "#90ee90" });
+        data["nodes"]?.push({
+          name: obj.category,
+          color: "#90ee90",
+        });
         const sourceIndex = data.nodes
           ?.map((o) => o.name)
           .indexOf(obj.category);
@@ -162,6 +165,7 @@ const MonthlyFinancesSankeyChart = (props) => {
           ).toFixed(2)
         ),
       });
+      console.log(data);
       setChartData(data);
     }
 

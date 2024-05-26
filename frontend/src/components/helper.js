@@ -1,6 +1,6 @@
 export const helper = {
   showOrMask: (priv_mode, value) => {
-    return priv_mode ? "******" : value;
+    return priv_mode ? "****" : value;
   },
   getAccountName: (accounts, id) => {
     const account = accounts?.filter((a) => a.id === id);
