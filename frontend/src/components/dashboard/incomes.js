@@ -120,18 +120,19 @@ const Sidebar = (props) => {
           ?.filter((e) => e.income_category == c.id)
           ?.map(async (e) => {
             return await currencyService.convert(
-              props.getAccountCurrency(e.account),
+              props.getAccountCurrency(e?.account),
               global.globalCurrency,
               e.amount
             );
           });
-
-        const results = await Promise.all(promises);
-        const total = results.reduce((t, curr) => (t += parseFloat(curr)), 0);
-        data.push({
-          category: c.category,
-          amount: parseFloat(total).toFixed(2),
-        });
+        if (promises && promises.length > 0) {
+          const results = await Promise.all(promises);
+          const total = results.reduce((t, curr) => (t += parseFloat(curr)), 0);
+          data.push({
+            category: c.category,
+            amount: parseFloat(total).toFixed(2),
+          });
+        }
       }
 
       setIncomesPerCategory(data);
