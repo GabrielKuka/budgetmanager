@@ -1,4 +1,5 @@
-export const BASE_URL = "http://server1.tailf267c.ts.net";
+//export const BASE_URL = "http://server1.tailf267c.ts.net";
+export const BASE_URL = "http://budget_manager_backend";
 //export const BASE_URL = "http://127.0.0.1";
 export const BACKEND_PORT = "8001"; // <- 8002 for test
 export const FRONTEND_PORT = "3001";
