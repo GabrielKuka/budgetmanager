@@ -98,7 +98,7 @@ const IncomeVsExpenseChart = (props) => {
     }
 
     arrangeData();
-  }, [props.expenses, props.incomes]);
+  }, [props.expenses, props.incomes, global.globalCurrency]);
 
   return (
     <AreaChart
@@ -144,7 +144,7 @@ const IncomeVsExpenseChart = (props) => {
 const AreaChartChartToolTip = ({ active, payload }) => {
   const global = useGlobalContext();
   if (active && payload && payload.length) {
-    const data = payload[0].payload;
+    const data = payload[0]?.payload;
     return (
       <div
         style={{
@@ -160,13 +160,19 @@ const AreaChartChartToolTip = ({ active, payload }) => {
         <br />
         Earned:{" "}
         <b>
-          {`${helper.showOrMask(global.privacyMode, data.income)}`}{" "}
+          {`${helper.showOrMask(
+            global.privacyMode,
+            parseFloat(data.income, 2)
+          )}`}{" "}
           {helper.getCurrency(global.globalCurrency)}
         </b>
         <br />
         Spent:{" "}
         <b>
-          {`${helper.showOrMask(global.privacyMode, data.expense)}`}{" "}
+          {`${helper.showOrMask(
+            global.privacyMode,
+            parseFloat(data.expense, 2)
+          )}`}{" "}
           {helper.getCurrency(global.globalCurrency)}
         </b>
         <br />
