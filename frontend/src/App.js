@@ -12,7 +12,7 @@ import Register from "./components/authentication/register";
 import ToastProvider from "./context/ToastContext";
 import ConfirmProvider from "./context/ConfirmContext";
 import Stats from "./components/stats/stats";
-import SearchResults from "./components/searchresults";
+import SearchResults from "./components/search/searchresults";
 
 function App() {
   return (

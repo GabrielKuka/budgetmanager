@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "./searchresults.scss";
-import { useGlobalContext } from "../context/GlobalContext";
+import { useGlobalContext } from "../../context/GlobalContext";
 import { useLocation } from "react-router-dom";
-import { helper } from "./helper";
-import TransactionPopup from "./core/transaction_popup";
+import { helper } from "../helper";
+import TransactionPopup from "../core/transaction_popup";
 
 const SearchResults = (props) => {
   const global = useGlobalContext();
@@ -53,15 +53,18 @@ const SearchResults = (props) => {
             <div className={"line"}></div>
           </div>
           <div className={"content"}>
-            {incomes?.map((t) => (
-              <TransactionItem
-                key={t.id}
-                transaction={t}
-                setTransactionPopup={setTransactionPopup}
-                getAccountCurrency={getAccountCurrency}
-                global={global}
-              />
-            ))}
+            <div className={"items"}>
+              {incomes?.map((t) => (
+                <TransactionItem
+                  key={t.id}
+                  transaction={t}
+                  setTransactionPopup={setTransactionPopup}
+                  getAccountCurrency={getAccountCurrency}
+                  global={global}
+                />
+              ))}
+            </div>
+            <AggregationTable />
           </div>
         </div>
       )}
@@ -71,15 +74,18 @@ const SearchResults = (props) => {
             <label>EXPENSES:</label>
           </div>
           <div className={"content"}>
-            {expenses?.map((t) => (
-              <TransactionItem
-                key={t.id}
-                transaction={t}
-                setTransactionPopup={setTransactionPopup}
-                getAccountCurrency={getAccountCurrency}
-                global={global}
-              />
-            ))}
+            <div className={"items"}>
+              {expenses?.map((t) => (
+                <TransactionItem
+                  key={t.id}
+                  transaction={t}
+                  setTransactionPopup={setTransactionPopup}
+                  getAccountCurrency={getAccountCurrency}
+                  global={global}
+                />
+              ))}
+            </div>
+            <AggregationTable transactions={expenses} />
           </div>
         </div>
       )}
@@ -89,15 +95,18 @@ const SearchResults = (props) => {
             <label>TRANSFERS:</label>
           </div>
           <div className={"content"}>
-            {transfers?.map((t) => (
-              <TransactionItem
-                key={t.id}
-                transaction={t}
-                setTransactionPopup={setTransactionPopup}
-                getAccountCurrency={getAccountCurrency}
-                global={global}
-              />
-            ))}
+            <div className={"items"}>
+              {transfers?.map((t) => (
+                <TransactionItem
+                  key={t.id}
+                  transaction={t}
+                  setTransactionPopup={setTransactionPopup}
+                  getAccountCurrency={getAccountCurrency}
+                  global={global}
+                />
+              ))}
+            </div>
+            <AggregationTable />
           </div>
         </div>
       )}
@@ -111,6 +120,73 @@ const SearchResults = (props) => {
           refreshSearchResults={refreshSearchResults}
         />
       )}
+    </div>
+  );
+};
+
+const AggregationTable = ({ transactions }) => {
+  const global = useGlobalContext();
+  const [aggs, setAggs] = useState({});
+
+  function getSum() {
+    let sum = transactions.reduce((sum, object) => sum + object.amount, 0);
+    return helper.formatNumber(sum, 2);
+  }
+
+  useEffect(() => {
+    // Get the amounts
+    const amounts = transactions.map((o) => o.amount);
+
+    // Calculate Sum
+    const sum = amounts.reduce((sum, val) => sum + val, 0);
+
+    // Calculate Mean
+    const mean = sum / amounts.length;
+
+    // Calculate Median
+    const sortedAmounts = [...amounts].sort((a, b) => a - b);
+    const middleIndex = Math.floor(sortedAmounts.length / 2);
+    const median =
+      sortedAmounts.length % 2 === 0
+        ? (sortedAmounts[middleIndex - 1] + sortedAmounts[middleIndex]) / 2
+        : sortedAmounts[middleIndex];
+
+    setAggs({
+      sum,
+      mean,
+      median,
+    });
+  }, [transactions]);
+  return (
+    <div className={"aggs"}>
+      <table>
+        <tbody>
+          <tr>
+            <td>Total: </td>
+            <td>
+              {" "}
+              {helper.formatNumber(aggs["sum"])}{" "}
+              {helper.getCurrency(global.globalCurrency)}{" "}
+            </td>
+          </tr>
+          <tr>
+            <td>Mean: </td>
+            <td>
+              {" "}
+              {helper.formatNumber(aggs["mean"])}{" "}
+              {helper.getCurrency(global.globalCurrency)}{" "}
+            </td>
+          </tr>
+          <tr>
+            <td>Median: </td>
+            <td>
+              {" "}
+              {helper.formatNumber(aggs["median"])}{" "}
+              {helper.getCurrency(global.globalCurrency)}{" "}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 };
