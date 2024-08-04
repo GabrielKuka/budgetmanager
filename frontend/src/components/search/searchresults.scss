@@ -84,10 +84,32 @@
         }
       }
 
-      .aggs {
-        width: 30%;
-        table {
-          width: 100%;
+      .aggs-card {
+        @include flex(column, center, flex-start);
+        width: 40%;
+        box-shadow: 1px 1px 8px cadetblue;
+        border-radius: 3px;
+        gap: 10px;
+        padding: 20px 10px 20px 10px;
+
+        label {
+          font-size: 18px;
+          background-color: cadetblue;
+          color: white;
+          border-radius: 3px;
+          padding: 5px 5px;
+          transition: padding-left 0.3s;
+          font-weight: bold;
+          text-transform: uppercase;
+        }
+
+        &:hover {
+          label {
+            padding-left: 15px;
+          }
+        }
+
+        .aggs-table {
           border-collapse: collapse;
           tr {
             border: 1px solid cadetblue;

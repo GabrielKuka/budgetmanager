@@ -4,6 +4,7 @@ import { useGlobalContext } from "../../context/GlobalContext";
 import { useLocation } from "react-router-dom";
 import { helper } from "../helper";
 import TransactionPopup from "../core/transaction_popup";
+import currencyService from "../../services/currencyService";
 
 const SearchResults = (props) => {
   const global = useGlobalContext();
@@ -64,7 +65,10 @@ const SearchResults = (props) => {
                 />
               ))}
             </div>
-            <AggregationTable />
+            <AggregationTable
+              transactions={incomes}
+              getAccountCurrency={getAccountCurrency}
+            />
           </div>
         </div>
       )}
@@ -85,7 +89,10 @@ const SearchResults = (props) => {
                 />
               ))}
             </div>
-            <AggregationTable transactions={expenses} />
+            <AggregationTable
+              transactions={expenses}
+              getAccountCurrency={getAccountCurrency}
+            />
           </div>
         </div>
       )}
@@ -106,7 +113,6 @@ const SearchResults = (props) => {
                 />
               ))}
             </div>
-            <AggregationTable />
           </div>
         </div>
       )}
@@ -124,42 +130,71 @@ const SearchResults = (props) => {
   );
 };
 
-const AggregationTable = ({ transactions }) => {
+const AggregationTable = ({ transactions, getAccountCurrency }) => {
   const global = useGlobalContext();
-  const [aggs, setAggs] = useState({});
-
-  function getSum() {
-    let sum = transactions.reduce((sum, object) => sum + object.amount, 0);
-    return helper.formatNumber(sum, 2);
-  }
+  const [aggs, setAggs] = useState({ sum: 0, mean: 0, median: 0 });
 
   useEffect(() => {
-    // Get the amounts
-    const amounts = transactions.map((o) => o.amount);
+    if (typeof transactions === "undefined" || transactions?.length == 0) {
+      return;
+    }
+    async function processTransactions() {
+      async function getConvertedAmounts() {
+        // Get the converted amounts
+        let promises = transactions?.map(async (t) => {
+          return await currencyService.convert(
+            getAccountCurrency(t.account),
+            global.globalCurrency,
+            t.amount
+          );
+        });
+        if (!promises) {
+          return [];
+        }
+        let amounts = await Promise.all(promises);
 
-    // Calculate Sum
-    const sum = amounts.reduce((sum, val) => sum + val, 0);
+        return amounts.map((num) => Number(num));
+      }
 
-    // Calculate Mean
-    const mean = sum / amounts.length;
+      let amounts = await getConvertedAmounts();
+      //amounts = transactions?.map((o) => o.amount);
 
-    // Calculate Median
-    const sortedAmounts = [...amounts].sort((a, b) => a - b);
-    const middleIndex = Math.floor(sortedAmounts.length / 2);
-    const median =
-      sortedAmounts.length % 2 === 0
-        ? (sortedAmounts[middleIndex - 1] + sortedAmounts[middleIndex]) / 2
-        : sortedAmounts[middleIndex];
+      // Get Min and Max
+      const minAmount = Math.min(...amounts);
+      const maxAmount = Math.max(...amounts);
 
-    setAggs({
-      sum,
-      mean,
-      median,
-    });
+      // Get num of transactions
+      const numberOfTransactions = amounts.length;
+
+      // Calculate Sum
+      const sum = amounts?.reduce((sum, val) => sum + val, 0);
+
+      // Calculate Mean
+      const mean = sum / amounts?.length;
+
+      // Calculate Median
+      const sortedAmounts = [...amounts].sort((a, b) => a - b);
+      const middleIndex = Math.floor(sortedAmounts.length / 2);
+      const median =
+        sortedAmounts.length % 2 === 0
+          ? (sortedAmounts[middleIndex - 1] + sortedAmounts[middleIndex]) / 2
+          : sortedAmounts[middleIndex];
+
+      setAggs({
+        sum,
+        mean,
+        median,
+        minAmount,
+        maxAmount,
+        numberOfTransactions,
+      });
+    }
+    processTransactions();
   }, [transactions]);
   return (
-    <div className={"aggs"}>
-      <table>
+    <div className={"aggs-card"}>
+      <label>Summary</label>
+      <table className={"aggs-table"}>
         <tbody>
           <tr>
             <td>Total: </td>
@@ -184,6 +219,21 @@ const AggregationTable = ({ transactions }) => {
               {helper.formatNumber(aggs["median"])}{" "}
               {helper.getCurrency(global.globalCurrency)}{" "}
             </td>
+          </tr>
+          <tr>
+            <td>Min | Max: </td>
+            <td>
+              {" "}
+              {helper.formatNumber(aggs["minAmount"])}{" "}
+              {helper.getCurrency(global.globalCurrency)}
+              {" | "}
+              {helper.formatNumber(aggs["maxAmount"])}{" "}
+              {helper.getCurrency(global.globalCurrency)}{" "}
+            </td>
+          </tr>
+          <tr>
+            <td># of transactions: </td>
+            <td> {aggs["numberOfTransactions"]}</td>
           </tr>
         </tbody>
       </table>
