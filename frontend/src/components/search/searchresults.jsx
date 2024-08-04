@@ -72,6 +72,7 @@ const SearchResults = (props) => {
           </div>
         </div>
       )}
+      <hr />
       {expenses?.length > 0 && (
         <div className={"searchresults-wrapper__expenses"}>
           <div className={"header"}>
@@ -96,6 +97,7 @@ const SearchResults = (props) => {
           </div>
         </div>
       )}
+      <hr />
       {transfers?.length > 0 && (
         <div className={"searchresults-wrapper__transfers"}>
           <div className={"header"}>

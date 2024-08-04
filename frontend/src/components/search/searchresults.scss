@@ -6,6 +6,13 @@
   @include flex(column, flex-start, flex-start);
   gap: 30px;
 
+  hr {
+    border: 0;
+    height: 1px;
+    width: 100%;
+    background: lightgray;
+  }
+
   &__incomes,
   &__expenses,
   &__transfers {
