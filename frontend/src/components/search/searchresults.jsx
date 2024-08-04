@@ -250,36 +250,96 @@ const TransactionItem = ({
   const account =
     "account" in transaction ? transaction.account : transaction.from_account;
   const currency = helper.getCurrency(getAccountCurrency(account));
+  const [type, setType] = useState("");
+
+  useEffect(() => {
+    function getTransactionType() {
+      if ("expense_category" in transaction) {
+        return "expense";
+      }
+      if ("income_category" in transaction) {
+        return "income";
+      }
+      return "transfer";
+    }
+
+    setType(getTransactionType());
+  }, [transaction]);
 
   return (
     <div
       className={"transaction-item"}
       onClick={() => setTransactionPopup(transaction)}
     >
-      <div className={"date"}>
-        <b>Date: </b>
-        <span>{transaction.date}</span>
+      <div>
+        {type === "expense" && (
+          <>
+            <img
+              alt="transaction-type"
+              src={process.env.PUBLIC_URL + "/expense_arrow.png"}
+              width="18"
+              height="18"
+            />
+            Spent{" "}
+            {helper.showOrMask(
+              global.privacyMode,
+              helper.formatNumber(transaction.amount)
+            )}{" "}
+            {helper.getCurrency(getAccountCurrency(transaction.account))} on{" "}
+            {transaction.date} from{" "}
+            {helper.getAccountName(global.accounts, transaction.account)}.
+          </>
+        )}
+
+        {type === "income" && (
+          <>
+            <img
+              alt="transaction-type"
+              src={process.env.PUBLIC_URL + "/income_arrow.png"}
+              width="18"
+              height="18"
+            />
+            Earned{" "}
+            {helper.showOrMask(
+              global.privacyMode,
+              helper.formatNumber(transaction.amount)
+            )}{" "}
+            {helper.getCurrency(getAccountCurrency(transaction.account))} on{" "}
+            {transaction.date} into{" "}
+            {helper.getAccountName(global.accounts, transaction.account)}.
+          </>
+        )}
+        {type === "transfer" && (
+          <>
+            <img
+              alt="transaction-type"
+              src={process.env.PUBLIC_URL + "/transfer_arrow.png"}
+              width="18"
+              height="18"
+            />
+            Transfered{" "}
+            {helper.showOrMask(
+              global.privacyMode,
+              helper.formatNumber(transaction.amount)
+            )}{" "}
+            {helper.getCurrency(getAccountCurrency(transaction.from_account))}{" "}
+            from{" "}
+            {helper.getAccountName(global.accounts, transaction.from_account)}{" "}
+            to {helper.getAccountName(global.accounts, transaction.to_account)}{" "}
+            on {transaction.date}.
+          </>
+        )}
       </div>
       {transaction.description?.length > 0 && (
         <div className={"description"}>
           <b>Description: </b>
-          <span>{transaction.description}</span>
+          <span>
+            <i>{transaction.description}</i>
+          </span>
         </div>
       )}
-      <div className={"amount"}>
-        <b>Amount: </b>
-        <span>
-          {helper.showOrMask(
-            global.privacyMode,
-            parseFloat(transaction.amount).toFixed(2)
-          )}{" "}
-          {currency}
-        </span>
-      </div>
       {transaction.tags?.length > 0 && (
         <div className={"tags"}>
-          <b>Tags: </b>
-
           {transaction?.tags?.map((tag) => (
             <span key={tag.name} className={"tag"}>
               {tag.name}
