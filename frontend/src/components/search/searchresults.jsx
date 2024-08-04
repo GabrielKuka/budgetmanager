@@ -50,7 +50,7 @@ const SearchResults = (props) => {
       {incomes?.length > 0 && (
         <div className={"searchresults-wrapper__incomes"}>
           <div className={"header"}>
-            <label>INCOMES: </label>
+            <label>INCOMES </label>
             <div className={"line"}></div>
           </div>
           <div className={"content"}>
@@ -76,7 +76,7 @@ const SearchResults = (props) => {
       {expenses?.length > 0 && (
         <div className={"searchresults-wrapper__expenses"}>
           <div className={"header"}>
-            <label>EXPENSES:</label>
+            <label>EXPENSES</label>
           </div>
           <div className={"content"}>
             <div className={"items"}>
@@ -101,7 +101,7 @@ const SearchResults = (props) => {
       {transfers?.length > 0 && (
         <div className={"searchresults-wrapper__transfers"}>
           <div className={"header"}>
-            <label>TRANSFERS:</label>
+            <label>TRANSFERS</label>
           </div>
           <div className={"content"}>
             <div className={"items"}>
@@ -199,42 +199,57 @@ const AggregationTable = ({ transactions, getAccountCurrency }) => {
       <table className={"aggs-table"}>
         <tbody>
           <tr>
-            <td>Total: </td>
+            <td className={"measurement"}>Total: </td>
             <td>
               {" "}
-              {helper.formatNumber(aggs["sum"])}{" "}
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(aggs["sum"])
+              )}{" "}
               {helper.getCurrency(global.globalCurrency)}{" "}
             </td>
           </tr>
           <tr>
-            <td>Mean: </td>
+            <td className={"measurement"}>Mean: </td>
             <td>
               {" "}
-              {helper.formatNumber(aggs["mean"])}{" "}
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(aggs["mean"])
+              )}{" "}
               {helper.getCurrency(global.globalCurrency)}{" "}
             </td>
           </tr>
           <tr>
-            <td>Median: </td>
+            <td className={"measurement"}>Median: </td>
             <td>
               {" "}
-              {helper.formatNumber(aggs["median"])}{" "}
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(aggs["median"])
+              )}{" "}
               {helper.getCurrency(global.globalCurrency)}{" "}
             </td>
           </tr>
           <tr>
-            <td>Min | Max: </td>
+            <td className={"measurement"}>Min | Max: </td>
             <td>
               {" "}
-              {helper.formatNumber(aggs["minAmount"])}{" "}
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(aggs["minAmount"])
+              )}{" "}
               {helper.getCurrency(global.globalCurrency)}
               {" | "}
-              {helper.formatNumber(aggs["maxAmount"])}{" "}
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(aggs["maxAmount"])
+              )}{" "}
               {helper.getCurrency(global.globalCurrency)}{" "}
             </td>
           </tr>
           <tr>
-            <td># of transactions: </td>
+            <td className={"measurement"}># of transactions: </td>
             <td> {aggs["numberOfTransactions"]}</td>
           </tr>
         </tbody>
@@ -334,7 +349,7 @@ const TransactionItem = ({
       </div>
       {transaction.description?.length > 0 && (
         <div className={"description"}>
-          <b>Description: </b>
+          <label>Description: </label>
           <span>
             <i>{transaction.description}</i>
           </span>

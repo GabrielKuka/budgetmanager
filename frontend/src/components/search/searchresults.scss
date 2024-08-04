@@ -32,16 +32,7 @@
         background-color: cadetblue;
         color: white;
         border-radius: 3px;
-        padding: 5px 5px;
-        transition: padding-left 0.3s;
-      }
-    }
-
-    &:hover {
-      .header {
-        label {
-          padding-left: 20px;
-        }
+        padding: 5px 10px 5px 10px;
       }
     }
 
@@ -77,6 +68,9 @@
 
             span {
               margin-left: auto;
+            }
+            label {
+              color: gray;
             }
           }
           .tags {
@@ -118,6 +112,9 @@
 
         .aggs-table {
           border-collapse: collapse;
+          .measurement {
+            color: gray;
+          }
           tr {
             border: 1px solid cadetblue;
             text-align: left;
