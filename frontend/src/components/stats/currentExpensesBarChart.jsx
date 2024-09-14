@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import currencyService from "../../services/currencyService";
 import { Bar, BarChart, Legend, Tooltip, XAxis, YAxis } from "recharts";
 import { useGlobalContext } from "../../context/GlobalContext";
-import { helper } from "../helper";
+import BarChartToolTip from "./barChartTooltip";
 
 const CurrentExpensesBarChart = (props) => {
   const global = useGlobalContext();
@@ -71,33 +71,6 @@ const CurrentExpensesBarChart = (props) => {
 };
 
 export default CurrentExpensesBarChart;
-
-const BarChartToolTip = ({ active, payload }) => {
-  const global = useGlobalContext();
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div
-        style={{
-          backgroundColor: "cadetBlue",
-          padding: "5px",
-          borderRadius: "3px",
-          height: "50px",
-          color: "white",
-        }}
-      >
-        <p>
-          <b>{`${data.category} : ${helper.showOrMask(
-            global.privacyMode,
-            parseFloat(data.amount).toFixed(2)
-          )}${helper.getCurrency(global.globalCurrency)}`}</b>
-        </p>
-      </div>
-    );
-  }
-
-  return null;
-};
 
 const CustomLenged = () => {
   return (

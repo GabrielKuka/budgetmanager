@@ -13,6 +13,7 @@ import TransactionPopup from "../core/transaction_popup";
 import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
 import { validationSchemas } from "../../validationSchemas";
+import BarChartToolTip from "../stats/barChartTooltip";
 
 const Incomes = ({ dateRange }) => {
   const global = useGlobalContext();
@@ -187,7 +188,10 @@ const Chart = (props) => {
     >
       <XAxis dataKey="category" />
       <YAxis type="number" tickSize={2} domain={[0, yMaxValue]} />
-      <Tooltip />
+      <Tooltip
+        content={<BarChartToolTip />}
+        wrapperStyle={{ border: "none" }}
+      />
       <Bar dataKey="amount" fill="#8884d8" />
     </BarChart>
   );
