@@ -83,6 +83,30 @@
             }
           }
         }
+        .items-footer {
+          width: 100%;
+          @include flex(row, flex-start, center);
+          gap: 10px;
+          #show-all-btn {
+            margin-left: auto;
+            color: cadetblue;
+            background-color: white;
+            border: none;
+            text-decoration: underline;
+          }
+          .more-less-button {
+            border: 1px solid cadetblue;
+            background-color: white;
+            padding: 5px;
+            border-radius: 3px;
+            color: cadetblue;
+            transition: background-color 0.3s, color 0.3s;
+            &:hover {
+              background-color: cadetblue;
+              color: white;
+            }
+          }
+        }
       }
 
       .aggs-card {

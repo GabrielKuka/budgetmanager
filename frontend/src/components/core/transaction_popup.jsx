@@ -122,12 +122,12 @@ const TransactionPopup = ({
       }
 
       // Remove from search results if it exists
-      if (refreshSearchResults) {
+      if (refreshSearchResults !== null && refreshSearchResults !== undefined) {
         refreshSearchResults(transaction.id);
       }
 
       closePopup();
-      refreshTransactions();
+      await refreshTransactions();
       showToast(`${typeStr[0].toUpperCase() + typeStr.substring(1)} deleted.`);
     });
   }

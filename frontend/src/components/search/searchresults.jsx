@@ -1,45 +1,151 @@
 import React, { useState, useEffect } from "react";
 import "./searchresults.scss";
 import { useGlobalContext } from "../../context/GlobalContext";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { helper } from "../helper";
 import TransactionPopup from "../core/transaction_popup";
 import currencyService from "../../services/currencyService";
 
 const SearchResults = (props) => {
   const global = useGlobalContext();
+
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+
   const accounts = global.accounts;
-  const state = useLocation().state;
-  const [searchResults, setSearchResults] = useState(state.searchResults);
-  const searchValue = state.searchValue;
+  const [searchResults, setSearchResults] = useState();
 
   const [transactionPopup, setTransactionPopup] = useState(false);
+  const [searchValue, setSearchValue] = useState(searchParams.get("q"));
+
+  const [incomes, setIncomes] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [transfers, setTransfers] = useState([]);
+
+  const [shownExpenses, setShownExpenses] = useState([]);
+  const [shownIncomes, setShownIncomes] = useState([[]]);
+  const [shownTransfers, setShownTransfers] = useState([]);
 
   useEffect(() => {
-    setSearchResults(state.searchResults);
-  }, [state.searchResults]);
+    const query = searchParams.get("q");
+    const results = location.state?.searchResults;
+    if (query !== null) {
+      setSearchValue(query);
 
-  const incomes = searchResults
-    .filter((t) => "income_category" in t)
-    .sort((a, b) => (a.date > b.date ? -1 : 1));
-  const expenses = searchResults
-    .filter((t) => "expense_category" in t)
-    .sort((a, b) => (a.date > b.date ? -1 : 1));
-  const transfers = searchResults
-    .filter((t) => "from_account" in t)
-    .sort((a, b) => (a.date > b.date ? -1 : 1));
+      setSearchResults(results);
+    }
+  }, [location, searchParams]);
 
-  function getAccountCurrency(id) {
-    const account = accounts?.filter((a) => a.id === id);
-    if (account?.length === 1) {
-      return account[0].currency;
+  useEffect(() => {
+    setTransactions();
+  }, [searchResults]);
+
+  useEffect(() => {
+    resetShownTransactions();
+  }, [incomes, expenses, transfers]);
+
+  function setTransactions() {
+    const searchResults = location.state?.searchResults;
+    if (
+      searchResults === null ||
+      searchResults === false ||
+      searchResults === undefined
+    ) {
+      return;
+    }
+    const inc = searchResults
+      .filter((t) => "income_category" in t)
+      .sort((a, b) => (a.date > b.date ? -1 : 1));
+    const exp = searchResults
+      .filter((t) => "expense_category" in t)
+      .sort((a, b) => (a.date > b.date ? -1 : 1));
+    const tran = searchResults
+      .filter((t) => "from_account" in t)
+      .sort((a, b) => (a.date > b.date ? -1 : 1));
+
+    setIncomes(inc);
+    setExpenses(exp);
+    setTransfers(tran);
+  }
+
+  function resetShownTransactions() {
+    if (incomes !== null) {
+      setShownIncomes(incomes.slice(0, 5));
     }
 
-    return "Not Found";
+    if (expenses !== null) {
+      setShownExpenses(expenses.slice(0, 5));
+    }
+
+    if (transfers !== null) {
+      setShownTransfers(transfers.slice(0, 5));
+    }
+  }
+
+  function updateShownTransactions({
+    which = "all",
+    showOrHide = "show",
+  } = {}) {
+    if (incomes !== null && (which === "all" || which === "incomes")) {
+      const inc = incomes.slice(
+        0,
+        showOrHide === "show"
+          ? shownIncomes.length + 5
+          : Math.max(5, shownIncomes.length - 5)
+      );
+      setShownIncomes(inc);
+    }
+
+    if (expenses !== null && (which === "all" || which === "expenses")) {
+      const exp = expenses.slice(
+        0,
+        showOrHide === "show"
+          ? shownExpenses.length + 5
+          : Math.max(5, shownExpenses.length - 5)
+      );
+      setShownExpenses(exp);
+    }
+
+    if (transfers !== null && (which === "all" || which === "transfers")) {
+      const tran = transfers.slice(
+        0,
+        showOrHide === "show"
+          ? shownTransfers.length + 5
+          : Math.max(5, shownTransfers.length - 5)
+      );
+      setShownTransfers(tran);
+    }
+  }
+
+  function getAccountCurrency(id) {
+    if (accounts !== null && accounts !== undefined) {
+      const account = accounts?.filter((a) => a.id === id);
+      if (account?.length === 1) {
+        return account[0].currency;
+      }
+
+      return "Not Found";
+    }
   }
 
   function refreshSearchResults(id) {
-    setSearchResults(searchResults.filter((t) => t.id != id));
+    setSearchResults(() => searchResults.filter((t) => t.id != id));
+  }
+
+  function showAll(type) {
+    switch (type) {
+      case "expenses":
+        setShownExpenses(expenses);
+        break;
+      case "incomes":
+        setShownIncomes(incomes);
+        break;
+      case "transfers":
+        setShownTransfers(transfers);
+        break;
+      default:
+        return "";
+    }
   }
 
   return (
@@ -55,7 +161,7 @@ const SearchResults = (props) => {
           </div>
           <div className={"content"}>
             <div className={"items"}>
-              {incomes?.map((t) => (
+              {shownIncomes?.map((t) => (
                 <TransactionItem
                   key={t.id}
                   transaction={t}
@@ -64,6 +170,43 @@ const SearchResults = (props) => {
                   global={global}
                 />
               ))}
+              <div className={"items-footer"}>
+                {shownIncomes.length !== incomes.length &&
+                  incomes.length > 5 && (
+                    <button
+                      onClick={() =>
+                        updateShownTransactions({
+                          which: "incomes",
+                          showOrHide: "show",
+                        })
+                      }
+                      className={"more-less-button"}
+                    >
+                      Show More
+                    </button>
+                  )}
+                {shownIncomes.length > 5 && (
+                  <button
+                    onClick={() =>
+                      updateShownTransactions({
+                        which: "incomes",
+                        showOrHide: "hide",
+                      })
+                    }
+                    className={"more-less-button"}
+                  >
+                    Show Less
+                  </button>
+                )}
+                {shownIncomes.length !== incomes.length && (
+                  <button
+                    onClick={() => showAll("incomes")}
+                    id={"show-all-btn"}
+                  >
+                    Show All
+                  </button>
+                )}
+              </div>
             </div>
             <AggregationTable
               transactions={incomes}
@@ -80,7 +223,7 @@ const SearchResults = (props) => {
           </div>
           <div className={"content"}>
             <div className={"items"}>
-              {expenses?.map((t) => (
+              {shownExpenses?.map((t) => (
                 <TransactionItem
                   key={t.id}
                   transaction={t}
@@ -89,6 +232,43 @@ const SearchResults = (props) => {
                   global={global}
                 />
               ))}
+              <div className={"items-footer"}>
+                {shownExpenses?.length !== expenses?.length &&
+                  expenses?.length > 5 && (
+                    <button
+                      onClick={() =>
+                        updateShownTransactions({
+                          which: "expenses",
+                          showOrHide: "show",
+                        })
+                      }
+                      className={"more-less-button"}
+                    >
+                      Show More
+                    </button>
+                  )}
+                {shownExpenses.length > 5 && (
+                  <button
+                    onClick={() =>
+                      updateShownTransactions({
+                        which: "expenses",
+                        showOrHide: "hide",
+                      })
+                    }
+                    className={"more-less-button"}
+                  >
+                    Show Less
+                  </button>
+                )}
+                {shownExpenses.length !== expenses.length && (
+                  <button
+                    onClick={() => showAll("expenses")}
+                    id={"show-all-btn"}
+                  >
+                    Show All
+                  </button>
+                )}
+              </div>
             </div>
             <AggregationTable
               transactions={expenses}
@@ -105,7 +285,7 @@ const SearchResults = (props) => {
           </div>
           <div className={"content"}>
             <div className={"items"}>
-              {transfers?.map((t) => (
+              {shownTransfers?.map((t) => (
                 <TransactionItem
                   key={t.id}
                   transaction={t}
@@ -114,6 +294,44 @@ const SearchResults = (props) => {
                   global={global}
                 />
               ))}
+              <div className={"items-footer"}>
+                {shownTransfers.length !== transfers.length &&
+                  transfers.length > 5 && (
+                    <button
+                      onClick={() =>
+                        updateShownTransactions({
+                          which: "transfers",
+                          showOrHide: "show",
+                        })
+                      }
+                      className={"more-less-button"}
+                    >
+                      Show More
+                    </button>
+                  )}
+                {shownTransfers.length > 5 && (
+                  <button
+                    onClick={() =>
+                      updateShownTransactions({
+                        which: "transfers",
+                        showOrHide: "hide",
+                      })
+                    }
+                    className={"more-less-button"}
+                  >
+                    Show Less
+                  </button>
+                )}
+
+                {shownTransfers.length !== transfers.length && (
+                  <button
+                    onClick={() => showAll("transfers")}
+                    id={"show-all-btn"}
+                  >
+                    Show All
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -124,7 +342,7 @@ const SearchResults = (props) => {
           transaction={transactionPopup}
           showPopup={setTransactionPopup}
           getAccountCurrency={getAccountCurrency}
-          refreshTransactions={() => {}}
+          refreshTransactions={global.updateTransactions}
           refreshSearchResults={refreshSearchResults}
         />
       )}
@@ -136,60 +354,60 @@ const AggregationTable = ({ transactions, getAccountCurrency }) => {
   const global = useGlobalContext();
   const [aggs, setAggs] = useState({ sum: 0, mean: 0, median: 0 });
 
+  async function processTransactions() {
+    async function getConvertedAmounts() {
+      // Get the converted amounts
+      let promises = transactions?.map(async (t) => {
+        return await currencyService.convert(
+          getAccountCurrency(t.account),
+          global.globalCurrency,
+          t.amount
+        );
+      });
+      if (!promises) {
+        return [];
+      }
+      let amounts = await Promise.all(promises);
+
+      return amounts.map((num) => Number(num));
+    }
+    let amounts = await getConvertedAmounts();
+    //amounts = transactions?.map((o) => o.amount);
+
+    // Get Min and Max
+    const minAmount = Math.min(...amounts);
+    const maxAmount = Math.max(...amounts);
+
+    // Get num of transactions
+    const numberOfTransactions = amounts.length;
+
+    // Calculate Sum
+    const sum = amounts?.reduce((sum, val) => sum + val, 0);
+
+    // Calculate Mean
+    const mean = sum / amounts?.length;
+
+    // Calculate Median
+    const sortedAmounts = [...amounts].sort((a, b) => a - b);
+    const middleIndex = Math.floor(sortedAmounts.length / 2);
+    const median =
+      sortedAmounts.length % 2 === 0
+        ? (sortedAmounts[middleIndex - 1] + sortedAmounts[middleIndex]) / 2
+        : sortedAmounts[middleIndex];
+
+    setAggs({
+      sum,
+      mean,
+      median,
+      minAmount,
+      maxAmount,
+      numberOfTransactions,
+    });
+  }
+
   useEffect(() => {
     if (typeof transactions === "undefined" || transactions?.length == 0) {
       return;
-    }
-    async function processTransactions() {
-      async function getConvertedAmounts() {
-        // Get the converted amounts
-        let promises = transactions?.map(async (t) => {
-          return await currencyService.convert(
-            getAccountCurrency(t.account),
-            global.globalCurrency,
-            t.amount
-          );
-        });
-        if (!promises) {
-          return [];
-        }
-        let amounts = await Promise.all(promises);
-
-        return amounts.map((num) => Number(num));
-      }
-
-      let amounts = await getConvertedAmounts();
-      //amounts = transactions?.map((o) => o.amount);
-
-      // Get Min and Max
-      const minAmount = Math.min(...amounts);
-      const maxAmount = Math.max(...amounts);
-
-      // Get num of transactions
-      const numberOfTransactions = amounts.length;
-
-      // Calculate Sum
-      const sum = amounts?.reduce((sum, val) => sum + val, 0);
-
-      // Calculate Mean
-      const mean = sum / amounts?.length;
-
-      // Calculate Median
-      const sortedAmounts = [...amounts].sort((a, b) => a - b);
-      const middleIndex = Math.floor(sortedAmounts.length / 2);
-      const median =
-        sortedAmounts.length % 2 === 0
-          ? (sortedAmounts[middleIndex - 1] + sortedAmounts[middleIndex]) / 2
-          : sortedAmounts[middleIndex];
-
-      setAggs({
-        sum,
-        mean,
-        median,
-        minAmount,
-        maxAmount,
-        numberOfTransactions,
-      });
     }
     processTransactions();
   }, [transactions]);

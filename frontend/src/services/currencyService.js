@@ -38,7 +38,6 @@ async function convert(from, to, amount) {
 
   localStorage.setItem(`rates`, JSON.stringify(rates));
   localStorage.setItem(`rates_time`, new Date().getTime());
-
   return parseFloat(toAmount).toFixed(2);
 }
 
