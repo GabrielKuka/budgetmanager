@@ -395,6 +395,26 @@ const AggregationTable = ({ transactions, getAccountCurrency }) => {
         ? (sortedAmounts[middleIndex - 1] + sortedAmounts[middleIndex]) / 2
         : sortedAmounts[middleIndex];
 
+    // Calculate timeframe
+    const dates = transactions.map((t) => new Date(t.created_on));
+    const minDate = new Date(Math.min(...dates));
+    const maxDate = new Date(Math.max(...dates));
+
+    // difference in days
+    const diffTime = Math.abs(maxDate - minDate);
+    const daysDiff = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // difference in months
+    const yearDiff = maxDate.getFullYear() - minDate.getFullYear();
+    let monthDiff = maxDate.getMonth() - minDate.getMonth();
+    monthDiff = yearDiff * 12 + monthDiff;
+
+    let difference = 0;
+    difference = daysDiff > 90 ? monthDiff + " months" : daysDiff + " days";
+
+    const maxDateStr = maxDate.toDateString().split(" ").slice(1).join(" ");
+    const minDateStr = minDate.toDateString().split(" ").slice(1).join(" ");
+
     setAggs({
       sum,
       mean,
@@ -402,6 +422,9 @@ const AggregationTable = ({ transactions, getAccountCurrency }) => {
       minAmount,
       maxAmount,
       numberOfTransactions,
+      minDateStr,
+      maxDateStr,
+      difference,
     });
   }
 
@@ -470,6 +493,15 @@ const AggregationTable = ({ transactions, getAccountCurrency }) => {
             <td className={"measurement"}># of transactions: </td>
             <td> {aggs["numberOfTransactions"]}</td>
           </tr>
+          {aggs["minDateStr"] !== aggs["maxDateStr"] && (
+            <tr>
+              <td className={"measurement"}>Timeframe:</td>
+              <td>
+                {aggs["minDateStr"]} - {aggs["maxDateStr"]} (
+                {aggs["difference"]})
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
