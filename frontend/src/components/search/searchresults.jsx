@@ -6,7 +6,7 @@ import { helper } from "../helper";
 import TransactionPopup from "../core/transaction_popup";
 import currencyService from "../../services/currencyService";
 
-const SearchResults = (props) => {
+const SearchResults = () => {
   const global = useGlobalContext();
 
   const [searchParams] = useSearchParams();
@@ -26,6 +26,98 @@ const SearchResults = (props) => {
   const [shownIncomes, setShownIncomes] = useState([[]]);
   const [shownTransfers, setShownTransfers] = useState([]);
 
+  const [expensesSorting, setExpensesSorting] = useState("");
+  const [incomesSorting, setIncomesSorting] = useState("");
+  const [transfersSorting, setTransfersSorting] = useState("");
+
+  async function addConvertedAmounts(transactions) {
+    let convertedTransactions = [...transactions];
+    for (const c of convertedTransactions) {
+      const convertedAmount = await currencyService.convert(
+        getAccountCurrency("account" in c ? c.account : c.from_account),
+        global.globalCurrency,
+        c.amount
+      );
+      c["converted_amount"] = convertedAmount;
+    }
+    return convertedTransactions;
+  }
+
+  useEffect(() => {
+    const handleSorting = async () => {
+      if (expensesSorting === "") {
+        return;
+      }
+      let sortedExpenses = [];
+      if (expensesSorting === "amount") {
+        const convertedExpenses = await addConvertedAmounts(expenses);
+        sortedExpenses = [...convertedExpenses].sort(
+          (a, b) => b.converted_amount - a.converted_amount
+        );
+      }
+
+      if (expensesSorting === "date") {
+        sortedExpenses = [...expenses].sort(
+          (a, b) => new Date(b.created_on) - new Date(a.created_on)
+        );
+      }
+
+      setExpenses(sortedExpenses);
+    };
+
+    handleSorting();
+  }, [expensesSorting]);
+
+  useEffect(() => {
+    const handleSorting = async () => {
+      if (incomesSorting === "") {
+        return;
+      }
+      let sortedIncomes = [];
+      if (incomesSorting === "amount") {
+        const convertedincomes = await addConvertedAmounts(incomes);
+        sortedIncomes = [...convertedincomes].sort(
+          (a, b) => b.converted_amount - a.converted_amount
+        );
+      }
+
+      if (incomesSorting === "date") {
+        sortedIncomes = [...incomes].sort(
+          (a, b) => new Date(b.created_on) - new Date(a.created_on)
+        );
+      }
+
+      setIncomes(sortedIncomes);
+    };
+
+    handleSorting();
+  }, [incomesSorting]);
+
+  useEffect(() => {
+    const handleSorting = async () => {
+      if (transfersSorting === "") {
+        return;
+      }
+      let sortedTransfers = [];
+      if (transfersSorting === "amount") {
+        const convertedTransfers = await addConvertedAmounts(transfers);
+        sortedTransfers = [...convertedTransfers].sort(
+          (a, b) => b.converted_amount - a.converted_amount
+        );
+      }
+
+      if (transfersSorting === "date") {
+        sortedTransfers = [...transfers].sort(
+          (a, b) => new Date(b.created_on) - new Date(a.created_on)
+        );
+      }
+
+      setTransfers(sortedTransfers);
+    };
+
+    handleSorting();
+  }, [transfersSorting]);
+
   useEffect(() => {
     const query = searchParams.get("q");
     const results = location.state?.searchResults;
@@ -37,6 +129,10 @@ const SearchResults = (props) => {
   }, [location, searchParams]);
 
   useEffect(() => {
+    setIncomesSorting("");
+    setExpensesSorting("");
+    setTransfersSorting("");
+
     setTransactions();
   }, [searchResults]);
 
@@ -156,7 +252,23 @@ const SearchResults = (props) => {
       {incomes?.length > 0 && (
         <div className={"searchresults-wrapper__incomes"}>
           <div className={"header"}>
-            <label>INCOMES </label>
+            <label className={"header-label"}>INCOMES </label>
+            <div className={"sorting-section"}>
+              <label className={"sort-label"} htmlFor="sort-options">
+                Sort by:
+              </label>
+              <select
+                value={incomesSorting}
+                id={"sort-options"}
+                onChange={(e) => setIncomesSorting(e.target.value)}
+              >
+                <option value="" disabled>
+                  -
+                </option>
+                <option value="date">Date</option>
+                <option value="amount">Amount</option>
+              </select>
+            </div>
             <div className={"line"}></div>
           </div>
           <div className={"content"}>
@@ -219,7 +331,23 @@ const SearchResults = (props) => {
       {expenses?.length > 0 && (
         <div className={"searchresults-wrapper__expenses"}>
           <div className={"header"}>
-            <label>EXPENSES</label>
+            <label className="header-label">EXPENSES</label>
+            <div className={"sorting-section"}>
+              <label className={"sort-label"} htmlFor="sort-options">
+                Sort by:
+              </label>
+              <select
+                value={expensesSorting}
+                id={"sort-options"}
+                onChange={(e) => setExpensesSorting(e.target.value)}
+              >
+                <option value="" disabled>
+                  -
+                </option>
+                <option value="date">Date</option>
+                <option value="amount">Amount</option>
+              </select>
+            </div>
           </div>
           <div className={"content"}>
             <div className={"items"}>
@@ -281,7 +409,24 @@ const SearchResults = (props) => {
       {transfers?.length > 0 && (
         <div className={"searchresults-wrapper__transfers"}>
           <div className={"header"}>
-            <label>TRANSFERS</label>
+            <label className={"header-label"}>TRANSFERS</label>
+
+            <div className={"sorting-section"}>
+              <label className={"sort-label"} htmlFor="sort-options">
+                Sort by:
+              </label>
+              <select
+                value={transfersSorting}
+                id={"sort-options"}
+                onChange={(e) => setTransfersSorting(e.target.value)}
+              >
+                <option value="" disabled>
+                  -
+                </option>
+                <option value="date">Date</option>
+                <option value="amount">Amount</option>
+              </select>
+            </div>
           </div>
           <div className={"content"}>
             <div className={"items"}>

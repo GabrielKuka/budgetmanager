@@ -26,13 +26,23 @@
       font-weight: bold;
       position: relative;
 
-      label {
+      .header-label {
         position: absolute;
         font-size: 28px;
         background-color: cadetblue;
         color: white;
         border-radius: 3px;
         padding: 5px 10px 5px 10px;
+      }
+
+      .sort-label {
+        margin-left: 13%;
+        font-weight: normal;
+      }
+
+      #sort-options {
+        margin-left: 5px;
+        margin-top: 20px;
       }
     }
 
