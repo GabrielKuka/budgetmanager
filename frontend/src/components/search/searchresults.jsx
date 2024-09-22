@@ -254,162 +254,166 @@ const SearchResults = () => {
         </p>
       </div>
       {incomes?.length > 0 && (
-        <div className={"searchresults-wrapper__incomes"}>
-          <div className={"header"}>
-            <label className={"header-label"}>INCOMES </label>
-            <div className={"sorting-section"}>
-              <label className={"sort-label"} htmlFor="sort-options">
-                Sort by:
-              </label>
-              <select
-                value={incomesSorting}
-                id={"sort-options"}
-                onChange={(e) => setIncomesSorting(e.target.value)}
-              >
-                <option value="" disabled>
-                  -
-                </option>
-                <option value="date">Date</option>
-                <option value="amount">Amount</option>
-              </select>
+        <>
+          <div className={"searchresults-wrapper__incomes"}>
+            <div className={"header"}>
+              <label className={"header-label"}>INCOMES </label>
+              <div className={"sorting-section"}>
+                <label className={"sort-label"} htmlFor="sort-options">
+                  Sort by:
+                </label>
+                <select
+                  value={incomesSorting}
+                  id={"sort-options"}
+                  onChange={(e) => setIncomesSorting(e.target.value)}
+                >
+                  <option value="" disabled>
+                    -
+                  </option>
+                  <option value="date">Date</option>
+                  <option value="amount">Amount</option>
+                </select>
+              </div>
+              <div className={"line"}></div>
             </div>
-            <div className={"line"}></div>
-          </div>
-          <div className={"content"}>
-            <div className={"items"}>
-              {shownIncomes?.map((t) => (
-                <TransactionItem
-                  key={t.id}
-                  transaction={t}
-                  setTransactionPopup={setTransactionPopup}
-                  getAccountCurrency={getAccountCurrency}
-                  global={global}
-                />
-              ))}
-              <div className={"items-footer"}>
-                {shownIncomes.length !== incomes.length &&
-                  incomes.length > 5 && (
+            <div className={"content"}>
+              <div className={"items"}>
+                {shownIncomes?.map((t) => (
+                  <TransactionItem
+                    key={t.id}
+                    transaction={t}
+                    setTransactionPopup={setTransactionPopup}
+                    getAccountCurrency={getAccountCurrency}
+                    global={global}
+                  />
+                ))}
+                <div className={"items-footer"}>
+                  {shownIncomes.length !== incomes.length &&
+                    incomes.length > 5 && (
+                      <button
+                        onClick={() =>
+                          updateShownTransactions({
+                            which: "incomes",
+                            showOrHide: "show",
+                          })
+                        }
+                        className={"more-less-button"}
+                      >
+                        Show More
+                      </button>
+                    )}
+                  {shownIncomes.length > 5 && (
                     <button
                       onClick={() =>
                         updateShownTransactions({
                           which: "incomes",
-                          showOrHide: "show",
+                          showOrHide: "hide",
                         })
                       }
                       className={"more-less-button"}
                     >
-                      Show More
+                      Show Less
                     </button>
                   )}
-                {shownIncomes.length > 5 && (
-                  <button
-                    onClick={() =>
-                      updateShownTransactions({
-                        which: "incomes",
-                        showOrHide: "hide",
-                      })
-                    }
-                    className={"more-less-button"}
-                  >
-                    Show Less
-                  </button>
-                )}
-                {shownIncomes.length !== incomes.length && (
-                  <button
-                    onClick={() => showAll("incomes")}
-                    id={"show-all-btn"}
-                  >
-                    Show All
-                  </button>
-                )}
+                  {shownIncomes.length !== incomes.length && (
+                    <button
+                      onClick={() => showAll("incomes")}
+                      id={"show-all-btn"}
+                    >
+                      Show All
+                    </button>
+                  )}
+                </div>
+              </div>
+              <AggregationTable
+                transactions={incomes}
+                getAccountCurrency={getAccountCurrency}
+              />
+            </div>
+          </div>
+          <hr />
+        </>
+      )}
+      {expenses?.length > 0 && (
+        <>
+          <div className={"searchresults-wrapper__expenses"}>
+            <div className={"header"}>
+              <label className="header-label">EXPENSES</label>
+              <div className={"sorting-section"}>
+                <label className={"sort-label"} htmlFor="sort-options">
+                  Sort by:
+                </label>
+                <select
+                  value={expensesSorting}
+                  id={"sort-options"}
+                  onChange={(e) => setExpensesSorting(e.target.value)}
+                >
+                  <option value="" disabled>
+                    -
+                  </option>
+                  <option value="date">Date</option>
+                  <option value="amount">Amount</option>
+                </select>
               </div>
             </div>
-            <AggregationTable
-              transactions={incomes}
-              getAccountCurrency={getAccountCurrency}
-            />
-          </div>
-        </div>
-      )}
-      <hr />
-      {expenses?.length > 0 && (
-        <div className={"searchresults-wrapper__expenses"}>
-          <div className={"header"}>
-            <label className="header-label">EXPENSES</label>
-            <div className={"sorting-section"}>
-              <label className={"sort-label"} htmlFor="sort-options">
-                Sort by:
-              </label>
-              <select
-                value={expensesSorting}
-                id={"sort-options"}
-                onChange={(e) => setExpensesSorting(e.target.value)}
-              >
-                <option value="" disabled>
-                  -
-                </option>
-                <option value="date">Date</option>
-                <option value="amount">Amount</option>
-              </select>
-            </div>
-          </div>
-          <div className={"content"}>
-            <div className={"items"}>
-              {shownExpenses?.map((t) => (
-                <TransactionItem
-                  key={t.id}
-                  transaction={t}
-                  setTransactionPopup={setTransactionPopup}
-                  getAccountCurrency={getAccountCurrency}
-                  global={global}
-                />
-              ))}
-              <div className={"items-footer"}>
-                {shownExpenses?.length !== expenses?.length &&
-                  expenses?.length > 5 && (
+            <div className={"content"}>
+              <div className={"items"}>
+                {shownExpenses?.map((t) => (
+                  <TransactionItem
+                    key={t.id}
+                    transaction={t}
+                    setTransactionPopup={setTransactionPopup}
+                    getAccountCurrency={getAccountCurrency}
+                    global={global}
+                  />
+                ))}
+                <div className={"items-footer"}>
+                  {shownExpenses?.length !== expenses?.length &&
+                    expenses?.length > 5 && (
+                      <button
+                        onClick={() =>
+                          updateShownTransactions({
+                            which: "expenses",
+                            showOrHide: "show",
+                          })
+                        }
+                        className={"more-less-button"}
+                      >
+                        Show More
+                      </button>
+                    )}
+                  {shownExpenses.length > 5 && (
                     <button
                       onClick={() =>
                         updateShownTransactions({
                           which: "expenses",
-                          showOrHide: "show",
+                          showOrHide: "hide",
                         })
                       }
                       className={"more-less-button"}
                     >
-                      Show More
+                      Show Less
                     </button>
                   )}
-                {shownExpenses.length > 5 && (
-                  <button
-                    onClick={() =>
-                      updateShownTransactions({
-                        which: "expenses",
-                        showOrHide: "hide",
-                      })
-                    }
-                    className={"more-less-button"}
-                  >
-                    Show Less
-                  </button>
-                )}
-                {shownExpenses.length !== expenses.length && (
-                  <button
-                    onClick={() => showAll("expenses")}
-                    id={"show-all-btn"}
-                  >
-                    Show All
-                  </button>
-                )}
+                  {shownExpenses.length !== expenses.length && (
+                    <button
+                      onClick={() => showAll("expenses")}
+                      id={"show-all-btn"}
+                    >
+                      Show All
+                    </button>
+                  )}
+                </div>
               </div>
+              <AggregationTable
+                transactions={expenses}
+                getAccountCurrency={getAccountCurrency}
+              />
             </div>
-            <AggregationTable
-              transactions={expenses}
-              getAccountCurrency={getAccountCurrency}
-            />
           </div>
-        </div>
+          <hr />
+        </>
       )}
-      <hr />
       {transfers?.length > 0 && (
         <div className={"searchresults-wrapper__transfers"}>
           <div className={"header"}>
@@ -482,6 +486,10 @@ const SearchResults = () => {
                 )}
               </div>
             </div>
+            <AggregationTable
+              transactions={transfers}
+              getAccountCurrency={getAccountCurrency}
+            />
           </div>
         </div>
       )}
@@ -508,7 +516,7 @@ const AggregationTable = ({ transactions, getAccountCurrency }) => {
       // Get the converted amounts
       let promises = transactions?.map(async (t) => {
         return await currencyService.convert(
-          getAccountCurrency(t.account),
+          getAccountCurrency("account" in t ? t.account : t.from_account),
           global.globalCurrency,
           t.amount
         );
