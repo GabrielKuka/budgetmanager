@@ -45,7 +45,7 @@ const NetworthBasedOnCurrencyChart = ({ accounts }) => {
   }
 
   return (
-    <PieChart width={470} height={310} className={"chart"}>
+    <PieChart width={450} height={280} className={"chart"}>
       <Pie
         data={data}
         dataKey="value"

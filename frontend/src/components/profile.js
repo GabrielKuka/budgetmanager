@@ -6,6 +6,7 @@ import "./profile.scss";
 import { useConfirm } from "../context/ConfirmContext";
 import { useToast } from "../context/ToastContext";
 import TransactionPopup from "./core/transaction_popup";
+import Stats from "./stats/stats";
 
 import * as XLSX from "xlsx";
 import { useGlobalContext } from "../context/GlobalContext";
@@ -87,6 +88,8 @@ const Profile = () => {
         global={global}
       />
       <div className={"profile-wrapper__board"}>
+        <Stats />
+
         <RecentExpenses
           expenses={expenses}
           accounts={accounts}
@@ -229,16 +232,6 @@ const Sidebar = (props) => {
           width="20"
         />
       </div>
-      <Link className={"stats-button"} to="/stats">
-        <img
-          src={process.env.PUBLIC_URL + "/stats_icon.png"}
-          alt="download_icon"
-          height="20"
-          width="20"
-          className={"stats-icon"}
-        />
-        Statistics
-      </Link>
       <button id="delete-account-btn" onClick={deleteAccount}>
         🚫 Delete Account
       </button>

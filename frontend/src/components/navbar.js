@@ -222,9 +222,6 @@ const LoggedInNavbar = () => {
       <button id="templates" onClick={(e) => handlePage(e)}>
         Templates
       </button>
-      <button id="stats" onClick={(e) => handlePage(e)}>
-        Stats
-      </button>
       <select
         id="global_currency"
         value={global.globalCurrency}

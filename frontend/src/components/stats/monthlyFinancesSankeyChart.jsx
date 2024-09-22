@@ -165,7 +165,6 @@ const MonthlyFinancesSankeyChart = (props) => {
           ).toFixed(2)
         ),
       });
-      console.log(data);
       setChartData(data);
     }
 
@@ -177,8 +176,8 @@ const MonthlyFinancesSankeyChart = (props) => {
       {chartData && (
         <>
           <Sankey
-            height={480}
-            width={980}
+            height={450}
+            width={960}
             data={chartData}
             linkCurvature={0.5}
             nodePadding={30}
@@ -193,11 +192,6 @@ const MonthlyFinancesSankeyChart = (props) => {
           >
             <Tooltip content={<CustomTooltip />} />
           </Sankey>
-          <div id={"sankey-legend"}>
-            Total incomes and expenses by category for{" "}
-            {new Date().toDateString().split(" ")[1]} {new Date().getFullYear()}
-            .
-          </div>
         </>
       )}
     </>

@@ -91,7 +91,7 @@ const FoodExpensesChart = (props) => {
     <LineChart
       width={props.width}
       height={props.height}
-      data={data}
+      data={data?.sort((a, b) => new Date(a.date) - new Date(b.date))}
       margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
     >
       <CartesianGrid strokeDasharray="3 3" />

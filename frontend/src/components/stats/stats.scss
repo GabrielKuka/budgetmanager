@@ -1,18 +1,16 @@
 @import "../../mixins";
 
 .stats-wrapper {
-  position: relative;
-  height: 100%;
-  margin: 100px 10px 30px 10px;
+  margin: 20px 0px 20px 25px;
 
-  @include flex(row, space-around, center, wrap);
+  @include flex(row, flex-start, center, wrap);
   flex: 0 0 calc(33% - 20px);
-  gap: 20px;
+  gap: 30px;
 
   .chart-container {
     @include flex(column, center, center);
     border: 1px solid #dadada;
-    box-shadow: 1px 1px 5px #dadada;
+    box-shadow: 3px 3px 10px #dadada;
     border-radius: 3px;
 
     .chart {

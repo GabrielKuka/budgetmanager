@@ -11,7 +11,6 @@ import GlobalProvider from "./context/GlobalContext";
 import Register from "./components/authentication/register";
 import ToastProvider from "./context/ToastContext";
 import ConfirmProvider from "./context/ConfirmContext";
-import Stats from "./components/stats/stats";
 import SearchResults from "./components/search/searchresults";
 
 function App() {
@@ -23,7 +22,6 @@ function App() {
           <Routes>
             <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/templates" element={<Template />} />
-            <Route path="/stats" element={<Stats />} />
             <Route path="/" element={<Dashboard />} />
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/searchresults" element={<SearchResults />} />

@@ -6,6 +6,7 @@ import IncomeVsExpenseChart from "./incomeVsExpenseChart";
 import FoodExpensesChart from "./foodExpensesChart";
 import { useGlobalContext } from "../../context/GlobalContext";
 import MonthlyFinancesSankeyChart from "./monthlyFinancesSankeyChart";
+import PercentExpensesPieChart from "./percentExpensesPie";
 
 const Stats = () => {
   const global = useGlobalContext();
@@ -26,54 +27,10 @@ const Stats = () => {
 
   return (
     <div className={"stats-wrapper"}>
-      {global.accounts?.length > 0 && (
-        <>
-          <div className={"chart-container"}>
-            <NetworthPieChart accounts={global.accounts} />
-          </div>
-          <div className={"chart-container"}>
-            <NetworthBasedOnCurrencyChart accounts={global.accounts} />
-          </div>
-        </>
-      )}
       {global.incomes?.length > 0 &&
         global.expenses?.length > 0 &&
         global.expenseCategories?.length > 0 && (
           <>
-            <div className={"chart-container"}>
-              <CurrentExpensesBarChart
-                stats={true}
-                expenses={global.expenses?.filter(
-                  (e) =>
-                    new Date(e.date) >= dateRange.from &&
-                    new Date(e.date) <= dateRange.to
-                )}
-                categories={global.expenseCategories}
-                getAccountCurrency={getAccountCurrency}
-                height={310}
-                width={480}
-              />
-            </div>
-            <div className={"chart-container"}>
-              <IncomeVsExpenseChart
-                getAccountCurrency={getAccountCurrency}
-                height={310}
-                width={580}
-                expenses={global.expenses}
-                incomes={global.incomes}
-              />
-            </div>
-            <div className={"chart-container"}>
-              <FoodExpensesChart
-                height={310}
-                width={580}
-                expenses={global.expenses?.filter(
-                  (e) => e.expense_category == 11
-                )}
-                incomes={global.incomes}
-                getAccountCurrency={getAccountCurrency}
-              />
-            </div>
             <div className={"chart-container"}>
               <MonthlyFinancesSankeyChart
                 getAccountCurrency={getAccountCurrency}
@@ -85,8 +42,63 @@ const Stats = () => {
                 dateRange={dateRange}
               />
             </div>
+            <div className={"chart-container"}>
+              <CurrentExpensesBarChart
+                stats={true}
+                expenses={global.expenses?.filter(
+                  (e) =>
+                    new Date(e.date) >= dateRange.from &&
+                    new Date(e.date) <= dateRange.to
+                )}
+                categories={global.expenseCategories}
+                getAccountCurrency={getAccountCurrency}
+                height={280}
+                width={420}
+              />
+            </div>
+            <div className={"chart-container"}>
+              <IncomeVsExpenseChart
+                getAccountCurrency={getAccountCurrency}
+                height={300}
+                width={480}
+                expenses={global.expenses}
+                incomes={global.incomes}
+              />
+            </div>
+            <div className={"chart-container"}>
+              <FoodExpensesChart
+                height={310}
+                width={460}
+                expenses={global.expenses?.filter(
+                  (e) => e.expense_category == 11
+                )}
+                incomes={global.incomes}
+                getAccountCurrency={getAccountCurrency}
+              />
+            </div>
+            <div className={"chart-container"}>
+              <PercentExpensesPieChart
+                expenses={global.expenses?.filter(
+                  (e) =>
+                    new Date(e.date) >= dateRange.from &&
+                    new Date(e.date) <= dateRange.to
+                )}
+                categories={global.expenseCategories}
+                getAccountCurrency={getAccountCurrency}
+              />
+            </div>
           </>
         )}
+      {global.accounts?.length > 0 && (
+        <>
+          <div className={"chart-container"}>
+            <NetworthPieChart accounts={global.accounts} />
+          </div>
+          <div className={"chart-container"}>
+            <NetworthBasedOnCurrencyChart accounts={global.accounts} />
+          </div>
+        </>
+      )}
     </div>
   );
 };
