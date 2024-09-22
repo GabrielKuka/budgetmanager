@@ -1,0 +1,187 @@
+@import "../../mixins";
+
+.searchresults-wrapper {
+  margin-top: 90px;
+  padding: 0 20px 20px 20px;
+  @include flex(column, flex-start, flex-start);
+  gap: 30px;
+
+  hr {
+    border: 0;
+    height: 1px;
+    width: 100%;
+    background: lightgray;
+  }
+
+  &__incomes,
+  &__expenses,
+  &__transfers {
+    width: 100%;
+    @include flex(column, flex-start, flex-start);
+    gap: 10px;
+
+    .header {
+      width: 100%;
+      height: 40px;
+      font-weight: bold;
+      position: relative;
+
+      .header-label {
+        position: absolute;
+        font-size: 28px;
+        background-color: cadetblue;
+        color: white;
+        border-radius: 3px;
+        padding: 5px 10px 5px 10px;
+      }
+
+      .sort-label {
+        margin-left: 13%;
+        font-weight: normal;
+      }
+
+      #sort-options {
+        margin-left: 5px;
+        margin-top: 20px;
+      }
+    }
+
+    .content {
+      @include flex(row, flex-start, flex-start);
+      flex-wrap: wrap;
+      width: 100%;
+      gap: 30px;
+
+      .items {
+        @include flex(row, flex-start, flex-start);
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 20px;
+        width: 50%;
+        .transaction-item {
+          width: 100%;
+          @include flex(column, flex-start, flex-start);
+          gap: 10px;
+          border: 1px solid #dadada;
+          padding: 10px 0 10px 10px;
+          box-shadow: 2px 2px 8px #dadada;
+          border-radius: 3px;
+          transition: border 0.3s, box-shadow 0.3s;
+
+          &:hover {
+            border: 1px solid cadetblue;
+            box-shadow: 2px 2px 4px cadetblue;
+          }
+          div {
+            @include flex(row, flex-start, flex-start);
+            gap: 10px;
+
+            span {
+              margin-left: auto;
+            }
+            label {
+              color: gray;
+            }
+          }
+          .tags {
+            .tag {
+              background-color: cadetblue;
+              color: white;
+              font-weight: bold;
+              border-radius: 3px;
+              padding: 3px 6px 3px 6px;
+            }
+          }
+        }
+        .items-footer {
+          width: 100%;
+          @include flex(row, flex-start, center);
+          gap: 10px;
+          #show-all-btn {
+            margin-left: auto;
+            color: cadetblue;
+            background-color: white;
+            border: none;
+            text-decoration: underline;
+          }
+          .more-less-button {
+            border: 1px solid cadetblue;
+            background-color: white;
+            padding: 5px;
+            border-radius: 3px;
+            color: cadetblue;
+            transition: background-color 0.3s, color 0.3s;
+            &:hover {
+              background-color: cadetblue;
+              color: white;
+            }
+          }
+        }
+      }
+
+      .aggs-card {
+        @include flex(column, center, flex-start);
+        width: 40%;
+        box-shadow: 1px 1px 8px cadetblue;
+        border-radius: 3px;
+        gap: 10px;
+        padding: 20px 10px 20px 10px;
+
+        label {
+          font-size: 18px;
+          background-color: cadetblue;
+          color: white;
+          border-radius: 3px;
+          padding: 5px 5px;
+          transition: padding-left 0.3s;
+          font-weight: bold;
+          text-transform: uppercase;
+        }
+
+        &:hover {
+          label {
+            padding-left: 15px;
+          }
+        }
+
+        .aggs-table {
+          border-collapse: collapse;
+          .measurement {
+            color: gray;
+          }
+          tr {
+            border: 1px solid cadetblue;
+            text-align: left;
+            td {
+              padding: 10px;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  &__header {
+    width: 100%;
+    //border: 1px solid red;
+
+    @include flex(column, center, flex-start);
+
+    label {
+      padding: 10px 10px 10px 10px;
+      background-color: cadetblue;
+      color: white;
+      font-size: 33px;
+      font-weight: bold;
+      transition: padding-left 0.4s;
+      border-radius: 3px;
+
+      &:hover {
+        padding-left: 40px;
+      }
+    }
+    p {
+      color: gray;
+    }
+  }
+}

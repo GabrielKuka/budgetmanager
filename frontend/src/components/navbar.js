@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useGlobalContext } from "../context/GlobalContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import "./navbar.scss";
 import ConversionTool from "./core/conversiontool";
 import { helper } from "./helper";
@@ -21,7 +21,6 @@ export default Navbar;
 const LoggedInNavbar = () => {
   const global = useGlobalContext();
   const showToast = useToast();
-  const navigate = useNavigate();
 
   const [accounts, setAccounts] = useState(global.accounts);
   const [expenses, setExpenses] = useState(global.expenses);
@@ -31,6 +30,10 @@ const LoggedInNavbar = () => {
   const [searchValue, setSearchValue] = useState(null);
   const [suggestionBox, setSuggestionBox] = useState(false);
   const [transactionPopup, setTransactionPopup] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     let location = window.location.pathname.replace("/", "");
@@ -165,7 +168,8 @@ const LoggedInNavbar = () => {
               setSuggestionBox(!suggestionBox);
               document.getElementById("search-field").value = "";
               document.getElementById("search-field").blur();
-              navigate("/searchresults", {
+              setSearchParams({ q: searchValue });
+              navigate(`/searchResults?q=${searchValue}`, {
                 state: {
                   searchResults: searchResults,
                   searchValue: searchValue,
@@ -187,7 +191,7 @@ const LoggedInNavbar = () => {
             setSuggestionBox(!suggestionBox);
             document.getElementById("search-field").value = "";
 
-            navigate("/searchresults", {
+            navigate(`/searchresults/${searchValue}`, {
               state: { searchResults, searchValue },
             });
           }}
