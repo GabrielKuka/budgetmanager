@@ -248,6 +248,10 @@ const SearchResults = () => {
     <div className={"searchresults-wrapper"}>
       <div className={"searchresults-wrapper__header"}>
         <label>Search results for: '{searchValue}'</label>
+        <p>
+          {searchResults?.length} total search results: {expenses?.length}{" "}
+          expenses, {incomes?.length} incomes and {transfers?.length} transfers.
+        </p>
       </div>
       {incomes?.length > 0 && (
         <div className={"searchresults-wrapper__incomes"}>

@@ -1,7 +1,7 @@
 @import "../../mixins";
 
 .searchresults-wrapper {
-  margin-top: 70px;
+  margin-top: 90px;
   padding: 0 20px 20px 20px;
   @include flex(column, flex-start, flex-start);
   gap: 30px;
@@ -163,23 +163,25 @@
 
   &__header {
     width: 100%;
-    height: 80px;
+    //border: 1px solid red;
+
+    @include flex(column, center, flex-start);
 
     label {
       padding: 10px 10px 10px 10px;
       background-color: cadetblue;
       color: white;
-      width: 300px;
       font-size: 33px;
       font-weight: bold;
-      position: relative;
-      top: 20px;
       transition: padding-left 0.4s;
       border-radius: 3px;
 
       &:hover {
         padding-left: 40px;
       }
+    }
+    p {
+      color: gray;
     }
   }
 }
