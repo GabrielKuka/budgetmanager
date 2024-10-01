@@ -136,7 +136,7 @@ const IncomeVsExpenseChart = (props) => {
         fillOpacity={1}
         fill="url(#colorExpense)"
       />
-      <Legend content={<CustomLenged />} />
+      <Legend content={<CustomLegend />} />
     </AreaChart>
   );
 };
@@ -191,7 +191,7 @@ const AreaChartChartToolTip = ({ active, payload }) => {
   return null;
 };
 
-const CustomLenged = () => {
+const CustomLegend = () => {
   return (
     <div
       style={{

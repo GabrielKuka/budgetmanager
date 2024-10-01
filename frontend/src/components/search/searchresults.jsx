@@ -5,9 +5,12 @@ import { useLocation, useSearchParams } from "react-router-dom";
 import { helper } from "../helper";
 import TransactionPopup from "../core/transaction_popup";
 import currencyService from "../../services/currencyService";
+import searchService from "../../services/searchService";
+import { useToast } from "../../context/ToastContext";
 
 const SearchResults = () => {
   const global = useGlobalContext();
+  const showToast = useToast();
 
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -119,21 +122,32 @@ const SearchResults = () => {
   }, [transfersSorting]);
 
   useEffect(() => {
-    const query = searchParams.get("q");
-    const results = location.state?.searchResults;
-    if (query !== null) {
-      setSearchValue(query);
-
-      setSearchResults(results);
+    async function updateSearch() {
+      const query = searchParams.get("q");
+      let results = location.state?.searchResults;
+      if (query !== "") {
+        if (results === "nothing") {
+          // Run the search request
+          showToast(`Searching for ${query}`);
+          const searchData = await searchService.search(query);
+          results = Object.values(searchData).flat();
+        }
+        setSearchResults(results);
+        setSearchValue(query);
+      }
     }
-  }, [location, searchParams]);
+
+    updateSearch();
+  }, [location, searchParams.get("q")]);
 
   useEffect(() => {
-    setIncomesSorting("");
-    setExpensesSorting("");
-    setTransfersSorting("");
+    if (searchResults !== "nothing") {
+      setIncomesSorting("");
+      setExpensesSorting("");
+      setTransfersSorting("");
 
-    setTransactions();
+      setTransactions();
+    }
   }, [searchResults]);
 
   useEffect(() => {
@@ -141,7 +155,7 @@ const SearchResults = () => {
   }, [incomes, expenses, transfers]);
 
   function setTransactions() {
-    const searchResults = location.state?.searchResults;
+    //const searchResults = location.state?.searchResults;
     if (
       searchResults === null ||
       searchResults === false ||

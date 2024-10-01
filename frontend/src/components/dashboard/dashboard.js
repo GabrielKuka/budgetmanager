@@ -20,11 +20,6 @@ const Dashboard = () => {
       : window.location.pathname.split("/").slice(-1)[0];
   const [page, setPage] = useState(initLocation);
 
-  const [dateRange, setDateRange] = useState({
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    to: new Date(),
-  });
-
   useEffect(() => {
     navigate(`/dashboard/${page}`);
   }, [page]);
@@ -35,21 +30,17 @@ const Dashboard = () => {
 
   return (
     <div className={"dashboard-wrapper"}>
-      <Sidebar
-        setPage={setPage}
-        page={page}
-        dateRange={dateRange}
-        setDateRange={setDateRange}
-      />
-      {page === "expenses" && <Expenses dateRange={dateRange} />}
-      {page === "incomes" && <Incomes dateRange={dateRange} />}
-      {page === "transfers" && <Transfers dateRange={dateRange} />}
+      <Sidebar setPage={setPage} page={page} />
+      {page === "expenses" && <Expenses />}
+      {page === "incomes" && <Incomes />}
+      {page === "transfers" && <Transfers />}
     </div>
   );
 };
 
-const Sidebar = ({ page, setPage, dateRange, setDateRange }) => {
+const Sidebar = ({ page, setPage }) => {
   const buttons = ["incomes", "expenses", "transfers"];
+  const global = useGlobalContext();
 
   useEffect(() => {
     if (page) {
@@ -102,15 +93,15 @@ const Sidebar = ({ page, setPage, dateRange, setDateRange }) => {
       />
       <DatePicker
         className="datepicker"
-        selected={dateRange.from}
-        onChange={(date) =>
-          setDateRange((prev) => ({
+        selected={global.dateRange.from}
+        onChange={(date) => {
+          return global.setDateRange((prev) => ({
             ...prev,
             from: date,
-          }))
-        }
+          }));
+        }}
         showMonthDropdown
-        title={`FROM: ${dateRange.from.toDateString()}`}
+        title={`FROM: ${global.dateRange.from.toDateString()}`}
         dateFormat={"yyyy-MM-dd"}
         customInput={
           <img
@@ -123,10 +114,10 @@ const Sidebar = ({ page, setPage, dateRange, setDateRange }) => {
       />
       <DatePicker
         className="datepicker"
-        selected={dateRange.to}
-        title={`TO: ${dateRange.to.toDateString()}`}
+        selected={global.dateRange.to}
+        title={`TO: ${global.dateRange.to.toDateString()}`}
         onChange={(date) =>
-          setDateRange((prev) => ({
+          global.setDateRange((prev) => ({
             ...prev,
             to: date,
           }))

@@ -5,6 +5,11 @@ import expenseService from "./expenseService";
 import incomeService from "./incomeService";
 import transferService from "./transferService";
 
+// Get transaction in a timeframe
+async function getTransactions(dateRange) {
+  return await expenseService.getTransactions(dateRange);
+}
+
 // Templates
 async function addTemplate(payload) {
   return await templateService.addTemplate(payload);
@@ -65,6 +70,10 @@ async function getAllUserExpenses() {
   return await expenseService.getAllUserExpenses();
 }
 
+async function getUserExpenses(dateRange) {
+  return await expenseService.getUserExpenses(dateRange);
+}
+
 // Incomes
 async function getAllIncomeCategories() {
   return await incomeService.getAllIncomeCategories();
@@ -72,6 +81,10 @@ async function getAllIncomeCategories() {
 
 async function getAllUserIncomes() {
   return await incomeService.getAllUserIncomes();
+}
+
+async function getUserIncomes(dateRange) {
+  return await incomeService.getUserIncomes(dateRange);
 }
 
 async function addIncome(payload) {
@@ -85,6 +98,10 @@ async function deleteIncome(payload) {
 // Transfers
 async function getAllUserTransfers() {
   return await transferService.getAllUserTransfers();
+}
+
+async function getUserTransfers(dateRange) {
+  return await transferService.getUserTransfers(dateRange);
 }
 
 async function addTransfer(payload) {
@@ -117,6 +134,10 @@ const transactionService = {
   addTemplate,
   getTemplates,
   deleteTemplateGroup,
+  getTransactions,
+  getUserExpenses,
+  getUserIncomes,
+  getUserTransfers,
 };
 
 export default transactionService;

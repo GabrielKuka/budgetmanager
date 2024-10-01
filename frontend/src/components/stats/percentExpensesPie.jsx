@@ -78,8 +78,6 @@ const PercentExpensesPieChart = (props) => {
         cx="50%"
         cy="50%"
         labelLine={false}
-        //outerRadius={100}
-        //stroke="none"
         label={renderCustomizedLabel}
       >
         {expensesPerCategory?.map((entry, index) => {
@@ -124,7 +122,9 @@ const renderCustomizedLabel = ({
           dominantBaseline="middle"
           style={{ fontWeight: "bold" }}
         >
-          {`${adjustedValue * 100 >= 10 ? name : ""} ${adjustedValue * 100}%`}
+          {`${adjustedValue * 100 >= 10 ? name : ""} ${parseFloat(
+            adjustedValue * 100
+          ).toFixed(2)}%`}
         </text>
       )}
     </>

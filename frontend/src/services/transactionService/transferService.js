@@ -20,6 +20,26 @@ async function getAllUserTransfers() {
   }
 }
 
+async function getUserTransfers(dateRange) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    params: {
+      from_date: new Date(dateRange.from).toISOString().split("T")[0],
+      to_date: new Date(dateRange.to).toISOString().split("T")[0],
+    },
+    headers: {
+      Authorization: token,
+    },
+  };
+  const response = await axios.get(`${ENDPOINT}/get_transfers`, config);
+
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    alert("Error fetching transactions.");
+  }
+}
+
 async function addTransfer(payload) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
@@ -46,6 +66,7 @@ async function deleteTransfer(payload) {
 
 const transferService = {
   getAllUserTransfers,
+  getUserTransfers,
   addTransfer,
   deleteTransfer,
 };

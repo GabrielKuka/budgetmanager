@@ -13,13 +13,48 @@ import CurrentExpensesBarChart from "../stats/currentExpensesBarChart";
 import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
 import { validationSchemas } from "../../validationSchemas";
+import axios from "axios";
 
-const Expenses = ({ dateRange }) => {
+const Expenses = () => {
   const global = useGlobalContext();
   const [accounts, setAccounts] = useState(global.activeAccounts);
 
   const [shownExpenses, setShownExpenses] = useState([]);
   const [transactionPopup, setTransactionPopup] = useState(false);
+
+  useEffect(() => {
+    async function testFetch() {
+      if (!global.dateRange) {
+        return;
+      }
+      if (
+        global.dateRange.from === undefined ||
+        global.dateRange.to === undefined
+      ) {
+        return;
+      }
+      if (global.dateRange.from === null || global.dateRange.to === null) {
+        return;
+      }
+      const token = JSON.parse(localStorage.getItem("authToken"));
+
+      const params = {
+        from_date: new Date(global.dateRange.from).toISOString().split("T")[0],
+        to_date: new Date(global.dateRange.to).toISOString().split("T")[0],
+      };
+
+      const headers = {
+        Authorization: token,
+      };
+
+      const response = await axios.get(
+        `http://100.73.35.59:8002/transactions/get_transactions`,
+        { params: params, headers: headers }
+      );
+    }
+
+    //testFetch();
+  }, []);
 
   useEffect(() => {
     setAccounts(global.activeAccounts);
@@ -42,7 +77,7 @@ const Expenses = ({ dateRange }) => {
         categories={global.expenseCategories}
         shownExpenses={shownExpenses}
         refreshExpenses={global.updateExpenses}
-        dateRange={dateRange}
+        dateRange={global.dateRange}
         getAccountCurrency={getAccountCurrency}
       />
       {!global.expenses ? (
@@ -60,7 +95,7 @@ const Expenses = ({ dateRange }) => {
           setShownExpenses={setShownExpenses}
           accounts={accounts}
           categories={global.expenseCategories}
-          dateRange={dateRange}
+          dateRange={global.dateRange}
           getAccountCurrency={getAccountCurrency}
           refreshExpenses={global.updateExpenses}
           setTransactionPopup={setTransactionPopup}
@@ -160,8 +195,8 @@ const Sidebar = (props) => {
         spent{" "}
         <small>
           from{" "}
-          {props.dateRange?.from.toDateString().split(" ").slice(1).join(" ")}{" "}
-          to {props.dateRange?.to.toDateString().split(" ").slice(1).join(" ")}{" "}
+          {props.dateRange?.from?.toDateString().split(" ").slice(1).join(" ")}{" "}
+          to {props.dateRange?.to?.toDateString().split(" ").slice(1).join(" ")}{" "}
         </small>
         {shownExpenseRate && (
           <span>

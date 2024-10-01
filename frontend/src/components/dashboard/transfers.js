@@ -12,7 +12,7 @@ import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
 import { validationSchemas } from "../../validationSchemas";
 
-const Transfers = ({ dateRange }) => {
+const Transfers = () => {
   const global = useGlobalContext();
   const [accounts, setAccounts] = useState(global.activeAccounts);
   const [transactionPopup, setTransactionPopup] = useState(false);
@@ -53,7 +53,7 @@ const Transfers = ({ dateRange }) => {
           getAccountCurrency={getAccountCurrency}
           refreshTransfers={global.updateTransfers}
           setTransactionPopup={setTransactionPopup}
-          dateRange={dateRange}
+          dateRange={global.dateRange}
         />
       )}
       {transactionPopup && (

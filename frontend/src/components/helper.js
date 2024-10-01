@@ -10,7 +10,7 @@ export const helper = {
     return "Not found";
   },
   accountLabelStyle: (accounts, id) => {
-    const account = accounts.filter((a) => a.id === id)[0];
+    const account = accounts?.filter((a) => a.id === id)[0];
     if (account.deleted) {
       return { color: "gray", fontStyle: "italic" };
     }

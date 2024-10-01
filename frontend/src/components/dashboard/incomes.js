@@ -15,7 +15,7 @@ import LoadingCard from "../core/LoadingCard";
 import { validationSchemas } from "../../validationSchemas";
 import BarChartToolTip from "../stats/barChartTooltip";
 
-const Incomes = ({ dateRange }) => {
+const Incomes = () => {
   const global = useGlobalContext();
   const [categories, setCategories] = useState(global.incomeCategories);
   const [accounts, setAccounts] = useState(global.activeAccounts);
@@ -48,7 +48,7 @@ const Incomes = ({ dateRange }) => {
         refreshIncomes={global.updateIncomes}
         refreshAccounts={global.updateAccounts}
         shownIncomes={shownIncomes}
-        dateRange={dateRange}
+        dateRange={global.dateRange}
         getAccountCurrency={getAccountCurrency}
       />
       {!global.incomes ? (
@@ -66,7 +66,7 @@ const Incomes = ({ dateRange }) => {
           setShownIncomes={setShownIncomes}
           categories={categories}
           accounts={accounts}
-          dateRange={dateRange}
+          dateRange={global.dateRange}
           getAccountCurrency={getAccountCurrency}
           refreshIncomes={global.updateIncomes}
           setTransactionPopup={setTransactionPopup}

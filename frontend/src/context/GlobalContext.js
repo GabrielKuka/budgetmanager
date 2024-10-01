@@ -4,6 +4,7 @@ import { BASE_URL, BACKEND_PORT } from "../config";
 import axios from "axios";
 import accountService from "../services/transactionService/accountService";
 import transactionService from "../services/transactionService/transactionService";
+import expenseService from "../services/transactionService/expenseService";
 
 const GlobalContext = createContext();
 
@@ -26,6 +27,11 @@ const GlobalProvider = ({ children }) => {
       : "EUR"
   );
 
+  const [dateRange, setDateRange] = useState({
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    to: new Date(),
+  });
+
   const [authToken, setauthToken] = useState(() =>
     localStorage.getItem("authToken")
       ? JSON.parse(localStorage.getItem("authToken"))
@@ -40,9 +46,7 @@ const GlobalProvider = ({ children }) => {
   useEffect(() => {
     if (authToken) {
       updateAccounts();
-      updateExpenses();
-      updateIncomes();
-      updateTransfers();
+      updateTransactions();
 
       updateExpenseCategories();
       updateIncomeCategories();
@@ -53,6 +57,10 @@ const GlobalProvider = ({ children }) => {
       }
     }
   }, []);
+
+  useEffect(() => {
+    updateTransactions();
+  }, [dateRange?.from, dateRange?.to]);
 
   const togglePrivacyMode = () => {
     const newPrivacyMode = !privacyMode;
@@ -74,25 +82,24 @@ const GlobalProvider = ({ children }) => {
   }
 
   async function updateExpenses() {
-    const response = await transactionService.getAllUserExpenses();
+    const response = await transactionService.getUserExpenses(dateRange);
     setExpenses(response);
   }
 
   async function updateIncomes() {
-    const response = await transactionService.getAllUserIncomes();
+    const response = await transactionService.getUserIncomes(dateRange);
     setIncomes(response);
   }
 
   async function updateTransfers() {
-    const response = await transactionService.getAllUserTransfers();
+    const response = await transactionService.getUserTransfers(dateRange);
     setTransfers(response);
   }
 
   async function updateTransactions() {
-    await updateIncomes();
     await updateExpenses();
+    await updateIncomes();
     await updateTransfers();
-    await updateAccounts();
   }
 
   const resetTransactions = () => {
@@ -191,6 +198,9 @@ const GlobalProvider = ({ children }) => {
     loginUser,
     registerUser,
     logoutUser,
+
+    dateRange,
+    setDateRange,
 
     accounts,
     activeAccounts,

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import { useGlobalContext } from "../context/GlobalContext";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import "./navbar.scss";
@@ -6,6 +7,7 @@ import ConversionTool from "./core/conversiontool";
 import { helper } from "./helper";
 import TransactionPopup from "./core/transaction_popup";
 import { useToast } from "../context/ToastContext";
+import searchService from "../services/searchService";
 
 const Navbar = () => {
   const global = useGlobalContext();
@@ -48,12 +50,12 @@ const LoggedInNavbar = () => {
   useEffect(() => {}, [global.privacyMode]);
 
   useEffect(() => {
-    if (searchValue && searchResults?.length > 0) {
+    if (searchResults?.length > 0) {
       setSuggestionBox(true);
     } else {
       setSuggestionBox(false);
     }
-  }, [searchValue, searchResults]);
+  }, [searchResults]);
 
   useEffect(() => {
     setAccounts(global.accounts);
@@ -105,40 +107,39 @@ const LoggedInNavbar = () => {
     });
   }
 
-  function search(e) {
-    const searchValue = e.target.value.toLowerCase();
-    const results = [];
-    expenses?.forEach((expense) => {
-      const tagsLowerCase = expense.tags?.map((t) => t?.name?.toLowerCase());
-      if (
-        expense.description?.toLowerCase().includes(searchValue) ||
-        tagsLowerCase.includes(searchValue)
-      ) {
-        results.push(expense);
-      }
-    });
+  const updateDebounceSearch = debounceSearch((searchValue) => {
+    search(searchValue);
+  });
 
-    incomes?.forEach((income) => {
-      const tagsLowerCase = income.tags?.map((t) => t?.name?.toLowerCase());
-      if (
-        income.description?.toLowerCase().includes(searchValue) ||
-        tagsLowerCase.includes(searchValue)
-      ) {
-        results.push(income);
-      }
-    });
+  function debounceSearch(cb, delay = 500) {
+    let timeout;
 
-    transfers?.forEach((transfer) => {
-      const tagsLowerCase = transfer.tags?.map((t) => t?.name?.toLowerCase());
-      if (
-        transfer.description?.toLowerCase().includes(searchValue) ||
-        tagsLowerCase.includes(searchValue)
-      ) {
-        results.push(transfer);
-      }
-    });
+    return (...args) => {
+      clearTimeout(timeout);
+      setSuggestionBox(false);
+      timeout = setTimeout(() => {
+        cb(...args);
+      }, delay);
+    };
+  }
+
+  async function search(searchValue) {
+    if (
+      !searchValue ||
+      searchValue === undefined ||
+      searchValue === "" ||
+      searchValue === null
+    ) {
+      setSuggestionBox(false);
+      return;
+    }
+    const query = searchValue.toLowerCase();
+
+    const searchData = await searchService.search(query);
+
+    const result = Object.values(searchData).flat();
+    setSearchResults(result);
     setSearchValue(searchValue);
-    setSearchResults(results);
   }
 
   function changeGlobalCurrency(event) {
@@ -162,19 +163,26 @@ const LoggedInNavbar = () => {
           className={"search-field"}
           placeholder="Search..."
           autoComplete="off"
-          onChange={(e) => search(e)}
+          onClick={(e) => {
+            if (e.target.value === "") {
+              setSuggestionBox(false);
+            }
+          }}
+          onChange={(e) => updateDebounceSearch(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && searchValue) {
-              setSuggestionBox(!suggestionBox);
+              const query = document.getElementById("search-field").value;
               document.getElementById("search-field").value = "";
               document.getElementById("search-field").blur();
-              setSearchParams({ q: searchValue });
-              navigate(`/searchResults?q=${searchValue}`, {
+              setSearchParams({ q: query });
+              navigate(`/searchResults?q=${query}`, {
                 state: {
-                  searchResults: searchResults,
-                  searchValue: searchValue,
+                  searchResults:
+                    suggestionBox && query ? searchResults : "nothing",
+                  searchValue: query,
                 },
               });
+              setSuggestionBox(false);
             }
           }}
         />
@@ -203,7 +211,7 @@ const LoggedInNavbar = () => {
               ?.slice(0, 5)
               ?.map((s) => (
                 <SuggestionItem
-                  key={`${s.id}-${s.date}`}
+                  key={`${s.id}`}
                   suggestion={s}
                   getAccountCurrency={getAccountCurrency}
                   setTransactionPopup={setTransactionPopup}
