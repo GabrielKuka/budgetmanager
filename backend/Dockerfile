@@ -2,12 +2,20 @@ FROM python:3.8
 
 WORKDIR /app/backend
 
-COPY pyproject.toml ./
-COPY uv.lock ./
+RUN apt-get update && apt-get install -y \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install uv and synchronize dependencies
-RUN curl -sSL https://astral.sh/uv/install.sh | sh && \
-    uv sync --frozen
+RUN curl -sSL https://astral.sh/uv/install.sh | sh
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+COPY pyproject.toml uv.lock ./
+
+RUN rm -rf .venv
+
+RUN uv sync --frozen
 
 COPY . .
 
