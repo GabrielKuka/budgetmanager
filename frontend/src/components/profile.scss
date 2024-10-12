@@ -390,5 +390,12 @@
         }
       }
     }
+    .no_transactions {
+      border: 1px solid #dadada;
+      box-shadow: 1px 1px 2px #dadada;
+      border-radius: 3px;
+      padding: 15px;
+      margin: 10px;
+    }
   }
 }

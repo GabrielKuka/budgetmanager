@@ -240,6 +240,9 @@ const Sidebar = (props) => {
 };
 
 const RecentExpenses = (props) => {
+  if (props.expenses && props.expenses.length == 0) {
+    return <NoRecentTransactionCard transaction_type={"expenses"} />;
+  }
   return (
     <div className={"expenses"}>
       <div className={"header"}>
@@ -325,6 +328,9 @@ const ExpenseItem = ({
 };
 
 const RecentIncomes = (props) => {
+  if (props.incomes && props.incomes.length == 0) {
+    return <NoRecentTransactionCard transaction_type={"incomes"} />;
+  }
   return (
     <div className={"incomes"}>
       <div className={"header"}>
@@ -377,7 +383,6 @@ const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
 
     return "Not Found";
   }
-
   return (
     <div className="income-item" onClick={() => setTransactionPopup(income)}>
       {isRecent(income.created_on) && (
@@ -404,6 +409,9 @@ const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
 };
 
 const RecentTransfers = ({ transfers, accounts, setTransactionPopup }) => {
+  if (transfers && transfers.length == 0) {
+    return <NoRecentTransactionCard transaction_type={"transfers"} />;
+  }
   return (
     <div className={"transfers"}>
       <div className={"header"}>
@@ -478,6 +486,12 @@ const TransferItem = ({ transfer, accounts, setTransactionPopup }) => {
         {helper.getCurrency(getAccountCurrency(transfer.from_account))}
       </label>
     </div>
+  );
+};
+
+const NoRecentTransactionCard = ({ transaction_type }) => {
+  return (
+    <div className={"no_transactions"}>No recent {transaction_type} found.</div>
   );
 };
 
