@@ -38,6 +38,21 @@ const LoggedInNavbar = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
+    const possibleLocations = ["dashboard", "accounts", "templates"];
+    const currentLocation = location.pathname.split("/")[1];
+
+    possibleLocations.forEach((id) => {
+      const btn = document.getElementById(id);
+      btn.style.fontWeight = "normal";
+    });
+
+    if (possibleLocations.includes(currentLocation)) {
+      const btn = document.getElementById(currentLocation);
+      btn.style.fontWeight = "bold";
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
     let location = window.location.pathname.replace("/", "");
     const activeButton = location
       ? document.getElementById(location)
@@ -98,13 +113,6 @@ const LoggedInNavbar = () => {
   function handlePage(e) {
     const selected = e.target.innerText.toLowerCase();
     navigate(selected);
-
-    buttons.forEach((button) => {
-      const btn = document.getElementById(button);
-      if (btn && btn.style != null) {
-        btn.style.fontWeight = selected == button ? "bold" : "normal";
-      }
-    });
   }
 
   const updateDebounceSearch = debounceSearch((searchValue) => {
