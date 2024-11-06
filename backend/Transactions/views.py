@@ -25,15 +25,14 @@ def search(request):
 
     query = request.GET.get('query')
     try:
-        expenses = Expense.objects.filter(Q(user=user_id) & (Q(description__icontains=query) | Q(tags__name__iexact=query))).distinct()
-        incomes = Income.objects.filter(Q(user=user_id) & (Q(description__icontains=query) | Q(tags__name__iexact=query))).distinct()
+        expenses = Expense.objects.filter(Q(user=user_id) & (Q(expense_category__category__iexact=query) | Q(description__icontains=query) | Q(tags__name__iexact=query))).distinct()
+        incomes = Income.objects.filter(Q(user=user_id) & (Q(income_category__category__iexact=query) | Q(description__icontains=query) | Q(tags__name__iexact=query))).distinct()
         transfers = Transfer.objects.filter(Q(user=user_id) & (Q(description__icontains=query) | Q(tags__name__iexact=query))).distinct()
 
 
         expense_serializer = ExpenseSerializer(expenses, many=True)
         income_serializer = IncomeSerializer(incomes, many=True)
         transfer_serializer = TransferSerializer(transfers, many=True)
-
 
         response_data = {
             "expenses": expense_serializer.data,

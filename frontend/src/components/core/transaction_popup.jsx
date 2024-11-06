@@ -188,7 +188,7 @@ const TransactionPopup = ({
                 <span>
                   {" "}
                   {helper.getAccountName(
-                    global.accouts,
+                    global.accounts,
                     transaction.to_account
                   )}
                 </span>
@@ -229,10 +229,12 @@ const TransactionPopup = ({
             <label>User: </label>
             <span> {transaction.user}</span>
           </div>
-          <div>
-            <label>Description: </label>
-            <span> {transaction.description}</span>
-          </div>
+          {transaction?.description && (
+            <div>
+              <label>Description: </label>
+              <span> {transaction.description}</span>
+            </div>
+          )}
           <div>
             <label>Created on: </label>
             <span> {new Date(transaction.created_on).toLocaleString()} </span>
