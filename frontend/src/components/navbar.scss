@@ -6,16 +6,18 @@
   width: 100%;
   z-index: 1900;
   background-color: cadetblue;
-  box-shadow: 0px 3px 3px cadetblue;
+  box-shadow: 0px 2px 6px cadetblue;
 
-  &__loggedin {
+  &__loggedin,
+  &__loggedout {
     height: 35px;
     @include flex(row, flex-start, center);
     gap: 10px;
 
     padding: 15px;
-    color: black;
+  }
 
+  &__loggedin {
     .search-container {
       @include flex(row, center, center);
       gap: 10px;
@@ -198,6 +200,15 @@
       #amount_field {
         width: 70px;
       }
+    }
+  }
+
+  &__loggedout {
+    label {
+      color: white;
+      font-weight: bold;
+      font-size: 24px;
+      cursor: pointer;
     }
   }
 }

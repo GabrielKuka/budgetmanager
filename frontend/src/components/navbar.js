@@ -356,5 +356,9 @@ const SuggestionItem = ({
 };
 
 const LoggedOutNavbar = () => {
-  return false;
+  return (
+    <div className="navbar-wrapper__loggedout">
+      <label>BudgetManager</label>
+    </div>
+  );
 };
