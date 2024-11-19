@@ -1,7 +1,7 @@
 @import "../../mixins";
 
 .stats-wrapper {
-  margin: 20px 0px 20px 25px;
+  margin: 0px 0px 20px 0px;
 
   @include flex(row, flex-start, center, wrap);
   flex: 0 0 calc(33% - 20px);

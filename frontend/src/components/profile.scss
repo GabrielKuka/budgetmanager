@@ -177,13 +177,9 @@
 
   &__board {
     position: absolute;
-    border: 1px solid #dadada;
-    box-shadow: 1px 1px 2px #dadada;
-    border-radius: 3px;
     left: 450px;
     width: 1000px;
-    height: calc(100vh - 130px);
-    padding: 10px 10px 10px 10px;
+    padding: 0px 10px 10px 0px;
 
     overflow-x: hidden;
     overflow-y: scroll;
@@ -203,18 +199,24 @@
     .expenses,
     .incomes,
     .transfers {
-      @include flex(column, flex-start, center);
+      border: 1px solid #dadada;
+      border-radius: 3px;
+      margin-top: 20px;
       width: 100%;
+
+      @include flex(column, flex-start, flex-start);
       padding-bottom: 10px;
 
       .header {
         @include flex(row, flex-start, center);
-        padding: 5px 0;
-        width: 95%;
+        padding: 15px 0;
+        width: 100%;
+        border-bottom: 1px solid #dadada;
 
         .main-title {
           text-transform: uppercase;
           font-weight: bold;
+          margin-left: 15px;
         }
 
         .main-title:hover {
@@ -225,177 +227,171 @@
         .more-link {
           flex-grow: 1;
           text-align: right;
+          margin-right: 5px;
         }
       }
     }
 
-    .expenses {
-      .expense-item {
-        position: relative;
+    .expenses > .expense-item {
+      position: relative;
+      cursor: pointer;
+      width: 100%;
+      padding: 15px 0;
+      transition: border-bottom 0.3s, background-color 0.3s, padding 0.3s,
+        font-size 0.3s;
+
+      display: grid;
+      grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+      grid-gap: 10px;
+
+      label {
         cursor: pointer;
-        width: 920px;
-        padding: 15px;
-        border-bottom: 1px solid #eeebeb;
-        transition: border-bottom 0.3s, background-color 0.3s, padding 0.3s,
-          font-size 0.3s;
+      }
 
-        display: grid;
-        grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
-        grid-gap: 10px;
+      #date {
+        color: gray;
+        margin-left: 15px;
+      }
 
-        label {
-          cursor: pointer;
-        }
+      .new-transaction {
+        color: white;
+        background-color: cadetblue;
+        width: fit-content;
+        padding: 3px 5px;
+        border-bottom-left-radius: 5px;
+        position: absolute;
+        top: 0;
+        right: 0;
+        transition: padding 0.3s ease;
+      }
 
-        #date {
-          color: gray;
+      &:hover {
+        background-color: #eeebeb;
+
+        #amount {
+          font-weight: bold;
         }
 
         .new-transaction {
-          color: white;
-          background-color: cadetblue;
-          width: fit-content;
-          padding: 3px 5px;
-          border-top-right-radius: 5px;
-          border-bottom-left-radius: 5px;
-          position: absolute;
-          top: 0;
-          right: 0;
-          transition: padding 0.3s ease;
+          padding: 3px 10px;
         }
+      }
 
-        &:hover {
-          background-color: #eeebeb;
-
-          #amount {
-            font-weight: bold;
-          }
-
-          .new-transaction {
-            padding: 3px 10px;
-          }
-        }
-
-        &:active {
-          padding: 25px 20px 25px 20px;
-          font-size: 17px;
-        }
+      &:active {
+        padding: 25px 20px 25px 20px;
+        font-size: 17px;
       }
     }
 
-    .incomes {
-      .income-item {
-        position: relative;
+    .incomes > .income-item {
+      position: relative;
+      cursor: pointer;
+      width: 100%;
+      padding: 15px 0;
+      transition: border-bottom 0.3s, background-color 0.3s, padding 0.3s,
+        font-size 0.3s;
+
+      display: grid;
+      grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+      grid-gap: 10px;
+
+      label {
         cursor: pointer;
-        width: 920px;
-        padding: 15px;
-        border-bottom: 1px solid #eeebeb;
-        transition: border-bottom 0.3s, background-color 0.3s, padding 0.3s,
-          font-size 0.3s;
+      }
 
-        display: grid;
-        grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
-        grid-gap: 10px;
+      #date {
+        color: gray;
+        margin-left: 15px;
+      }
 
-        label {
-          cursor: pointer;
-        }
+      .new-transaction {
+        color: white;
+        background-color: cadetblue;
+        width: fit-content;
+        padding: 3px 5px;
+        border-bottom-left-radius: 5px;
+        position: absolute;
+        top: 0;
+        right: 0;
+        transition: padding 0.3s ease;
+      }
 
-        #date {
-          color: gray;
+      &:hover {
+        background-color: #eeebeb;
+
+        #amount {
+          font-weight: bold;
         }
 
         .new-transaction {
-          color: white;
-          background-color: cadetblue;
-          width: fit-content;
-          padding: 3px 5px;
-          border-top-right-radius: 5px;
-          border-bottom-left-radius: 5px;
-          position: absolute;
-          top: 0;
-          right: 0;
-          transition: padding 0.3s ease;
+          padding: 3px 10px;
         }
+      }
 
-        &:hover {
-          background-color: #eeebeb;
-
-          #amount {
-            font-weight: bold;
-          }
-
-          .new-transaction {
-            padding: 3px 10px;
-          }
-        }
-
-        &:active {
-          padding: 25px 20px 25px 20px;
-          font-size: 17px;
-        }
+      &:active {
+        padding: 25px 20px 25px 20px;
+        font-size: 17px;
       }
     }
 
-    .transfers {
-      .transfer-item {
-        position: relative;
+    .transfers > .transfer-item {
+      position: relative;
+      cursor: pointer;
+      width: 100%;
+      padding: 15px 0;
+      transition: border-bottom 0.3s, background-color 0.3s, padding 0.3s,
+        font-size 0.3s;
+
+      display: grid;
+      grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
+      grid-gap: 10px;
+
+      label {
         cursor: pointer;
-        width: 920px;
-        padding: 15px;
-        border-bottom: 1px solid #eeebeb;
-        transition: border-bottom 0.3s, background-color 0.3s, padding 0.3s,
-          font-size 0.3s;
+      }
 
-        display: grid;
-        grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
-        grid-gap: 10px;
+      #date {
+        color: gray;
+        margin-left: 15px;
+      }
 
-        label {
-          cursor: pointer;
-        }
+      .new-transaction {
+        color: white;
+        background-color: cadetblue;
+        width: fit-content;
+        padding: 3px 5px;
+        border-bottom-left-radius: 5px;
+        position: absolute;
+        top: 0;
+        right: 0;
+        transition: padding 0.3s ease;
+      }
 
-        #date {
-          color: gray;
+      &:hover {
+        background-color: #eeebeb;
+
+        #amount {
+          font-weight: bold;
         }
 
         .new-transaction {
-          color: white;
-          background-color: cadetblue;
-          width: fit-content;
-          padding: 3px 5px;
-          border-top-right-radius: 5px;
-          border-bottom-left-radius: 5px;
-          position: absolute;
-          top: 0;
-          right: 0;
-          transition: padding 0.3s ease;
+          padding: 3px 10px;
         }
+      }
 
-        &:hover {
-          background-color: #eeebeb;
-
-          #amount {
-            font-weight: bold;
-          }
-
-          .new-transaction {
-            padding: 3px 10px;
-          }
-        }
-
-        &:active {
-          padding: 25px 20px 25px 20px;
-          font-size: 17px;
-        }
+      &:active {
+        padding: 25px 20px 25px 20px;
+        font-size: 17px;
       }
     }
     .no_transactions {
+      width: 100%;
       border: 1px solid #dadada;
       box-shadow: 1px 1px 2px #dadada;
       border-radius: 3px;
-      padding: 15px;
-      margin: 10px;
+      padding: 15px 0;
+      margin: 15px 0;
+      text-align: center;
     }
   }
 }

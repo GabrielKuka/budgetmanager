@@ -339,20 +339,18 @@ const RecentIncomes = (props) => {
           More Incomes
         </Link>
       </div>
-      <div className={"incomes"}>
-        {props.incomes?.length > 0 &&
-          props.incomes
-            .slice(0, 5)
-            .map((income) => (
-              <IncomeItem
-                key={income.id}
-                income={income}
-                accounts={props.accounts}
-                categories={props.categories}
-                setTransactionPopup={props.setTransactionPopup}
-              />
-            ))}
-      </div>
+      {props.incomes?.length > 0 &&
+        props.incomes
+          .slice(0, 5)
+          .map((income) => (
+            <IncomeItem
+              key={income.id}
+              income={income}
+              accounts={props.accounts}
+              categories={props.categories}
+              setTransactionPopup={props.setTransactionPopup}
+            />
+          ))}
     </div>
   );
 };
@@ -420,19 +418,17 @@ const RecentTransfers = ({ transfers, accounts, setTransactionPopup }) => {
           More Transfers
         </Link>
       </div>
-      <div className={"transfers"}>
-        {transfers?.length > 0 &&
-          transfers
-            .slice(0, 5)
-            .map((transfer) => (
-              <TransferItem
-                key={transfer.id}
-                transfer={transfer}
-                accounts={accounts}
-                setTransactionPopup={setTransactionPopup}
-              />
-            ))}
-      </div>
+      {transfers?.length > 0 &&
+        transfers
+          .slice(0, 5)
+          .map((transfer) => (
+            <TransferItem
+              key={transfer.id}
+              transfer={transfer}
+              accounts={accounts}
+              setTransactionPopup={setTransactionPopup}
+            />
+          ))}
     </div>
   );
 };
