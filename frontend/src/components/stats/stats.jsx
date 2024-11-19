@@ -9,6 +9,7 @@ import { useGlobalContext } from "../../context/GlobalContext";
 import MonthlyFinancesSankeyChart from "./monthlyFinancesSankeyChart";
 import PercentExpensesPieChart from "./percentExpensesPie";
 import transactionService from "../../services/transactionService/transactionService";
+import WealthOverTime from "./wealthOverTime";
 
 const Stats = () => {
   const global = useGlobalContext();
@@ -76,6 +77,15 @@ const Stats = () => {
                 getAccountCurrency={getAccountCurrency}
                 height={300}
                 width={480}
+                expenses={expenses}
+                incomes={incomes}
+              />
+            </div>
+            <div className={"chart-container"}>
+              <WealthOverTime
+                getAccountCurrency={getAccountCurrency}
+                height={400}
+                width={950}
                 expenses={expenses}
                 incomes={incomes}
               />
