@@ -17,6 +17,7 @@ from .serializers import (
     TransactionCategorySerializer,
 )
 from django.utils.dateparse import parse_date
+from datetime import datetime
 
 @api_view(['GET'])
 def search(request):
@@ -132,8 +133,8 @@ def get_transactions(request):
 
     try:
         # Parse parameters into proper dates
-        from_date = parse_date(from_date)
-        to_date = parse_date(to_date)
+        from_date = datetime.strptime(from_date, "%d-%m-%Y").date()
+        to_date = datetime.strptime(to_date, "%d-%m-%Y").date()
 
         # Filter transactions based on the timeframe
         incomes = Income.objects.filter(user=user_id, date__gte=from_date, date__lte=to_date)

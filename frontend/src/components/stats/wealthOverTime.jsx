@@ -11,7 +11,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import FoodExpensesChart from "./foodExpensesChart";
 
 const WealthOverTime = (props) => {
   const global = useGlobalContext();

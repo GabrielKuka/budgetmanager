@@ -10,6 +10,8 @@ import Stats from "./stats/stats";
 
 import * as XLSX from "xlsx";
 import { useGlobalContext } from "../context/GlobalContext";
+import currencyService from "../services/currencyService";
+import transactionService from "../services/transactionService/transactionService";
 
 const Profile = () => {
   const global = useGlobalContext();
@@ -124,6 +126,88 @@ const Sidebar = (props) => {
   const showConfirm = useConfirm();
   const showToast = useToast();
   const global = useGlobalContext();
+  const [totalWealth, setTotalWealth] = useState({ wealth: null, change: 0 });
+
+  useEffect(() => {
+    async function getTotalWealth() {
+      let promises = global.activeAccounts?.map(async (a) => {
+        return await currencyService.convert(
+          a.currency,
+          global.globalCurrency,
+          a.amount
+        );
+      });
+
+      const results = await Promise.all(promises);
+      const total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
+
+      setTotalWealth((prev) => ({ ...prev, wealth: total }));
+    }
+    getTotalWealth();
+  }, [global.globalCurrency]);
+
+  useEffect(() => {
+    async function getPercentageChange() {
+      if (totalWealth.wealth == null) {
+        return 0;
+      }
+
+      const now = new Date();
+      const previousMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+      const previousYear =
+        now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+
+      const firstDay = new Date(previousYear, previousMonth, 1);
+      const lastDay = new Date(previousYear, previousMonth + 1, 0);
+
+      const dateRange = {
+        from: firstDay,
+        to: lastDay,
+      };
+      // Get expenses and incomes from the previous month
+      const data = await transactionService.getTransactions(dateRange);
+      const previousMonthExpenses = data.expenses;
+      const previousMonthIncomes = data.incomes;
+
+      async function getSumOfTransactions(transactions) {
+        let promises = transactions?.map(async (t) => {
+          return await currencyService.convert(
+            getAccountCurrency(t.account),
+            global.globalCurrency,
+            t.amount
+          );
+        });
+        if (!promises) {
+          return;
+        }
+        const results = await Promise.all(promises);
+        const total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
+
+        return parseFloat(total);
+      }
+
+      const totalPrevMonthExpenses = await getSumOfTransactions(
+        previousMonthExpenses
+      );
+      const totalPrevMonthIncomes = await getSumOfTransactions(
+        previousMonthIncomes
+      );
+
+      const netChange = parseFloat(
+        totalPrevMonthIncomes - totalPrevMonthExpenses
+      );
+      const previousTotalWealth = parseFloat(
+        parseFloat(totalWealth.wealth) - netChange
+      );
+
+      const percentageChange = parseFloat(
+        ((totalWealth.wealth - previousTotalWealth) / previousTotalWealth) * 100
+      );
+      setTotalWealth((prev) => ({ ...prev, change: percentageChange }));
+    }
+
+    getPercentageChange();
+  }, [totalWealth.wealth]);
 
   function getAccountCurrency(id) {
     const account = global.accounts?.filter((a) => a.id === id);
@@ -186,6 +270,47 @@ const Sidebar = (props) => {
           <div>
             <span>Phone </span>
             <label>{props.userData.phone}</label>
+          </div>
+          <div>
+            <span>Total Wealth</span>
+            <label>
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(parseFloat(totalWealth.wealth).toFixed(2))
+              )}{" "}
+              {helper.getCurrency(global.globalCurrency)}{" "}
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: `${
+                    parseFloat(totalWealth.change) > 0 ? "green" : "red"
+                  }`,
+                }}
+              >
+                <i>
+                  {parseFloat(totalWealth.change) > 0 ? "+" : ""}
+                  {parseFloat(totalWealth.change).toFixed(2)}%
+                </i>{" "}
+              </span>
+              {parseFloat(totalWealth.change).toFixed(2) !== "0.00" && (
+                <img
+                  src={
+                    process.env.PUBLIC_URL +
+                    `/${
+                      parseFloat(totalWealth.change) > 0
+                        ? "increase"
+                        : "decrease"
+                    }.png`
+                  }
+                  style={{
+                    height: "16px",
+                    width: "16px",
+                    verticalAlign: "-3px",
+                    marginLeft: "-5px",
+                  }}
+                />
+              )}
+            </label>
           </div>
         </div>
       </div>

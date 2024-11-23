@@ -3,27 +3,28 @@ import { Sankey, Tooltip, Rectangle, Layer } from "recharts";
 import currencyService from "../../services/currencyService";
 import { helper } from "../helper";
 import { useGlobalContext } from "../../context/GlobalContext";
+import transactionService from "../../services/transactionService/transactionService";
 
 const MonthlyFinancesSankeyChart = (props) => {
   const [chartData, setChartData] = useState(false);
   const global = useGlobalContext();
+  const dateRange = {
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    to: new Date(),
+  };
+
   useEffect(() => {
-    // Use only incomes/expenses for the current month
-    const currentMonthIncomes = props.incomes?.filter(
-      (i) =>
-        new Date(i.date) >= props.dateRange.from &&
-        new Date(i.date) <= props.dateRange.to
-    );
-    const currentMonthExpenses = props.expenses?.filter(
-      (e) =>
-        new Date(e.date) >= props.dateRange.from &&
-        new Date(e.date) <= props.dateRange.to
-    );
-    async function getSumOfMonthlyIncomes() {
-      if (!currentMonthIncomes) {
+    async function getCurrentMonthTransactions() {
+      const data = await transactionService.getTransactions(dateRange);
+
+      return data;
+    }
+
+    async function getSumOfMonthlyTransactions(transactions) {
+      if (!transactions) {
         return;
       }
-      let promises = currentMonthIncomes?.map(async (e) => {
+      let promises = transactions?.map(async (e) => {
         return await currencyService.convert(
           props.getAccountCurrency(e.account),
           global.globalCurrency,
@@ -37,7 +38,7 @@ const MonthlyFinancesSankeyChart = (props) => {
       return total;
     }
 
-    async function getIncomesPerCategory() {
+    async function getIncomesPerCategory(currentMonthIncomes) {
       if (!props.incomeCategories) {
         return;
       }
@@ -64,27 +65,7 @@ const MonthlyFinancesSankeyChart = (props) => {
       return data;
     }
 
-    async function getSumOfMonthlyExpenses() {
-      if (!currentMonthExpenses) {
-        return;
-      }
-      let promises = currentMonthExpenses?.map(async (e) => {
-        return await currencyService.convert(
-          props.getAccountCurrency(e.account),
-          global.globalCurrency,
-          e.amount
-        );
-      });
-
-      if (!promises) {
-        return;
-      }
-      const results = await Promise.all(promises);
-      let total = results?.reduce((acc, curr) => acc + parseFloat(curr), 0);
-
-      return total;
-    }
-    async function getExpensesPerCategory() {
+    async function getExpensesPerCategory(currentMonthExpenses) {
       if (!props.expenseCategories) {
         return;
       }
@@ -114,11 +95,24 @@ const MonthlyFinancesSankeyChart = (props) => {
     async function prepareData() {
       const data = { nodes: [{ name: "Income", color: "green" }], links: [] };
 
-      const sumOfMonthlyIncomes = await getSumOfMonthlyIncomes();
-      const incomesPerCategory = await getIncomesPerCategory();
+      const transactions = await getCurrentMonthTransactions();
 
-      const sumOfMonthlyExpenses = await getSumOfMonthlyExpenses();
-      const expensesPerCategory = await getExpensesPerCategory();
+      const currentMonthIncomes = transactions.incomes;
+      const currentMonthExpenses = transactions.expenses;
+
+      const sumOfMonthlyIncomes = await getSumOfMonthlyTransactions(
+        currentMonthIncomes
+      );
+      const incomesPerCategory = await getIncomesPerCategory(
+        currentMonthIncomes
+      );
+
+      const sumOfMonthlyExpenses = await getSumOfMonthlyTransactions(
+        currentMonthExpenses
+      );
+      const expensesPerCategory = await getExpensesPerCategory(
+        currentMonthExpenses
+      );
 
       for (const obj of incomesPerCategory) {
         if (parseFloat(obj.amount) === 0.0) {

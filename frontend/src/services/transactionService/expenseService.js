@@ -5,10 +5,11 @@ const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
 
 async function getTransactions(dateRange) {
   const token = JSON.parse(localStorage.getItem("authToken"));
+
   const config = {
     params: {
-      from_date: new Date(dateRange.from).toISOString().split("T")[0],
-      to_date: new Date(dateRange.to).toISOString().split("T")[0],
+      from_date: dateRange.from.toLocaleDateString("en-GB").replace(/\//g, "-"),
+      to_date: dateRange.to.toLocaleDateString("en-GB").replace(/\//g, "-"),
     },
     headers: {
       Authorization: token,
