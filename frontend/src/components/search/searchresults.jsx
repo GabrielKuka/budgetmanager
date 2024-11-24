@@ -604,7 +604,7 @@ const AggregationTable = ({ transactions, getAccountCurrency }) => {
       return;
     }
     processTransactions();
-  }, [transactions]);
+  }, [transactions, global.globalCurrency]);
   return (
     <div className={"aggs-card"}>
       <label>Summary</label>
