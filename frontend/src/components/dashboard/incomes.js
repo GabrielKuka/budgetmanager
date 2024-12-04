@@ -238,6 +238,7 @@ const AddIncome = ({
             values["tags"] = tags.map((tag) => ({
               name: tag,
             }));
+            console.log(values);
             await transactionService.addIncome(values);
             await refreshIncomes();
             await refreshAccounts();
@@ -539,6 +540,7 @@ const IncomesList = (props) => {
               )}
               refreshIncomes={props.refreshIncomes}
               setTransactionPopup={props.setTransactionPopup}
+              refreshAccounts={global.updateAccounts}
             />
           ))}
       </div>
@@ -553,6 +555,7 @@ const IncomeItem = ({
   currency,
   refreshIncomes,
   setTransactionPopup,
+  refreshAccounts,
 }) => {
   const [showKebab, setShowKebab] = useState(false);
   const showConfirm = useConfirm();
@@ -611,6 +614,25 @@ const IncomeItem = ({
     });
   }
 
+  function handleRepeatTransaction() {
+    showConfirm("Repeat transaction?", async () => {
+      const payload = {
+        type: 0,
+        amount: income.amount,
+        account: income.account,
+        description: income.description,
+        income_category: income.income_category,
+        tags: income.tags.map((tag) => ({ name: tag.name })),
+        date: new Date().toISOString().slice(0, 10),
+      };
+      await transactionService.addIncome(payload);
+
+      await refreshIncomes();
+      await refreshAccounts();
+      showToast("Income Added.");
+    });
+  }
+
   function handleShowMore(event) {
     const kebabClicked = !!(
       event.target?.attributes?.class?.value?.includes("kebab-button") ||
@@ -619,7 +641,16 @@ const IncomeItem = ({
     const deleteButtonClicked =
       !!event.target?.attributes?.id?.value?.includes("deleteButton");
 
-    if (!kebabClicked && !deleteButtonClicked) {
+    const repeatTransactionButtonClicked =
+      !!event.target?.attributes?.id?.value?.includes(
+        "repeatTransactionButton"
+      );
+
+    if (
+      !kebabClicked &&
+      !deleteButtonClicked &&
+      !repeatTransactionButtonClicked
+    ) {
       setTransactionPopup(income);
     }
   }
@@ -659,6 +690,12 @@ const IncomeItem = ({
           </button>
           <button onClick={handleShowMore} id="showMoreButton">
             Show more
+          </button>
+          <button
+            onClick={handleRepeatTransaction}
+            id="repeatTransactionButton"
+          >
+            Repeat Transaction
           </button>
         </div>
       )}

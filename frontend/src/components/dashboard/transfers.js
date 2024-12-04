@@ -460,6 +460,7 @@ const TransfersList = ({
               )}
               refreshTransfers={refreshTransfers}
               setTransactionPopup={setTransactionPopup}
+              refreshAccounts={global.updateAccounts}
             />
           ))}
       </div>

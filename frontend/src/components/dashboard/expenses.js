@@ -557,6 +557,7 @@ const ExpensesList = (props) => {
                 props.getAccountCurrency(expense.account)
               )}
               setTransactionPopup={props.setTransactionPopup}
+              refreshAccounts={global.updateAccounts}
             />
           ))}
       </div>
@@ -571,6 +572,7 @@ const ExpenseItem = ({
   currency,
   refreshExpenses,
   setTransactionPopup,
+  refreshAccounts,
 }) => {
   const [showKebab, setShowKebab] = useState(false);
   const showConfirm = useConfirm();
@@ -630,6 +632,25 @@ const ExpenseItem = ({
     });
   }
 
+  function handleRepeatTransaction() {
+    showConfirm("Repeat transaction?", async () => {
+      const payload = {
+        type: 1,
+        amount: expense.amount,
+        account: expense.account,
+        description: expense.description,
+        expense_category: expense.expense_category,
+        tags: expense.tags.map((tag) => ({ name: tag.name })),
+        date: new Date().toISOString().slice(0, 10),
+      };
+      await transactionService.addExpense(payload);
+
+      await refreshExpenses();
+      await refreshAccounts();
+      showToast("Expense Added.");
+    });
+  }
+
   function handleShowMore(event) {
     const kebabClicked = !!(
       event.target?.attributes?.class?.value?.includes("kebab-button") ||
@@ -638,7 +659,16 @@ const ExpenseItem = ({
     const deleteButtonClicked =
       !!event.target?.attributes?.id?.value?.includes("deleteButton");
 
-    if (!kebabClicked && !deleteButtonClicked) {
+    const repeatTransactionButtonClicked =
+      !!event.target?.attributes?.id?.value?.includes(
+        "repeatTransactionButton"
+      );
+
+    if (
+      !kebabClicked &&
+      !deleteButtonClicked &&
+      !repeatTransactionButtonClicked
+    ) {
       setTransactionPopup(expense);
     }
   }
@@ -680,6 +710,12 @@ const ExpenseItem = ({
           </button>
           <button onClick={handleShowMore} id="showMoreButton">
             Show more
+          </button>
+          <button
+            onClick={handleRepeatTransaction}
+            id="repeatTransactionButton"
+          >
+            Repeat Transaction
           </button>
         </div>
       )}
