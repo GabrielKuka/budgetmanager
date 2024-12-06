@@ -238,7 +238,6 @@ const AddIncome = ({
             values["tags"] = tags.map((tag) => ({
               name: tag,
             }));
-            console.log(values);
             await transactionService.addIncome(values);
             await refreshIncomes();
             await refreshAccounts();

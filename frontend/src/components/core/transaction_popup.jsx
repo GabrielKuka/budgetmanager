@@ -132,6 +132,45 @@ const TransactionPopup = ({
     });
   }
 
+  async function addTransaction(type, payload) {
+    switch (type) {
+      case "income":
+        await transactionService.addIncome(payload);
+        showToast("Income Added.");
+        break;
+      case "expense":
+        await transactionService.addIncome(payload);
+        showToast("Income Added.");
+        break;
+      default:
+        showToast("Wrong transaction type.");
+        break;
+    }
+  }
+
+  function handleRepeatTransaction() {
+    showConfirm("Repeat transaction?", async () => {
+      const category_key = type === 0 ? "income_category" : "expense_category";
+      const category_value =
+        type === 0 ? transaction.income_category : transaction.expense_category;
+
+      const payload = {
+        type: type,
+        amount: transaction.amount,
+        account: transaction.account,
+        description: transaction.description,
+        [category_key]: category_value,
+        tags: transaction.tags.map((tag) => ({ name: tag.name })),
+        date: new Date().toISOString().slice(0, 10),
+      };
+
+      await addTransaction(getTransactionType(), payload);
+      await refreshTransactions();
+
+      closePopup();
+    });
+  }
+
   return (
     <>
       <div className={"overlay"}></div>
@@ -274,6 +313,14 @@ const TransactionPopup = ({
             >
               Edit
             </button>
+            {(type === 0 || type === 1) && (
+              <button
+                id="repeatTransactionButton"
+                onClick={handleRepeatTransaction}
+              >
+                Repeat Transaction
+              </button>
+            )}
           </div>
         </div>
       </div>
