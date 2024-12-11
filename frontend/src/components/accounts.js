@@ -298,6 +298,7 @@ const CreateAccount = ({ refreshAccounts }) => {
 
 const AccountsList = ({ accounts, refreshAccounts, accountTypeSelected }) => {
   const global = useGlobalContext();
+  const [sortedBy, setSortedBy] = useState({});
   const [showEmptyAccounts, setShowEmptyAccounts] = useState(false);
   const [shownAccounts, setShownAccounts] = useState(accounts);
 
@@ -305,26 +306,52 @@ const AccountsList = ({ accounts, refreshAccounts, accountTypeSelected }) => {
     filterAccounts();
   }, [showEmptyAccounts, accounts]);
 
-  function sortShownAccounts(by) {
-    let sortedAccounts = shownAccounts;
-    switch (by) {
-      case "name":
-        sortedAccounts = shownAccounts.sort((a, b) =>
-          a.name >= b.name ? 1 : -1
-        );
-        break;
-      case "type":
-        sortedAccounts = shownAccounts.sort((a, b) =>
-          a.type >= b.type ? 1 : -1
-        );
-        break;
-      case "amount":
-        sortedAccounts = shownAccounts.sort((a, b) =>
-          a.amount <= b.amount ? 1 : -1
-        );
-        break;
+  async function sortShownAccounts(by) {
+    if (!by) {
+      return;
     }
-    setShownAccounts([...sortedAccounts]);
+
+    let sorted = null;
+
+    const sortKeyFunction = {
+      date: (acc) => new Date(acc.created_on),
+      amount: async (acc) => {
+        const convertedAmount = await currencyService.convert(
+          acc.currency,
+          global.globalCurrency,
+          acc.amount
+        );
+        return parseFloat(convertedAmount);
+      },
+    };
+    const transform = sortKeyFunction[by] || ((acc) => acc[by]);
+
+    const itemsWithTransformedValues = await Promise.all(
+      shownAccounts.map(async (acc) => ({
+        ...acc,
+        transformedValue:
+          by === "amount" ? await transform(acc) : transform(acc),
+      }))
+    );
+
+    if (by in sortedBy) {
+      const currentOrder = sortedBy[by];
+      // Perform synchronous sorting on the transformed values
+      sorted = itemsWithTransformedValues.sort((a, b) =>
+        currentOrder === "ascending"
+          ? b.transformedValue - a.transformedValue
+          : a.transformedValue - b.transformedValue
+      );
+      setSortedBy({
+        [by]: currentOrder === "ascending" ? "descending" : "ascending",
+      });
+    } else {
+      sorted = itemsWithTransformedValues.sort(
+        (a, b) => a.transformedValue - b.transformedValue
+      );
+      setSortedBy({ [by]: "ascending" });
+    }
+    setShownAccounts(sorted);
   }
 
   function filterAccounts() {
@@ -355,8 +382,8 @@ const AccountsList = ({ accounts, refreshAccounts, accountTypeSelected }) => {
         </div>
       )}
       <div className={"header"}>
-        <label>Date</label>
-        <label onClick={() => sortShownAccounts("name")}>Name</label>
+        <label onClick={() => sortShownAccounts("date")}>Date</label>
+        <label>Name</label>
         <label onClick={() => sortShownAccounts("amount")}>Amount</label>
         <label onClick={() => sortShownAccounts("type")}>Type</label>
       </div>

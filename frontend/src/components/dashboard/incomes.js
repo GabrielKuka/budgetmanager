@@ -386,50 +386,51 @@ const IncomesList = (props) => {
     props.setShownIncomes(filteredincomes);
   }
 
-  function sortShownIncomes(by = "") {
+  async function sortShownIncomes(by = "") {
     if (!by) {
       return;
     }
 
     let sorted = null;
 
-    if (by == "date") {
-      if ("date" in sortedBy) {
-        if (sortedBy["date"] == "ascending") {
-          sorted = [...props.shownIncomes].sort(
-            (a, b) => new Date(b.date) - new Date(a.date)
-          );
-          setSortedBy({ date: "descending" });
-        } else {
-          sorted = [...props.shownIncomes].sort(
-            (a, b) => new Date(a.date) - new Date(b.date)
-          );
-          setSortedBy({ date: "ascending" });
-        }
-      } else {
-        sorted = [...props.shownIncomes].sort(
-          (a, b) => new Date(a.date) - new Date(b.date)
+    const sortKeyFunction = {
+      date: (item) => new Date(item.date),
+      amount: async (item) => {
+        const convertedAmount = await currencyService.convert(
+          props.getAccountCurrency(item.account),
+          global.globalCurrency,
+          item.amount
         );
-        setSortedBy({ date: "ascending" });
-      }
-      props.setShownIncomes(sorted);
-      return;
-    }
+        return parseFloat(convertedAmount);
+      },
+    };
 
-    if (`${by}` in sortedBy) {
-      if (sortedBy[`${by}`] == "ascending") {
-        sorted = [...props.shownIncomes].sort(
-          (a, b) => b[`${by}`] - a[`${by}`]
-        );
-        setSortedBy({ [by]: "descending" });
-      } else {
-        sorted = [...props.shownIncomes].sort(
-          (a, b) => a[`${by}`] - b[`${by}`]
-        );
-        setSortedBy({ [by]: "ascending" });
-      }
+    const transform = sortKeyFunction[by] || ((item) => item[by]);
+
+    // Convert amounts to a single currency
+    const itemsWithTransformedValues = await Promise.all(
+      props.shownIncomes.map(async (item) => ({
+        ...item,
+        transformedValue:
+          by === "amount" ? await transform(item) : transform(item),
+      }))
+    );
+
+    if (by in sortedBy) {
+      const currentOrder = sortedBy[by];
+      // Perform synchronous sorting on the transformed values
+      sorted = itemsWithTransformedValues.sort((a, b) =>
+        currentOrder === "ascending"
+          ? b.transformedValue - a.transformedValue
+          : a.transformedValue - b.transformedValue
+      );
+      setSortedBy({
+        [by]: currentOrder === "ascending" ? "descending" : "ascending",
+      });
     } else {
-      sorted = [...props.shownIncomes].sort((a, b) => a[`${by}`] - b[`${by}`]);
+      sorted = itemsWithTransformedValues.sort(
+        (a, b) => a.transformedValue - b.transformedValue
+      );
       setSortedBy({ [by]: "ascending" });
     }
     props.setShownIncomes(sorted);
