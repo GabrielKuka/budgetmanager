@@ -286,6 +286,17 @@ const Sidebar = (props) => {
                     parseFloat(totalWealth.change) > 0 ? "green" : "red"
                   }`,
                 }}
+                id="percent_wealth_change"
+                onMouseOver={() =>
+                  (document.getElementById(
+                    "wealth_change_tooltip"
+                  ).style.visibility = "visible")
+                }
+                onMouseOut={() =>
+                  (document.getElementById(
+                    "wealth_change_tooltip"
+                  ).style.visibility = "hidden")
+                }
               >
                 <i>
                   {parseFloat(totalWealth.change) > 0 ? "+" : ""}
@@ -310,6 +321,21 @@ const Sidebar = (props) => {
                   }}
                 />
               )}
+              <span id="wealth_change_tooltip">
+                Your total net worth has
+                {parseFloat(totalWealth.change) == 0
+                  ? " remained the same "
+                  : `${
+                      parseFloat(totalWealth.change) > 0
+                        ? ` increased ${helper
+                            .formatNumber(totalWealth.change)
+                            .replace(/[+-]/g, "")}% `
+                        : ` decreased ${helper
+                            .formatNumber(totalWealth.change)
+                            .replace(/[+-]/g, "")}% `
+                    }`}
+                from the previous month.
+              </span>
             </label>
           </div>
         </div>

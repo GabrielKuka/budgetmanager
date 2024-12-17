@@ -40,6 +40,23 @@
             color: gray;
             font-size: 14px;
           }
+          #percent_wealth_change {
+            //position: absolute;
+            cursor: pointer;
+          }
+          #wealth_change_tooltip {
+            visibility: hidden;
+            position: absolute;
+            border: 1px solid cadetblue;
+            background-color: cadetblue;
+            color: white;
+            border-radius: 3px;
+            width: fit-content;
+            padding: 5px;
+            left: 5px;
+            margin-top: 30px;
+            right: 10px;
+          }
         }
       }
     }
