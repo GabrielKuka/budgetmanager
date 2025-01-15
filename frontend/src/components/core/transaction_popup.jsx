@@ -53,7 +53,7 @@ const TransactionPopup = ({
     if (getTransactionType() === "expense") {
       return `Spent ${helper.showOrMask(
         global.privacyMode,
-        transaction.amount
+        helper.formatNumber(transaction.amount)
       )} ${helper.getCurrency(
         getAccountCurrency(transaction.account)
       )} on ${getCategory(
@@ -67,7 +67,7 @@ const TransactionPopup = ({
     if (getTransactionType() === "income") {
       return `Earned ${helper.showOrMask(
         global.privacyMode,
-        transaction.amount
+        helper.formatNumber(transaction.amount)
       )} ${helper.getCurrency(
         getAccountCurrency(transaction.account)
       )} from ${getCategory(
@@ -81,7 +81,7 @@ const TransactionPopup = ({
     if (getTransactionType() === "transfer") {
       return `Transfered ${helper.showOrMask(
         global.privacyMode,
-        transaction.amount
+        helper.formatNumber(transaction.amount)
       )} ${helper.getCurrency(
         getAccountCurrency(transaction.from_account)
       )} from ${helper.getAccountName(
@@ -200,7 +200,7 @@ const TransactionPopup = ({
                 <span>
                   {helper.showOrMask(
                     global.privacyMode,
-                    parseFloat(transaction.amount).toFixed(2)
+                    helper.formatNumber(transaction.amount)
                   )}{" "}
                   {helper.getCurrency(
                     getAccountCurrency(transaction.from_account)
@@ -241,7 +241,7 @@ const TransactionPopup = ({
                 <span>
                   {helper.showOrMask(
                     global.privacyMode,
-                    parseFloat(transaction.amount).toFixed(2)
+                    helper.formatNumber(transaction.amount)
                   )}{" "}
                   {helper.getCurrency(getAccountCurrency(transaction.account))}
                 </span>

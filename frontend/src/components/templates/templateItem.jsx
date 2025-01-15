@@ -11,8 +11,6 @@ const TemplateItem = (props) => {
     if (props.i?.type == 2) return "transfer";
   };
 
-  const allAccounts = props.accounts;
-
   const account = props.i?.account;
   const from_account = props.i?.from_account;
   const to_account = props.i?.to_account;
@@ -50,7 +48,8 @@ const TemplateItem = (props) => {
         <label>
           Earn{" "}
           <b>
-            {amount} {helper.getCurrency(getAccountCurrency(account))}
+            {helper.formatNumber(amount)}{" "}
+            {helper.getCurrency(getAccountCurrency(account))}
           </b>{" "}
           to{" "}
           <i style={helper.accountLabelStyle(global.accounts, account)}>
@@ -63,7 +62,8 @@ const TemplateItem = (props) => {
         <label>
           Spend{" "}
           <b>
-            {amount} {helper.getCurrency(getAccountCurrency(account))}
+            {helper.formatNumber(amount)}{" "}
+            {helper.getCurrency(getAccountCurrency(account))}
           </b>{" "}
           from{" "}
           <i style={helper.accountLabelStyle(global.accounts, account)}>
@@ -76,7 +76,8 @@ const TemplateItem = (props) => {
         <label>
           Transfer{" "}
           <b>
-            {amount} {helper.getCurrency(getAccountCurrency(from_account))}
+            {helper.formatNumber(amount)}{" "}
+            {helper.getCurrency(getAccountCurrency(from_account))}
           </b>{" "}
           from{" "}
           <i style={helper.accountLabelStyle(global.accounts, from_account)}>

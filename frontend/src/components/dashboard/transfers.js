@@ -560,7 +560,7 @@ const TransferItem = ({
       <label id="amount">
         {helper.showOrMask(
           global.privacyMode,
-          parseFloat(transfer.amount).toFixed(2)
+          helper.formatNumber(transfer.amount)
         )}{" "}
         {currency}
       </label>

@@ -467,7 +467,7 @@ const ExpenseItem = ({
       <label id="amount">
         {helper.showOrMask(
           global.privacyMode,
-          parseFloat(expense.amount).toFixed(2)
+          helper.formatNumber(expense.amount)
         )}{" "}
         {helper.getCurrency(getAccountCurrency(expense.account))}
       </label>
@@ -548,7 +548,7 @@ const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
       <label id="amount">
         {helper.showOrMask(
           global.privacyMode,
-          parseFloat(income.amount).toFixed(2)
+          helper.formatNumber(income.amount)
         )}{" "}
         {helper.getCurrency(getAccountCurrency(income.account))}
       </label>
@@ -628,7 +628,7 @@ const TransferItem = ({ transfer, accounts, setTransactionPopup }) => {
       <label id="amount">
         {helper.showOrMask(
           global.privacyMode,
-          parseFloat(transfer.amount).toFixed(2)
+          helper.formatNumber(transfer.amount)
         )}{" "}
         {helper.getCurrency(getAccountCurrency(transfer.from_account))}
       </label>

@@ -154,7 +154,10 @@ const Sidebar = (props) => {
       />
       <div className={"summary"}>
         <b>
-          {helper.showOrMask(global.privacyMode, totalShownIncomes)}
+          {helper.showOrMask(
+            global.privacyMode,
+            helper.formatNumber(totalShownIncomes)
+          )}
           {helper.getCurrency(global.globalCurrency)}
         </b>{" "}
         earned{" "}
@@ -671,7 +674,7 @@ const IncomeItem = ({
       <label id="amount">
         {helper.showOrMask(
           global.privacyMode,
-          parseFloat(income.amount).toFixed(2)
+          helper.formatNumber(income.amount)
         )}{" "}
         {currency}
       </label>
