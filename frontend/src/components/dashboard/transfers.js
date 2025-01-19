@@ -456,7 +456,6 @@ const TransfersList = ({
               key={transfer.id}
               transaction={transfer}
               refreshTransactions={refreshTransfers}
-              //categories={props.categories}
               currency={helper.getCurrency(
                 getAccountCurrency(transfer.from_account)
               )}

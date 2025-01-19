@@ -324,7 +324,6 @@ const TransactionPopup = ({
           </div>
         </div>
       </div>
-      ;
     </>
   );
 };
