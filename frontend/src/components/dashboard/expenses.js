@@ -14,6 +14,7 @@ import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
 import { validationSchemas } from "../../validationSchemas";
 import axios from "axios";
+import TransactionItem from "./transactionItem";
 
 const Expenses = () => {
   const global = useGlobalContext();
@@ -551,11 +552,10 @@ const ExpensesList = (props) => {
       <div className={"expenses"}>
         {props.shownExpenses?.length > 0 &&
           props.shownExpenses?.map((expense) => (
-            <ExpenseItem
+            <TransactionItem
               key={expense.id}
-              expense={expense}
-              accounts={props.accounts}
-              refreshExpenses={props.refreshExpenses}
+              transaction={expense}
+              refreshTransactions={props.refreshExpenses}
               categories={props.categories}
               currency={helper.getCurrency(
                 props.getAccountCurrency(expense.account)
@@ -565,164 +565,6 @@ const ExpensesList = (props) => {
             />
           ))}
       </div>
-    </div>
-  );
-};
-
-const ExpenseItem = ({
-  expense,
-  accounts,
-  categories,
-  currency,
-  refreshExpenses,
-  setTransactionPopup,
-  refreshAccounts,
-}) => {
-  const [showKebab, setShowKebab] = useState(false);
-  const showConfirm = useConfirm();
-  const showToast = useToast();
-  const kebabMenu = useRef(null);
-  const global = useGlobalContext();
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      const kebabClicked = !!(
-        event.target?.attributes?.class?.value?.includes("kebab-button") ||
-        event.target?.attributes?.src?.value?.includes("kebab_icon")
-      );
-
-      if (!kebabMenu?.current?.contains(event.target) && !kebabClicked) {
-        setShowKebab(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  function getExpenseCategory(id) {
-    const category = categories?.filter((c) => c.id === id);
-    if (category?.length === 1) {
-      return category[0].category;
-    }
-    return "Not found.";
-  }
-
-  function isRecent(input_datetime) {
-    const now = new Date();
-    input_datetime = new Date(input_datetime);
-    const diffInMs = now.getTime() - input_datetime.getTime();
-    const diffInHrs = diffInMs / (1000 * 60 * 60);
-    return diffInHrs <= 5;
-  }
-
-  function toggleKebab() {
-    setShowKebab((prevState) => !prevState);
-  }
-
-  function handleDelete() {
-    showConfirm("Delete expense?", async () => {
-      const payload = {
-        type: 1,
-        id: expense.id,
-      };
-      await transactionService.deleteExpense(payload);
-
-      showToast("Expense deleted.");
-      refreshExpenses();
-    });
-  }
-
-  function handleRepeatTransaction() {
-    showConfirm("Repeat transaction?", async () => {
-      const payload = {
-        type: 1,
-        amount: expense.amount,
-        account: expense.account,
-        description: expense.description,
-        expense_category: expense.expense_category,
-        tags: expense.tags.map((tag) => ({ name: tag.name })),
-        date: new Date().toISOString().slice(0, 10),
-      };
-      await transactionService.addExpense(payload);
-
-      await refreshExpenses();
-      await refreshAccounts();
-      showToast("Expense Added.");
-    });
-  }
-
-  function handleShowMore(event) {
-    const kebabClicked = !!(
-      event.target?.attributes?.class?.value?.includes("kebab-button") ||
-      event.target?.attributes?.src?.value?.includes("kebab_icon")
-    );
-    const deleteButtonClicked =
-      !!event.target?.attributes?.id?.value?.includes("deleteButton");
-
-    const repeatTransactionButtonClicked =
-      !!event.target?.attributes?.id?.value?.includes(
-        "repeatTransactionButton"
-      );
-
-    if (
-      !kebabClicked &&
-      !deleteButtonClicked &&
-      !repeatTransactionButtonClicked
-    ) {
-      setTransactionPopup(expense);
-    }
-  }
-
-  return (
-    <div className="expense-item" onClick={handleShowMore}>
-      {isRecent(expense.created_on) && (
-        <label className="new-transaction">NEW!</label>
-      )}
-      <label id="date">{expense.date}</label>
-      <label id="description">{expense.description}</label>
-      <label
-        id="account"
-        style={helper.accountLabelStyle(global.accounts, expense.account)}
-      >
-        {helper.getAccountName(global.accounts, expense.account)}
-      </label>
-      <label id="amount">
-        {helper.showOrMask(
-          global.privacyMode,
-          helper.formatNumber(expense.amount)
-        )}{" "}
-        {currency}
-      </label>
-      <label id="category">
-        {getExpenseCategory(expense.expense_category)}
-      </label>
-      <button className={"kebab-button"} onClick={toggleKebab}>
-        <img src={`${process.env.PUBLIC_URL}/kebab_icon.png`} />
-      </button>
-      {showKebab && (
-        <div
-          ref={kebabMenu}
-          className={"kebab-menu"}
-          id={`kebab-menu-${expense.id}`}
-        >
-          <button onClick={handleDelete} id="deleteButton">
-            Delete
-          </button>
-          <button onClick={handleShowMore} id="showMoreButton">
-            Show more
-          </button>
-          <button
-            onClick={handleRepeatTransaction}
-            id="repeatTransactionButton"
-          >
-            Repeat Transaction
-          </button>
-        </div>
-      )}
     </div>
   );
 };

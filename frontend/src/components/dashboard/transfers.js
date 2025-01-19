@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import TransactionItem from "./transactionItem";
 import { Formik, Form, Field } from "formik";
 import transactionService from "../../services/transactionService/transactionService";
 import "./transfers.scss";
@@ -451,136 +452,19 @@ const TransfersList = ({
       <div className={"transfers"}>
         {shownTransfers?.length > 0 &&
           shownTransfers.map((transfer) => (
-            <TransferItem
+            <TransactionItem
               key={transfer.id}
-              transfer={transfer}
-              accounts={accounts}
+              transaction={transfer}
+              refreshTransactions={refreshTransfers}
+              //categories={props.categories}
               currency={helper.getCurrency(
                 getAccountCurrency(transfer.from_account)
               )}
-              refreshTransfers={refreshTransfers}
               setTransactionPopup={setTransactionPopup}
               refreshAccounts={global.updateAccounts}
             />
           ))}
       </div>
-    </div>
-  );
-};
-
-const TransferItem = ({
-  transfer,
-  accounts,
-  currency,
-  refreshTransfers,
-  setTransactionPopup,
-}) => {
-  const [showKebab, setShowKebab] = useState(false);
-  const showConfirm = useConfirm();
-  const showToast = useToast();
-  const kebabMenu = useRef(null);
-  const global = useGlobalContext();
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      const kebabClicked = !!(
-        event.target?.attributes?.class?.value?.includes("kebab-button") ||
-        event.target?.attributes?.src?.value?.includes("kebab_icon")
-      );
-
-      if (!kebabMenu?.current?.contains(event.target) && !kebabClicked) {
-        setShowKebab(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  function toggleKebab() {
-    setShowKebab((prevState) => !prevState);
-  }
-
-  function handleDelete() {
-    showConfirm("Delete transfer?", async () => {
-      const payload = {
-        type: 2,
-        id: transfer.id,
-      };
-      await transactionService.deleteTransfer(payload);
-
-      showToast("Transfer deleted.");
-      refreshTransfers();
-    });
-  }
-
-  function handleShowMore(event) {
-    const kebabClicked = !!(
-      event.target?.attributes?.class?.value?.includes("kebab-button") ||
-      event.target?.attributes?.src?.value?.includes("kebab_icon")
-    );
-    const deleteButtonClicked =
-      !!event.target?.attributes?.id?.value?.includes("deleteButton");
-
-    if (!kebabClicked && !deleteButtonClicked) {
-      setTransactionPopup(transfer);
-    }
-  }
-
-  function isRecent(input_datetime) {
-    const now = new Date();
-    input_datetime = new Date(input_datetime);
-    const diffInMs = now.getTime() - input_datetime.getTime();
-    const diffInHrs = diffInMs / (1000 * 60 * 60);
-    return diffInHrs <= 5;
-  }
-
-  return (
-    <div className="transfer-item" onClick={handleShowMore}>
-      {isRecent(transfer.created_on) && (
-        <label className="new-transaction">NEW!</label>
-      )}
-      <label id="date">{transfer.date}</label>
-      <label id="description">{transfer.description}</label>
-      <label
-        id="from_account"
-        style={helper.accountLabelStyle(global.accounts, transfer.from_account)}
-      >
-        {helper.getAccountName(global.accounts, transfer.from_account)}
-      </label>
-      <label
-        id="to_account"
-        style={helper.accountLabelStyle(global.accounts, transfer.to_account)}
-      >
-        {helper.getAccountName(global.accounts, transfer.to_account)}
-      </label>
-      <label id="amount">
-        {helper.showOrMask(
-          global.privacyMode,
-          helper.formatNumber(transfer.amount)
-        )}{" "}
-        {currency}
-      </label>
-      <button className={"kebab-button"} onClick={toggleKebab}>
-        <img src={`${process.env.PUBLIC_URL}/kebab_icon.png`} />
-      </button>
-      {showKebab && (
-        <div
-          ref={kebabMenu}
-          className={"kebab-menu"}
-          id={`kebab-menu-${transfer.id}`}
-        >
-          <button onClick={handleDelete} id="deleteButton">
-            Delete
-          </button>
-          <button onClick={handleShowMore} id="showMoreButton">
-            Show more
-          </button>
-        </div>
-      )}
     </div>
   );
 };

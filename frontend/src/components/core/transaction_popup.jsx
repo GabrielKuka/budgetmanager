@@ -139,8 +139,8 @@ const TransactionPopup = ({
         showToast("Income Added.");
         break;
       case "expense":
-        await transactionService.addIncome(payload);
-        showToast("Income Added.");
+        await transactionService.addExpense(payload);
+        showToast("Expense Added.");
         break;
       default:
         showToast("Wrong transaction type.");

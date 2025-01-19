@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import TransactionItem from "./transactionItem";
 import transactionService from "../../services/transactionService/transactionService";
 import "react-datepicker/dist/react-datepicker.css";
 import { Formik, Form, Field } from "formik";
@@ -533,175 +534,19 @@ const IncomesList = (props) => {
       <div className={"incomes"}>
         {props.shownIncomes?.length > 0 &&
           props.shownIncomes.map((income) => (
-            <IncomeItem
+            <TransactionItem
               key={income.id}
-              income={income}
-              accounts={props.accounts}
+              transaction={income}
+              refreshTransactions={props.refreshExpenses}
               categories={props.categories}
               currency={helper.getCurrency(
                 props.getAccountCurrency(income.account)
               )}
-              refreshIncomes={props.refreshIncomes}
               setTransactionPopup={props.setTransactionPopup}
               refreshAccounts={global.updateAccounts}
             />
           ))}
       </div>
-    </div>
-  );
-};
-
-const IncomeItem = ({
-  income,
-  accounts,
-  categories,
-  currency,
-  refreshIncomes,
-  setTransactionPopup,
-  refreshAccounts,
-}) => {
-  const [showKebab, setShowKebab] = useState(false);
-  const showConfirm = useConfirm();
-  const showToast = useToast();
-  const kebabMenu = useRef(null);
-  const global = useGlobalContext();
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      const kebabClicked = !!(
-        event.target?.attributes?.class?.value?.includes("kebab-button") ||
-        event.target?.attributes?.src?.value?.includes("kebab_icon")
-      );
-
-      if (!kebabMenu?.current?.contains(event.target) && !kebabClicked) {
-        setShowKebab(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  function getIncomeCategory(id) {
-    const category = categories?.filter((c) => c.id === id);
-    if (category?.length === 1) {
-      return category[0].category;
-    }
-    return "Not found.";
-  }
-  function isRecent(input_datetime) {
-    const now = new Date();
-    input_datetime = new Date(input_datetime);
-    const diffInMs = now.getTime() - input_datetime.getTime();
-    const diffInHrs = diffInMs / (1000 * 60 * 60);
-    return diffInHrs <= 5;
-  }
-
-  function toggleKebab() {
-    setShowKebab((prevState) => !prevState);
-  }
-
-  function handleDelete() {
-    showConfirm("Delete income?", async () => {
-      const payload = {
-        type: 0,
-        id: income.id,
-      };
-      await transactionService.deleteIncome(payload);
-
-      showToast("Income deleted.");
-      refreshIncomes();
-    });
-  }
-
-  function handleRepeatTransaction() {
-    showConfirm("Repeat transaction?", async () => {
-      const payload = {
-        type: 0,
-        amount: income.amount,
-        account: income.account,
-        description: income.description,
-        income_category: income.income_category,
-        tags: income.tags.map((tag) => ({ name: tag.name })),
-        date: new Date().toISOString().slice(0, 10),
-      };
-      await transactionService.addIncome(payload);
-
-      await refreshIncomes();
-      await refreshAccounts();
-      showToast("Income Added.");
-    });
-  }
-
-  function handleShowMore(event) {
-    const kebabClicked = !!(
-      event.target?.attributes?.class?.value?.includes("kebab-button") ||
-      event.target?.attributes?.src?.value?.includes("kebab_icon")
-    );
-    const deleteButtonClicked =
-      !!event.target?.attributes?.id?.value?.includes("deleteButton");
-
-    const repeatTransactionButtonClicked =
-      !!event.target?.attributes?.id?.value?.includes(
-        "repeatTransactionButton"
-      );
-
-    if (
-      !kebabClicked &&
-      !deleteButtonClicked &&
-      !repeatTransactionButtonClicked
-    ) {
-      setTransactionPopup(income);
-    }
-  }
-
-  return (
-    <div className="income-item" onClick={handleShowMore}>
-      {isRecent(income.created_on) && (
-        <label className="new-transaction">NEW!</label>
-      )}
-      <label id="date">{income.date}</label>
-      <label id="description">{income.description}</label>
-      <label
-        id="account"
-        style={helper.accountLabelStyle(global.accounts, income.account)}
-      >
-        {helper.getAccountName(global.accounts, income.account)}
-      </label>
-      <label id="amount">
-        {helper.showOrMask(
-          global.privacyMode,
-          helper.formatNumber(income.amount)
-        )}{" "}
-        {currency}
-      </label>
-      <label id="category">{getIncomeCategory(income.income_category)}</label>
-      <button className={"kebab-button"} onClick={toggleKebab}>
-        <img src={`${process.env.PUBLIC_URL}/kebab_icon.png`} />
-      </button>
-      {showKebab && (
-        <div
-          ref={kebabMenu}
-          className={"kebab-menu"}
-          id={`kebab-menu-${income.id}`}
-        >
-          <button onClick={handleDelete} id="deleteButton">
-            Delete
-          </button>
-          <button onClick={handleShowMore} id="showMoreButton">
-            Show more
-          </button>
-          <button
-            onClick={handleRepeatTransaction}
-            id="repeatTransactionButton"
-          >
-            Repeat Transaction
-          </button>
-        </div>
-      )}
     </div>
   );
 };
