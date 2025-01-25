@@ -16,7 +16,7 @@ stages:
         steps:
           - script: |
               echo "Stopping existing containers..."
-              docker-compose -f $(dockerComposeFile) down
+              docker-compose -f $(dockerComposeFile) down --remove-orphans
             displayName: "Run docker-compose down"
             continueOnError: false
 
