@@ -16,9 +16,13 @@ stages:
         steps:
           - script: |
               echo "Stopping existing containers..."
-              docker-compose -f $(dockerComposeFile) down --remove-orphans
+              docker-compose -f $(dockerComposeFile) -p budget_manager down --remove-orphans
             displayName: "Run docker-compose down"
             continueOnError: false
+          - script: |
+              echo "Listing all containers after stopping..."
+              docker ps
+            displayName: "List containers (after)"
 
       - job: StartContainers
         displayName: "Start New Containers (frontend & backend)"
@@ -27,5 +31,5 @@ stages:
         steps:
           - script: |
               echo "Building and starting new containers..."
-              docker-compose -f $(dockerComposeFile) up -d --build
+              docker-compose -f $(dockerComposeFile) -p budget_manager up -d --build
             displayName: "Run docker-compose up"
