@@ -1,0 +1,31 @@
+trigger:
+  - master
+
+pool:
+  name: server1_pool
+
+variables:
+  dockerComposeFile: "docker-compose.yml"
+
+stages:
+  - stage: BuildAndDeploy
+    displayName: "Build and Deploy BudgetManager"
+    jobs:
+      - job: StopContainers
+        displayName: "Stop Existing Containers (frontend & backend)"
+        steps:
+          - script: |
+              echo "Stopping existing containers..."
+              docker-compose -f $(dockerComposeFile) down
+            displayName: "Run docker-compose down"
+            continueOnError: false
+
+      - job: StartContainers
+        displayName: "Start New Containers (frontend & backend)"
+        dependsOn: StopContainers
+        condition: succeeded('StopContainers')
+        steps:
+          - script: |
+              echo "Building and starting new containers..."
+              docker-compose -f $(dockerComposeFile) up -d --build
+            displayName: "Run docker-compose up"
