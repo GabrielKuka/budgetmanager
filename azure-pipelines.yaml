@@ -15,14 +15,12 @@ stages:
         displayName: "Stop Existing Containers (frontend & backend)"
         steps:
           - script: |
-              echo "Stopping existing containers..."
-              docker-compose -f $(dockerComposeFile) -p budget_manager down --remove-orphans
-            displayName: "Run docker-compose down"
+              echo "Stopping containers..."
+              docker stop budgetmanager_backend budgetmanager_frontend || true
+              docker rm -f budgetmanager_backend budgetmanager_frontend || true
+              docker network rm budgetmanager_budget_network || true
+            displayName: "Remove Containers And Network"
             continueOnError: false
-          - script: |
-              echo "Listing all containers after stopping..."
-              docker ps
-            displayName: "List containers (after)"
 
       - job: StartContainers
         displayName: "Start New Containers (frontend & backend)"
@@ -31,5 +29,18 @@ stages:
         steps:
           - script: |
               echo "Building and starting new containers..."
-              docker-compose -f $(dockerComposeFile) -p budget_manager up -d --build
+              docker-compose -f $(dockerComposeFile) -p budgetmanager up -d --build
             displayName: "Run docker-compose up"
+
+  - stage: Cleanup
+    jobs:
+      - job: CleanupResources
+        steps:
+          - bash: |
+              echo "Cleaning build directory"
+              rm -rf $(Agent.BuildDirectory)/*
+
+              echo "Cleaning docker resources (unused images and volumes)"
+              docker image prune -af
+              docker volume prune -f
+        displayName: "Clean up pipeline resources"

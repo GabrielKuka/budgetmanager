@@ -2,7 +2,7 @@ services:
   backend:
     build:
       context: ./backend
-    container_name: budget_manager_backend
+    container_name: budgetmanager_backend
     restart: always
     ports:
       - "8001:8001"
@@ -14,7 +14,7 @@ services:
   frontend:
     build:
       context: ./frontend
-    container_name: budget_manager_frontend
+    container_name: budgetmanager_frontend
     restart: always
     ports:
       - "3001:3001"
