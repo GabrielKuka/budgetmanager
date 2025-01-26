@@ -19,17 +19,34 @@ from .serializers import (
 from django.utils.dateparse import parse_date
 from datetime import datetime
 
-@api_view(['GET'])
+
+@api_view(["GET"])
 def search(request):
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
-    query = request.GET.get('query')
+    query = request.GET.get("query")
     try:
-        expenses = Expense.objects.filter(Q(user=user_id) & (Q(expense_category__category__iexact=query) | Q(description__icontains=query) | Q(tags__name__iexact=query))).distinct()
-        incomes = Income.objects.filter(Q(user=user_id) & (Q(income_category__category__iexact=query) | Q(description__icontains=query) | Q(tags__name__iexact=query))).distinct()
-        transfers = Transfer.objects.filter(Q(user=user_id) & (Q(description__icontains=query) | Q(tags__name__iexact=query))).distinct()
-
+        expenses = Expense.objects.filter(
+            Q(user=user_id)
+            & (
+                Q(expense_category__category__iexact=query)
+                | Q(description__icontains=query)
+                | Q(tags__name__iexact=query)
+            )
+        ).distinct()
+        incomes = Income.objects.filter(
+            Q(user=user_id)
+            & (
+                Q(income_category__category__iexact=query)
+                | Q(description__icontains=query)
+                | Q(tags__name__iexact=query)
+            )
+        ).distinct()
+        transfers = Transfer.objects.filter(
+            Q(user=user_id)
+            & (Q(description__icontains=query) | Q(tags__name__iexact=query))
+        ).distinct()
 
         expense_serializer = ExpenseSerializer(expenses, many=True)
         income_serializer = IncomeSerializer(incomes, many=True)
@@ -38,98 +55,113 @@ def search(request):
         response_data = {
             "expenses": expense_serializer.data,
             "incomes": income_serializer.data,
-            "transfers": transfer_serializer.data
+            "transfers": transfer_serializer.data,
         }
         return Response(response_data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-@api_view(['GET'])
+@api_view(["GET"])
 def get_expenses(request):
 
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
-    from_date = request.GET.get('from_date')
-    to_date = request.GET.get('to_date')
+    from_date = request.GET.get("from_date")
+    to_date = request.GET.get("to_date")
 
     try:
         # Parse parameters into proper dates
         from_date = parse_date(from_date)
         to_date = parse_date(to_date)
 
-        expenses = Expense.objects.filter(user=user_id, date__gte=from_date, date__lte=to_date)
+        expenses = Expense.objects.filter(
+            user=user_id, date__gte=from_date, date__lte=to_date
+        )
 
         serializer = ExpenseSerializer(expenses, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except (ValueError, TypeError):
-        return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Invalid date format"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     except Exception as e:
-        return Response({"error":e}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": e}, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
+
+@api_view(["GET"])
 def get_incomes(request):
 
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
-    from_date = request.GET.get('from_date')
-    to_date = request.GET.get('to_date')
+    from_date = request.GET.get("from_date")
+    to_date = request.GET.get("to_date")
 
     try:
         # Parse parameters into proper dates
         from_date = parse_date(from_date)
         to_date = parse_date(to_date)
 
-        incomes = Income.objects.filter(user=user_id, date__gte=from_date, date__lte=to_date)
+        incomes = Income.objects.filter(
+            user=user_id, date__gte=from_date, date__lte=to_date
+        )
 
         serializer = IncomeSerializer(incomes, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except (ValueError, TypeError):
-        return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Invalid date format"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     except Exception as e:
-        return Response({"error":e}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": e}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 def get_transfers(request):
 
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
-    from_date = request.GET.get('from_date')
-    to_date = request.GET.get('to_date')
+    from_date = request.GET.get("from_date")
+    to_date = request.GET.get("to_date")
 
     try:
         # Parse parameters into proper dates
         from_date = parse_date(from_date)
         to_date = parse_date(to_date)
 
-        transfers = Transfer.objects.filter(user=user_id, date__gte=from_date, date__lte=to_date)
+        transfers = Transfer.objects.filter(
+            user=user_id, date__gte=from_date, date__lte=to_date
+        )
 
         serializer = TransferSerializer(transfers, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except (ValueError, TypeError):
-        return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Invalid date format"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     except Exception as e:
-        return Response({"error":e}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": e}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 def get_transactions(request):
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
-    from_date = request.GET.get('from_date')
-    to_date = request.GET.get('to_date')
+    from_date = request.GET.get("from_date")
+    to_date = request.GET.get("to_date")
 
     try:
         # Parse parameters into proper dates
@@ -137,9 +169,15 @@ def get_transactions(request):
         to_date = datetime.strptime(to_date, "%d-%m-%Y").date()
 
         # Filter transactions based on the timeframe
-        incomes = Income.objects.filter(user=user_id, date__gte=from_date, date__lte=to_date)
-        expenses = Expense.objects.filter(user=user_id, date__gte=from_date, date__lte=to_date)
-        transfers = Transfer.objects.filter(user=user_id, date__gte=from_date, date__lte=to_date)
+        incomes = Income.objects.filter(
+            user=user_id, date__gte=from_date, date__lte=to_date
+        )
+        expenses = Expense.objects.filter(
+            user=user_id, date__gte=from_date, date__lte=to_date
+        )
+        transfers = Transfer.objects.filter(
+            user=user_id, date__gte=from_date, date__lte=to_date
+        )
 
         # Serialize the output
         incomes_serializer = IncomeSerializer(incomes, many=True)
@@ -155,9 +193,13 @@ def get_transactions(request):
         return Response(data=response_data, status=status.HTTP_200_OK)
 
     except (ValueError, TypeError):
-        return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Invalid date format"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     except Exception as e:
-        return Response({"error":e}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": e}, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(["POST"])
 def add_transaction(request):

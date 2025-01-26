@@ -10,13 +10,10 @@ urlpatterns = [
     path("allincomes", views.get_all_incomes, name="get-all-incomes"),
     path("alltransfers", views.get_all_transfers, name="get-all-transfers"),
     path("get_transactions", views.get_transactions, name="get-transactions"),
-
     path("get_expenses", views.get_expenses, name="get-expenses"),
     path("get_incomes", views.get_incomes, name="get-incomes"),
     path("get_transfers", views.get_transfers, name="get-transfers"),
-
     path("search", views.search, name="search"),
-
     path(
         "incomecategories",
         views.get_income_categories,
