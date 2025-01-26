@@ -8,8 +8,39 @@ variables:
   dockerComposeFile: "docker-compose.yml"
 
 stages:
+  - stage: CheckCode
+    displayName: "Check for Code Formatting"
+    jobs:
+      - job: CheckBackendCode
+        displayName: "Check Django Code with Black"
+        steps:
+          - script: |
+              cd backend && uv run black -l 79 --check .
+            displayName: "Black Check"
+      - job: CheckFrontendCode
+        displayName: "Check React Code with Prettier"
+        steps:
+          - script: |
+              echo "Checking if Prettier 2.8.8 is installed..."
+              INSTALLED_VERSION=$(npx prettier --version 2>/dev/null || echo "0.0.0")
+              DESIRED_VERSION="2.8.8"
+
+              if [ "$INSTALLED_VERSION" != "$DESIRED_VERSION" ]; then
+                echo "Prettier $DESIRED_VERSION is not installed (found version $INSTALLED_VERSION). Installing..."
+                npm install prettier@$DESIRED_VERSION
+              else
+                echo "Prettier $DESIRED_VERSION is already installed."
+              fi
+            displayName: "Check Prettier"
+          - script: |
+              echo "Checking Code with Prettier..."
+              cd frontend && npx prettier ./src/ --check
+            displayName: "Prettier Check"
+
   - stage: BuildAndDeploy
     displayName: "Build and Deploy BudgetManager"
+    dependsOn: CheckCode
+    condition: succeeded('CheckCode')
     jobs:
       - job: StopContainers
         displayName: "Stop Existing Containers (frontend & backend)"
