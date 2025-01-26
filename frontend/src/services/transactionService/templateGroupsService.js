@@ -61,6 +61,6 @@ const templateGroupService = {
   addTemplateGroup,
   deleteTemplateGroup,
   getTemplateGroups,
-}
+};
 
 export default templateGroupService;

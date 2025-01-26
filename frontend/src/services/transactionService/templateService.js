@@ -40,7 +40,8 @@ async function getTemplates() {
 }
 
 const templateService = {
-  addTemplate, getTemplates
-}
+  addTemplate,
+  getTemplates,
+};
 
 export default templateService;
