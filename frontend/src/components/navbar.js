@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import { useGlobalContext } from "../context/GlobalContext";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import "./navbar.scss";
@@ -8,6 +7,7 @@ import { helper } from "./helper";
 import TransactionPopup from "./core/transaction_popup";
 import { useToast } from "../context/ToastContext";
 import searchService from "../services/searchService";
+import { useConfirm } from "../context/ConfirmContext";
 
 const Navbar = () => {
   const global = useGlobalContext();
@@ -23,6 +23,7 @@ export default Navbar;
 const LoggedInNavbar = () => {
   const global = useGlobalContext();
   const showToast = useToast();
+  const showConfirm = useConfirm();
 
   const [accounts, setAccounts] = useState(global.accounts);
   const [expenses, setExpenses] = useState(global.expenses);
@@ -102,12 +103,17 @@ const LoggedInNavbar = () => {
   }
 
   const handleLogout = () => {
-    global.logoutUser();
+    showConfirm(
+      `Are you sure you want to logout ${global.user.data.name}?`,
+      () => {
+        global.logoutUser();
+        showToast("Logged out.");
+      }
+    );
   };
 
   const fullname = useRef(global.user.data.name);
 
-  const buttons = ["dashboard", "accounts", "profile", "stats", "templates"];
   const [conversionTool, setConversionTool] = useState(false);
 
   function handlePage(e) {
