@@ -256,7 +256,6 @@ def add_transaction(request):
             )
             p.pop("type")
 
-
             serializer = ExpenseSerializer(data=p)
             if not serializer.is_valid():
                 raise Exception(f"{serializer.errors}")
