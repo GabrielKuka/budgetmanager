@@ -24,40 +24,6 @@ const Expenses = () => {
   const [transactionPopup, setTransactionPopup] = useState(false);
 
   useEffect(() => {
-    async function testFetch() {
-      if (!global.dateRange) {
-        return;
-      }
-      if (
-        global.dateRange.from === undefined ||
-        global.dateRange.to === undefined
-      ) {
-        return;
-      }
-      if (global.dateRange.from === null || global.dateRange.to === null) {
-        return;
-      }
-      const token = JSON.parse(localStorage.getItem("authToken"));
-
-      const params = {
-        from_date: new Date(global.dateRange.from).toISOString().split("T")[0],
-        to_date: new Date(global.dateRange.to).toISOString().split("T")[0],
-      };
-
-      const headers = {
-        Authorization: token,
-      };
-
-      const response = await axios.get(
-        `http://100.73.35.59:8002/transactions/get_transactions`,
-        { params: params, headers: headers }
-      );
-    }
-
-    //testFetch();
-  }, []);
-
-  useEffect(() => {
     setAccounts(global.activeAccounts);
   }, [global.activeAccounts]);
 

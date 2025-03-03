@@ -245,6 +245,7 @@ def add_transaction(request):
             # Transfer(**p).save()
         elif p["type"] == 1:  # This is an expense
             value = round(float(p["amount"]), 2)
+            print(p)
             p["account_id"] = int(p.pop("account"))
             p["expense_category_id"] = int(p.pop("expense_category"))
 
@@ -254,6 +255,7 @@ def add_transaction(request):
                 amount=round(selected_account.first().amount, 2) - value
             )
             p.pop("type")
+
 
             serializer = ExpenseSerializer(data=p)
             if not serializer.is_valid():

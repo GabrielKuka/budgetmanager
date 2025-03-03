@@ -8,6 +8,7 @@ import TransactionPopup from "./core/transaction_popup";
 import { useToast } from "../context/ToastContext";
 import searchService from "../services/searchService";
 import { useConfirm } from "../context/ConfirmContext";
+import AddTransactionPopup from "./dashboard/addTransactionPopup";
 
 const Navbar = () => {
   const global = useGlobalContext();
@@ -33,6 +34,7 @@ const LoggedInNavbar = () => {
   const [searchValue, setSearchValue] = useState(null);
   const [suggestionBox, setSuggestionBox] = useState(false);
   const [transactionPopup, setTransactionPopup] = useState(false);
+  const [addTransactionPopup, setAddTransactionPopup] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -256,6 +258,13 @@ const LoggedInNavbar = () => {
         <option value="BGN">BGN</option>
       </select>
       <input
+        type="button"
+        id="add_transaction_btn"
+        value="+"
+        title="Add a transaction"
+        onClick={() => setAddTransactionPopup(true)}
+      />
+      <input
         id={"privacy_btn"}
         title="Toggle Privacy Mode"
         type="image"
@@ -292,6 +301,13 @@ const LoggedInNavbar = () => {
           getAccountCurrency={getAccountCurrency}
           refreshTransactions={global.updateTransactions}
           refreshSearchResults={refreshSearchResults}
+        />
+      )}
+      {addTransactionPopup && (
+        <AddTransactionPopup
+          getAccountCurrency={getAccountCurrency}
+          showPopup={setAddTransactionPopup}
+          refreshAccounts={global.updateAccounts}
         />
       )}
     </div>

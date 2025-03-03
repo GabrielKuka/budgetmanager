@@ -1,6 +1,40 @@
 import * as Yup from "yup";
 
 export const validationSchemas = {
+  addTransactionSchema: Yup.object().shape({
+    date: Yup.date().required("Date is required."),
+    amount: Yup.number()
+      .required("Amount is required.")
+      .typeError("Amount must be a number.")
+      .positive("Amount must be positive and greater than 0."),
+    description: Yup.string().max(
+      100,
+      "Description can be at most 100 charaters."
+    ),
+    transaction_category: Yup.string()
+      .nullable()
+      .when("transaction_type", {
+        is: (type) => type === "0" || type === "1",
+        then: (schema) =>
+          schema.required("A category is required to be selected."),
+        otherwise: (schema) => schema.notRequired(),
+      }),
+    account: Yup.string().when("transaction_type", {
+      is: (type) => type === "0" || type === "1",
+      then: (schema) => schema.required("Choose an account."),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    from_account: Yup.string().when("transaction_type", {
+      is: (type) => type === "2",
+      then: (schema) => schema.required("Choose an origin account."),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    to_account: Yup.string().when("transaction_type", {
+      is: (type) => type === "2",
+      then: (schema) => schema.required("Choose a destination account."),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+  }),
   accountsFormSchema: Yup.object().shape({
     name: Yup.string()
       .required("Name field is required.")
