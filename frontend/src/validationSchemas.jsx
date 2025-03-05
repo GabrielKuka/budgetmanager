@@ -44,8 +44,7 @@ export const validationSchemas = {
       .required("Amount is required.")
       .typeError("Amount must be a number.")
       .min(0, "Amount must be >= 0.")
-      .max(9999999, "You're not that rich are you?")
-      .positive("Amount must be positive."),
+      .max(9999999, "You're not that rich are you?"),
     currency: Yup.string()
       .required("Currency is required.")
       .matches(
