@@ -21,8 +21,6 @@ const WealthOverTime = (props) => {
       const items = [];
 
       const today = new Date();
-      const twelveMonthsAgo = new Date();
-      twelveMonthsAgo.setFullYear(today.getFullYear() - 1);
 
       async function getTotalWealth() {
         let promises = global.activeAccounts.map(async (a) => {

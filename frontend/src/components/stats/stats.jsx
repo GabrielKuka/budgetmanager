@@ -15,7 +15,7 @@ const Stats = () => {
   const global = useGlobalContext();
 
   const dateRange = {
-    from: new Date(new Date().getFullYear() - 1, 0, 1),
+    from: new Date(new Date().getFullYear() - 3, 0, 1),
     to: new Date(),
   };
 
