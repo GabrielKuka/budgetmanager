@@ -309,8 +309,10 @@ const AddIncome = ({
               )}
             </div>
             <Field
-              type="text"
+              as="textarea"
+              rows={2}
               name="description"
+              id="description"
               placeholder="Enter a description"
             />
             <Field as="select" name="income_category">

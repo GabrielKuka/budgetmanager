@@ -35,10 +35,21 @@
       .form {
         @include flex(column, flex-start, flex-start);
         gap: 10px;
-        input,
-        select {
+        input {
           width: 270px;
+          height: 20px;
         }
+        select {
+          width: 277.5px;
+          height: 27px;
+        }
+        #description {
+          width: 270px;
+          min-height: 25px;
+          resize: vertical;
+          overflow: hidden;
+        }
+
         label {
           text-transform: uppercase;
           font-weight: bold;
@@ -60,7 +71,7 @@
         .tags_container {
           @include flex(column, flex-start, flex-start);
           gap: 5px;
-          width: 100%;
+          width: 277px;
           &__input {
             @include flex(row, flex-start, flex-start);
             gap: 15px;
@@ -79,6 +90,8 @@
               border: 1px solid cadetblue;
               border-radius: 3px;
               transition: border 0.3s;
+              width: 260px;
+              height: 33px;
 
               &:hover {
                 border-radius: 3px;

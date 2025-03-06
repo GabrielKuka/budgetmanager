@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./addTransactionPopup.scss";
-import { Formik, Form, Field, useFormikContext } from "formik";
+import { Formik, Form, Field } from "formik";
 import { useToast } from "../../context/ToastContext";
-import axios from "axios";
 import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import currencyService from "../../services/currencyService";

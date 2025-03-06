@@ -32,10 +32,16 @@
       .form {
         @include flex(column, flex-start, flex-start);
         gap: 10px;
-        input,
-        select {
+        input {
           width: 270px;
+          height: 20px;
         }
+
+        select {
+          width: 277.5px;
+          height: 27px;
+        }
+
         label {
           font-weight: bold;
         }

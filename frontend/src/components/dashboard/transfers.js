@@ -224,8 +224,10 @@ const AddTransfer = ({
               )}
             </div>
             <Field
-              type="text"
+              as="textarea"
+              rows={2}
               name="description"
+              id="description"
               placeholder="Enter a description"
             />
             <div id="submit_wrapper">

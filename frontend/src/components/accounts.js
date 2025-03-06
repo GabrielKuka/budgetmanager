@@ -226,6 +226,7 @@ const Sidebar = ({
 
 const CreateAccount = ({ refreshAccounts }) => {
   const accountTypes = ["Bank Account", "Investment Account", "Hard Cash"];
+  const currencies = ["EUR", "USD", "ALL", "BGN", "GBP"];
   const showToast = useToast();
 
   return (
@@ -261,11 +262,16 @@ const CreateAccount = ({ refreshAccounts }) => {
               name="name"
               placeholder="Name of the account"
             />
-            <Field
-              type="text"
-              name="currency"
-              placeholder="Currency EUR, USD, BGN"
-            />
+            <Field as="select" name="currency">
+              <option value="" disabled hidden>
+                Select currency
+              </option>
+              {currencies.map((type, index) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </Field>
             <Field type="text" name="amount" placeholder="Amount" />
             <Field as="select" name="type">
               <option value="" disabled hidden>
