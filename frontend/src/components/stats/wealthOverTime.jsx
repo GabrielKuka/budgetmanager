@@ -20,8 +20,6 @@ const WealthOverTime = (props) => {
     async function arrangeData() {
       const items = [];
 
-      const today = new Date();
-
       async function getTotalWealth() {
         let promises = global.activeAccounts.map(async (a) => {
           return await currencyService.convert(

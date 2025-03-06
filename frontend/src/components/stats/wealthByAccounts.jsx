@@ -5,41 +5,53 @@ import PieChartToolTip from "./pieChartToolTip";
 import PieChartCustomizedLabel from "./pieChartCustomLabel";
 import { useGlobalContext } from "../../context/GlobalContext";
 
-const NetworthBasedOnCurrencyChart = ({ accounts }) => {
+const WealthByAccounts = ({ accounts }) => {
   const [data, setData] = useState(null);
   const global = useGlobalContext();
   const [activeIndex, setActiveIndex] = useState(null);
 
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF0000"];
+  const COLORS = [
+    "#0088FE",
+    "#00C49F",
+    "#FFBB28",
+    "#FF0000",
+    "#00BCD4",
+    "#FF9800",
+    "#3F51B5",
+    "#8BC34A",
+  ];
 
   useEffect(() => {
-    getWealthBasedOnCurrency();
+    getAmountPerAccount();
   }, []);
 
-  async function getWealthBasedOnCurrency() {
-    let currencies = {};
-
-    for (let a of accounts) {
-      if (a.currency in currencies) {
-        currencies[a.currency] += a.amount;
-      } else {
-        currencies[a.currency] = a.amount;
-      }
-    }
+  async function getAmountPerAccount() {
+    let amountPerAccount = { Cash: 0 };
 
     let total = 0;
-    for (let c in currencies) {
-      currencies[c] = await currencyService.convert(
-        c,
-        global.globalCurrency,
-        currencies[c]
-      );
-      total += parseFloat(currencies[c]);
+    for (let a of accounts) {
+      const account_name = a.type == 2 ? "Cash" : a.name;
+      if (a.type == 2) {
+        amountPerAccount[account_name] += parseFloat(
+          await currencyService.convert(
+            a.currency,
+            global.globalCurrency,
+            a.amount
+          )
+        );
+      } else {
+        amountPerAccount[account_name] = await currencyService.convert(
+          a.currency,
+          global.globalCurrency,
+          a.amount
+        );
+      }
+      total += parseFloat(amountPerAccount[account_name]);
     }
 
     let data = [];
-    for (let c in currencies) {
-      data.push({ name: c, value: (currencies[c] / total) * 100 });
+    for (let i in amountPerAccount) {
+      data.push({ name: i, value: (amountPerAccount[i] / total) * 100 });
     }
 
     setData(data);
@@ -55,12 +67,11 @@ const NetworthBasedOnCurrencyChart = ({ accounts }) => {
       <Pie
         data={data}
         dataKey="value"
-        cx="50%"
+        cx="55%"
         cy="50%"
         outerRadius={100}
         innerRadius={40}
         stroke="none"
-        label={PieChartCustomizedLabel}
         filter="url(#shadow)"
         onMouseEnter={(_, index) => setActiveIndex(index)}
         onMouseLeave={() => setActiveIndex(null)}
@@ -93,4 +104,4 @@ const NetworthBasedOnCurrencyChart = ({ accounts }) => {
   );
 };
 
-export default NetworthBasedOnCurrencyChart;
+export default WealthByAccounts;

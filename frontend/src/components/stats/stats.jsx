@@ -10,6 +10,7 @@ import MonthlyFinancesSankeyChart from "./monthlyFinancesSankeyChart";
 import PercentExpensesPieChart from "./percentExpensesPie";
 import transactionService from "../../services/transactionService/transactionService";
 import WealthOverTime from "./wealthOverTime";
+import WealthByAccounts from "./wealthByAccounts";
 
 const Stats = () => {
   const global = useGlobalContext();
@@ -84,15 +85,15 @@ const Stats = () => {
             <div className={"chart-container"}>
               <WealthOverTime
                 getAccountCurrency={getAccountCurrency}
-                height={400}
-                width={950}
+                height={330}
+                width={500}
                 expenses={expenses}
                 incomes={incomes}
               />
             </div>
             <div className={"chart-container"}>
               <FoodExpensesChart
-                height={310}
+                height={330}
                 width={460}
                 expenses={expenses?.filter((e) => e.expense_category == 11)}
                 incomes={incomes}
@@ -112,13 +113,24 @@ const Stats = () => {
             </div>
           </>
         )}
-      {global.accounts?.length > 0 && (
+      {global.accounts?.length > 0 && global.activeAccounts?.length > 0 && (
         <>
           <div className={"chart-container"}>
             <NetworthPieChart accounts={global.accounts} />
           </div>
           <div className={"chart-container"}>
             <NetworthBasedOnCurrencyChart accounts={global.accounts} />
+            <label className="chart_label">
+              Percentage of liquid wealth per currency.
+            </label>
+          </div>
+          <div className={"chart-container"}>
+            <WealthByAccounts
+              accounts={global.activeAccounts.filter((a) => a.amount > 0)}
+            />
+            <label className="chart_label">
+              Percentage of balances per account (cash included).
+            </label>
           </div>
         </>
       )}

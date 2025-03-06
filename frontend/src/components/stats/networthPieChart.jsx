@@ -12,6 +12,7 @@ const NetworthPieChart = ({ accounts }) => {
   const [investments, setInvestments] = useState("");
   const [bankAssets, setBankAssets] = useState("");
   const [cash, setCash] = useState("");
+  const [activeIndex, setActiveIndex] = useState(null);
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
 
@@ -100,18 +101,34 @@ const NetworthPieChart = ({ accounts }) => {
 
   return (
     <PieChart width={450} height={280} className={"chart"}>
+      <defs>
+        <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="1" dy="1" stdDeviation="4" floodOpacity="0.3" />
+        </filter>
+      </defs>
       <Pie
         data={data}
         dataKey="value"
-        cx="50%"
-        cy="50%"
-        outerRadius={100}
+        cx="65%"
+        cy="40%"
+        outerRadius={80}
+        innerRadius={40}
         stroke="none"
         label={PieChartCustomizedLabel}
+        filter="url(#shadow)"
+        onMouseEnter={(_, index) => setActiveIndex(index)}
+        onMouseLeave={() => setActiveIndex(null)}
       >
         {data?.map((entry, index) => {
           return (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <Cell
+              key={`cell-${index}`}
+              fill={COLORS[index % COLORS.length]}
+              style={{
+                transform: activeIndex === index ? "scale(1.2)" : "scale(1)",
+                transformOrigin: "center",
+              }}
+            />
           );
         })}
         <Label valueKey="value" position="outside" />
