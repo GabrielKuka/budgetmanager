@@ -160,7 +160,7 @@ const AddTransfer = ({
         {({ errors, touched }) => (
           <Form className={"form"}>
             <label onClick={() => document.getElementById("date").focus()}>
-              Enter Tranfer
+              Enter Transfer
             </label>
             <Field type="text" id="date" name="date" placeholder="Enter date" />
             <Field as="select" name="from_account">

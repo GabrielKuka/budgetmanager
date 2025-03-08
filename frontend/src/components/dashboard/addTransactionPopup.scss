@@ -187,7 +187,8 @@
       }
 
       #submit_wrapper {
-        @include flex(row, flex-end, center);
+        @include flex(row, flex-start, center, wrap);
+        max-width: 340px;
         gap: 10px;
 
         #submit-button,
@@ -198,6 +199,31 @@
           padding: 5px;
           transition: background-color 0.3s, color 0.3s;
           font-weight: bold;
+        }
+
+        #custom_rate_container {
+          @include flex(row, flex-start, center);
+          width: 100%;
+          gap: 5px;
+
+          span {
+            color: black;
+          }
+
+          #custom_rate_field {
+            border: 1px solid #dadada;
+            color: cadetblue;
+            width: 50px;
+            outline: none;
+            height: 15px;
+            padding: 5px;
+            border-radius: 3px;
+            font-weight: bold;
+          }
+
+          #conversion_result {
+            margin-left: auto;
+          }
         }
 
         #reset-button {

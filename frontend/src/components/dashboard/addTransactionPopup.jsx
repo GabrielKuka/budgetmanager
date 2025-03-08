@@ -25,6 +25,7 @@ const AddTransactionPopup = ({
   );
 
   const [categories, setCategories] = useState(global.expenseCategories);
+  const [customRate, setCustomRate] = useState("");
 
   useEffect(() => {
     switch (transactionType) {
@@ -113,11 +114,7 @@ const AddTransactionPopup = ({
           parseInt(newPayload["to_account"])
         );
         if (from_currency !== to_currency) {
-          newPayload["to_amount"] = await currencyService.convert(
-            from_currency,
-            to_currency,
-            newPayload["from_amount"]
-          );
+          newPayload["to_amount"] = customRate * newPayload["from_amount"];
         } else {
           newPayload["to_amount"] = newPayload["from_amount"];
         }
@@ -129,6 +126,33 @@ const AddTransactionPopup = ({
         showToast("Wrong transaction type.");
         break;
     }
+  }
+
+  async function handleRate(fieldName, setFieldValue, selectedValue) {
+    setFieldValue(fieldName, selectedValue);
+
+    const fromAccountValue = document.getElementById("from_account").value;
+    const toAccountValue = document.getElementById("to_account").value;
+
+    const bothAccountsSet = fromAccountValue !== "" && toAccountValue !== "";
+
+    if (bothAccountsSet) {
+      // Check if currencies are different
+      const fromCurrency = getAccountCurrency(fromAccountValue);
+      const toCurrency = getAccountCurrency(toAccountValue);
+      const differentCurrencies = fromCurrency !== toCurrency;
+      console.log(`${fromCurrency} - ${toCurrency}`);
+      if (differentCurrencies) {
+        const defaultRate = await currencyService.convert(
+          fromCurrency,
+          toCurrency,
+          1
+        );
+        setCustomRate(defaultRate);
+        return;
+      }
+    }
+    setCustomRate("");
   }
 
   return (
@@ -168,6 +192,7 @@ const AddTransactionPopup = ({
                 setSubmitting(false);
                 setTags([]);
                 resetForm();
+                setCustomRate("");
                 setAddingTransaction(false);
                 showPopup(false);
               });
@@ -228,6 +253,14 @@ const AddTransactionPopup = ({
                       as="select"
                       name="from_account"
                       className="select_field"
+                      id="from_account"
+                      onChange={(e) =>
+                        handleRate(
+                          "from_account",
+                          setFieldValue,
+                          e.target.value
+                        )
+                      }
                     >
                       <option value="" disabled hidden>
                         From account
@@ -245,6 +278,10 @@ const AddTransactionPopup = ({
                       as="select"
                       name="to_account"
                       className="select_field"
+                      id="to_account"
+                      onChange={(e) =>
+                        handleRate("to_account", setFieldValue, e.target.value)
+                      }
                     >
                       <option value="" disabled hidden>
                         To account
@@ -356,6 +393,7 @@ const AddTransactionPopup = ({
                     type="button"
                     id={"reset-button"}
                     onClick={() => {
+                      setCustomRate("");
                       resetForm();
                       setTags([]);
                       setFieldValue("transaction_type", transactionType);
@@ -370,6 +408,32 @@ const AddTransactionPopup = ({
                   >
                     Save as Draft
                   </button>
+                  {customRate !== "" && (
+                    <div id="custom_rate_container">
+                      <span>
+                        1 {getAccountCurrency(values["from_account"])} ={" "}
+                      </span>
+                      <input
+                        type="text"
+                        value={customRate}
+                        id="custom_rate_field"
+                        onChange={(e) => setCustomRate(e.target.value)}
+                      />
+                      <span> {getAccountCurrency(values["to_account"])}</span>
+                      {values["amount"] !== "" && (
+                        <span id="conversion_result">
+                          Total:{" "}
+                          <b>
+                            {helper.formatNumber(
+                              parseFloat(customRate) *
+                                parseFloat(values["amount"])
+                            )}{" "}
+                            {getAccountCurrency(values["to_account"])}
+                          </b>
+                        </span>
+                      )}
+                    </div>
+                  )}
                   {addingTransaction && (
                     <img
                       src={process.env.PUBLIC_URL + "/loading_icon.gif"}

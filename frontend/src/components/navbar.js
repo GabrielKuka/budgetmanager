@@ -92,7 +92,7 @@ const LoggedInNavbar = () => {
   }, [global.transfers]);
 
   function getAccountCurrency(id) {
-    const account = accounts?.filter((a) => a.id === id);
+    const account = accounts?.filter((a) => a.id === parseInt(id));
     if (account?.length === 1) {
       return account[0].currency;
     }
