@@ -1,11 +1,10 @@
 import { Formik, Form, Field } from "formik";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import transactionService from "../../services/transactionService/transactionService";
 import "react-datepicker/dist/react-datepicker.css";
 import "./expenses.scss";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
-import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
@@ -13,7 +12,6 @@ import CurrentExpensesBarChart from "../stats/currentExpensesBarChart";
 import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
 import { validationSchemas } from "../../validationSchemas";
-import axios from "axios";
 import TransactionItem from "./transactionItem";
 
 const Expenses = () => {

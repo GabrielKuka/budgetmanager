@@ -65,7 +65,7 @@
     }
   }
 
-  &__main-container {
+  .main-container {
     left: 450px;
     position: absolute;
     border: 1px solid #dadada;
@@ -73,5 +73,33 @@
     border-radius: 3px;
     padding-bottom: 20px;
     width: 900px;
+    @include flex(column, flex-start, center);
+
+    .transactions-list {
+      .header {
+        font-weight: bold;
+        text-transform: uppercase;
+        display: grid;
+        grid-template-columns: 0.6fr 1.5fr 0.9fr 0.8fr 1.1fr;
+        grid-gap: 10px;
+        width: 800px;
+        padding: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid cadetblue;
+
+        label {
+          cursor: pointer;
+          width: fit-content;
+          height: fit-content;
+        }
+
+        label:hover {
+          @include title-decoration($height: 3px, $width: 100%, $bottom: -1px);
+        }
+      }
+
+      .content {
+      }
+    }
   }
 }

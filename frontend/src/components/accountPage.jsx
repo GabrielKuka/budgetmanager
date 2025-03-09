@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useGlobalContext } from "../context/GlobalContext";
 import "./accountPage.scss";
 import { useParams } from "react-router-dom";
@@ -9,6 +10,19 @@ const AccountPage = () => {
   const { id } = useParams();
   const global = useGlobalContext();
   const account = getAccountObject(id);
+  const [transactions, setTransactions] = useState([]);
+
+  useEffect(() => {
+    function getAccountTransactions() {
+      const expenses = global.expenses.filter((e) => e.account == id);
+      const incomes = global.incomes.filter((e) => e.account == id);
+
+      const result = expenses.concat(incomes);
+      setTransactions(result);
+    }
+
+    getAccountTransactions();
+  }, []);
 
   if (!global.authToken) {
     return <Navigate push to="/login" />;
@@ -38,7 +52,11 @@ const AccountPage = () => {
   return (
     <div className={"account-page-wrapper"}>
       <Sidebar account={account} accountType={accountTypes[account.type]} />
-      <div className={"account-page-wrapper__main-container"}>Main</div>
+      <MainContainer
+        account={account}
+        accountType={accountTypes[account.type]}
+        transactions={transactions}
+      />
     </div>
   );
 };
@@ -84,6 +102,88 @@ const Sidebar = ({ account, accountType }) => {
       </div>
     </div>
   );
+};
+
+const MainContainer = ({ account, accountType, transactions }) => {
+  const [sortedBy, setSortedBy] = useState({});
+
+  function sortShownTransactions(by = "") {}
+
+  return (
+    <div className={"main-container"}>
+      <div className="transactions-list">
+        <div className="header">
+          <div>
+            <label onClick={() => sortShownTransactions("date")}>Date:</label>
+            {sortedBy["date"] == "ascending" && (
+              <img
+                src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+                width="12"
+                height="12"
+              />
+            )}
+            {sortedBy["date"] == "descending" && (
+              <img
+                src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+                width="12"
+                height="12"
+              />
+            )}
+          </div>
+
+          <label>Description</label>
+
+          <div>
+            <label onClick={() => sortShownTransactions("amount")}>
+              Amount
+            </label>
+            {sortedBy["amount"] == "ascending" && (
+              <img
+                src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+                width="12"
+                height="12"
+              />
+            )}
+            {sortedBy["amount"] == "descending" && (
+              <img
+                src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+                width="12"
+                height="12"
+              />
+            )}
+          </div>
+
+          <div>
+            <label onClick={() => sortShownTransactions("category")}>
+              Category:
+            </label>
+            {sortedBy["category"] == "ascending" && (
+              <img
+                src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+                width="12"
+                height="12"
+              />
+            )}
+            {sortedBy["category"] == "descending" && (
+              <img
+                src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+                width="12"
+                height="12"
+              />
+            )}
+          </div>
+        </div>
+        <div className="content">
+          {transactions.length > 0 &&
+            transactions.map((t) => <TransactionItem></TransactionItem>)}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TransactionItem = () => {
+  return <div></div>;
 };
 
 export default AccountPage;
