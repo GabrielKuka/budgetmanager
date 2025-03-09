@@ -4,6 +4,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .models import Account
+from Transactions.models import Expense, Income
+from Transactions.serializers import IncomeSerializer, ExpenseSerializer
 from django.shortcuts import get_object_or_404, redirect
 from .serialzers import AccountSerializer
 
@@ -74,3 +76,22 @@ def get_all_accounts(request):
     serializer = AccountSerializer(accounts, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def get_account_transactions(request, id):
+    from itertools import chain
+    
+    try:
+        expenses = Expense.objects.filter(account=id) 
+        incomes = Income.objects.filter(account=id)
+
+        serialized_expenses = ExpenseSerializer(expenses, many=True).data
+        serialized_incomes = IncomeSerializer(incomes, many=True).data
+
+        transactions = list(chain(serialized_expenses, serialized_incomes))
+        transactions.sort(key=lambda x: x.get('date'), reverse=True)
+
+        return Response(transactions, status=status.HTTP_200_OK)
+    except Exception as e:
+        print(e)
+        return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

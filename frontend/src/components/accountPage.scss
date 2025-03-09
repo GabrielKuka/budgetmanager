@@ -53,7 +53,12 @@
 
           span {
             text-align: right;
+          }
+          #account-name {
             font-weight: bold;
+          }
+          .datetime {
+            font-size: 14px;
           }
 
           label {
@@ -75,12 +80,23 @@
     width: 900px;
     @include flex(column, flex-start, center);
 
+    .empty-account,
+    #loading-div {
+      color: cadetblue;
+      text-align: center;
+      width: 100%;
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
     .transactions-list {
       .header {
         font-weight: bold;
         text-transform: uppercase;
         display: grid;
-        grid-template-columns: 0.6fr 1.5fr 0.9fr 0.8fr 1.1fr;
+        grid-template-columns: 1fr 2fr 1fr 1fr;
         grid-gap: 10px;
         width: 800px;
         padding: 20px;
@@ -99,6 +115,56 @@
       }
 
       .content {
+        height: 500px;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        /* hide scrollbar */
+        &::-webkit-scrollbar {
+          display: none;
+        }
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+        overflow: -moz-scrollbars-none; /* Firefox */
+
+        .transaction-item {
+          display: grid;
+          grid-template-columns: 1fr 2fr 1fr 1fr;
+          grid-gap: 10px;
+          position: relative;
+          cursor: pointer;
+          width: 800px;
+          padding: 20px;
+          gap: 20px;
+          border-bottom: 1px solid #eeebeb;
+          transition: border-bottom 0.3s, background-color 0.3s, padding 0.3s,
+            font-size 0.3s;
+
+          .date {
+            color: gray;
+          }
+
+          .new-transaction {
+            color: white;
+            background-color: cadetblue;
+            width: fit-content;
+            padding: 2px 5px;
+            height: 13px;
+            border-top-right-radius: 5px;
+            border-bottom-left-radius: 5px;
+            font-size: 12px;
+            position: absolute;
+            top: 0;
+            right: 0;
+            transition: padding 0.3s ease;
+          }
+
+          &:hover {
+            background-color: #eeebeb;
+            .new-transaction {
+              padding: 2px 10px;
+            }
+          }
+        }
       }
     }
   }

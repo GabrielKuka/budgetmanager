@@ -1,6 +1,6 @@
 import { React, useEffect, useState } from "react";
 import userService from "../services/userService";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { helper } from "./helper";
 import "./profile.scss";
 import { useConfirm } from "../context/ConfirmContext";
@@ -126,6 +126,7 @@ const Sidebar = (props) => {
   const showConfirm = useConfirm();
   const showToast = useToast();
   const global = useGlobalContext();
+  const navigate = useNavigate();
   const [totalWealth, setTotalWealth] = useState({ wealth: null, change: 0 });
 
   useEffect(() => {
@@ -354,7 +355,11 @@ const Sidebar = (props) => {
               ?.filter((a) => a.amount > 0)
               .slice(0, 5)
               ?.map((a) => (
-                <div key={a.id} className={"account-item"}>
+                <div
+                  key={a.id}
+                  className={"account-item"}
+                  onClick={() => navigate(`/accounts/${a.id}`)}
+                >
                   <label className={"name"}>{a.name}</label>
                   <label className={"amount"}>
                     {helper.showOrMask(
@@ -434,14 +439,6 @@ const ExpenseItem = ({
     return "Not found.";
   }
 
-  function isRecent(input_datetime) {
-    const now = new Date();
-    input_datetime = new Date(input_datetime);
-    const diffInMs = now.getTime() - input_datetime.getTime();
-    const diffInHrs = diffInMs / (1000 * 60 * 60);
-    return diffInHrs <= 5;
-  }
-
   function getAccountCurrency(id) {
     const account = global.accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -453,7 +450,7 @@ const ExpenseItem = ({
 
   return (
     <div className="expense-item" onClick={() => setTransactionPopup(expense)}>
-      {isRecent(expense.created_on) && (
+      {helper.isRecent(expense.created_on) && (
         <label className="new-transaction">NEW!</label>
       )}
       <label id="date">{expense.date}</label>
@@ -516,14 +513,6 @@ const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
     }
     return "Not found.";
   }
-  function isRecent(input_datetime) {
-    const now = new Date();
-    input_datetime = new Date(input_datetime);
-    const diffInMs = now.getTime() - input_datetime.getTime();
-    const diffInHrs = diffInMs / (1000 * 60 * 60);
-    return diffInHrs <= 5;
-  }
-
   function getAccountCurrency(id) {
     const account = global.accounts.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -534,7 +523,7 @@ const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
   }
   return (
     <div className="income-item" onClick={() => setTransactionPopup(income)}>
-      {isRecent(income.created_on) && (
+      {helper.isRecent(income.created_on) && (
         <label className="new-transaction">NEW!</label>
       )}
       <label id="date">{income.date}</label>
@@ -587,13 +576,6 @@ const RecentTransfers = ({ transfers, accounts, setTransactionPopup }) => {
 const TransferItem = ({ transfer, accounts, setTransactionPopup }) => {
   const global = useGlobalContext();
 
-  function isRecent(input_datetime) {
-    const now = new Date();
-    input_datetime = new Date(input_datetime);
-    const diffInMs = now.getTime() - input_datetime.getTime();
-    const diffInHrs = diffInMs / (1000 * 60 * 60);
-    return diffInHrs <= 5;
-  }
   function getAccountCurrency(id) {
     const account = global.accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
@@ -608,7 +590,7 @@ const TransferItem = ({ transfer, accounts, setTransactionPopup }) => {
       className="transfer-item"
       onClick={() => setTransactionPopup(transfer)}
     >
-      {isRecent(transfer.created_on) && (
+      {helper.isRecent(transfer.created_on) && (
         <label className="new-transaction">NEW!</label>
       )}
       <label id="date">{transfer.date}</label>

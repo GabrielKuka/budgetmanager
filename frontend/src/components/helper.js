@@ -36,4 +36,15 @@ export const helper = {
     });
     return formatter.format(number);
   },
+  isRecent: (inputDatetime) => {
+    const now = new Date();
+    inputDatetime = new Date(inputDatetime);
+    const diffInMs = now.getTime() - inputDatetime.getTime();
+    const diffInHrs = diffInMs / (1000 * 60 * 60);
+    return diffInHrs <= 5;
+  },
+  formatDatetime: (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString("sv-SE").replace("T", " ");
+  },
 };

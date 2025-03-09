@@ -5,7 +5,6 @@ import "./transactionItem.scss";
 import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
-import currencyService from "../../services/currencyService";
 
 const TransactionItem = (props) => {
   const global = useGlobalContext();
@@ -59,14 +58,6 @@ const TransactionItem = (props) => {
   }
   function toggleKebab() {
     setShowKebab((prevState) => !prevState);
-  }
-
-  function isRecent(input_datetime) {
-    const now = new Date();
-    input_datetime = new Date(input_datetime);
-    const diffInMs = now.getTime() - input_datetime.getTime();
-    const diffInHrs = diffInMs / (1000 * 60 * 60);
-    return diffInHrs <= 5;
   }
 
   function handleShowMore(event) {
@@ -177,7 +168,7 @@ const TransactionItem = (props) => {
 
   return (
     <div className="transaction-item" onClick={handleShowMore}>
-      {isRecent(props.transaction.created_on) && (
+      {helper.isRecent(props.transaction.created_on) && (
         <label className="new-transaction">NEW!</label>
       )}
       <label id="date">{props.transaction.date}</label>

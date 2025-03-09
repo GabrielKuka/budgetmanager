@@ -5,19 +5,17 @@ import { useParams } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import NotFound from "./notfound";
 import { helper } from "./helper";
+import accountService from "../services/transactionService/accountService";
 
 const AccountPage = () => {
   const { id } = useParams();
   const global = useGlobalContext();
   const account = getAccountObject(id);
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState(false);
 
   useEffect(() => {
-    function getAccountTransactions() {
-      const expenses = global.expenses.filter((e) => e.account == id);
-      const incomes = global.incomes.filter((e) => e.account == id);
-
-      const result = expenses.concat(incomes);
+    async function getAccountTransactions() {
+      const result = await accountService.getAccountTransactions(id);
       setTransactions(result);
     }
 
@@ -62,6 +60,7 @@ const AccountPage = () => {
 };
 
 const Sidebar = ({ account, accountType }) => {
+  const global = useGlobalContext();
   return (
     <div className={"account-page-wrapper__sidebar"}>
       <div id="account_information">
@@ -69,7 +68,7 @@ const Sidebar = ({ account, accountType }) => {
         <div className="grid-container">
           <div className="grid-row">
             <label>Name: </label>
-            <span>{account.name}</span>
+            <span id="account-name">{account.name}</span>
           </div>
           <div className="grid-row">
             <label>Currency: </label>
@@ -81,22 +80,31 @@ const Sidebar = ({ account, accountType }) => {
           </div>
           <div className="grid-row">
             <label>Active: </label>
-            <span>{account.deleted ? "No" : "Yes"}</span>
+            <span style={{ color: account.deleted ? "red" : "green" }}>
+              {account.deleted ? "No" : "Yes ✓"}
+            </span>
           </div>
           <div className="grid-row">
             <label>Balance: </label>
             <span>
-              {helper.formatNumber(account.amount)}{" "}
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(account.amount)
+              )}{" "}
               {helper.getCurrency(account.currency)}
             </span>
           </div>
           <div className="grid-row">
             <label>Created On: </label>
-            <span>{new Date(account.created_on).toLocaleString()}</span>
+            <span className="datetime">
+              {helper.formatDatetime(account.created_on)}
+            </span>
           </div>
           <div className="grid-row">
             <label>Last activity: </label>
-            <span>{new Date(account.updated_on).toLocaleString()}</span>
+            <span className="datetime">
+              {helper.formatDatetime(account.updated_on)}
+            </span>
           </div>
         </div>
       </div>
@@ -106,84 +114,175 @@ const Sidebar = ({ account, accountType }) => {
 
 const MainContainer = ({ account, accountType, transactions }) => {
   const [sortedBy, setSortedBy] = useState({});
+  const [shownTransactions, setShownTransactions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  function sortShownTransactions(by = "") {}
+  useEffect(() => {
+    if (transactions) {
+      setIsLoading(false);
+      setShownTransactions(transactions);
+    }
+  }, [transactions]);
+
+  function sortShownTransactions(by = "") {
+    if (!by) {
+      return;
+    }
+
+    let sorted = null;
+
+    if (by == "date") {
+      if ("date" in sortedBy) {
+        if (sortedBy["date"] == "ascending") {
+          sorted = [...shownTransactions].sort(
+            (a, b) => new Date(b.date) - new Date(a.date)
+          );
+          setSortedBy({ date: "descending" });
+        } else {
+          sorted = [...shownTransactions].sort(
+            (a, b) => new Date(a.date) - new Date(b.date)
+          );
+          setSortedBy({ date: "ascending" });
+        }
+      } else {
+        sorted = [...shownTransactions].sort(
+          (a, b) => new Date(b.date) - new Date(a.date)
+        );
+        setSortedBy({ date: "descending" });
+      }
+      setShownTransactions(sorted);
+      return;
+    }
+
+    if (`${by}` in sortedBy) {
+      if (sortedBy[`${by}`] == "ascending") {
+        sorted = [...shownTransactions].sort((a, b) => b[`${by}`] - a[`${by}`]);
+        setSortedBy({ [by]: "descending" });
+      } else {
+        sorted = [...shownTransactions].sort((a, b) => a[`${by}`] - b[`${by}`]);
+        setSortedBy({ [by]: "ascending" });
+      }
+    } else {
+      sorted = [...shownTransactions].sort((a, b) => b[`${by}`] - a[`${by}`]);
+      setSortedBy({ [by]: "descending" });
+    }
+    setShownTransactions(sorted);
+  }
 
   return (
     <div className={"main-container"}>
-      <div className="transactions-list">
-        <div className="header">
-          <div>
-            <label onClick={() => sortShownTransactions("date")}>Date:</label>
-            {sortedBy["date"] == "ascending" && (
-              <img
-                src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
-                width="12"
-                height="12"
-              />
-            )}
-            {sortedBy["date"] == "descending" && (
-              <img
-                src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
-                width="12"
-                height="12"
-              />
-            )}
-          </div>
+      {isLoading && <div id="loading-div">Loading...</div>}
+      {!isLoading && (
+        <>
+          {shownTransactions?.length > 0 ? (
+            <div className="transactions-list">
+              <div className="header">
+                <div>
+                  <label onClick={() => sortShownTransactions("date")}>
+                    Date:
+                  </label>
+                  {sortedBy["date"] == "ascending" && (
+                    <img
+                      src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+                      width="12"
+                      height="12"
+                    />
+                  )}
+                  {sortedBy["date"] == "descending" && (
+                    <img
+                      src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+                      width="12"
+                      height="12"
+                    />
+                  )}
+                </div>
 
-          <label>Description</label>
+                <label>Description</label>
 
-          <div>
-            <label onClick={() => sortShownTransactions("amount")}>
-              Amount
-            </label>
-            {sortedBy["amount"] == "ascending" && (
-              <img
-                src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
-                width="12"
-                height="12"
-              />
-            )}
-            {sortedBy["amount"] == "descending" && (
-              <img
-                src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
-                width="12"
-                height="12"
-              />
-            )}
-          </div>
+                <div>
+                  <label onClick={() => sortShownTransactions("amount")}>
+                    Amount
+                  </label>
+                  {sortedBy["amount"] == "ascending" && (
+                    <img
+                      src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+                      width="12"
+                      height="12"
+                    />
+                  )}
+                  {sortedBy["amount"] == "descending" && (
+                    <img
+                      src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+                      width="12"
+                      height="12"
+                    />
+                  )}
+                </div>
 
-          <div>
-            <label onClick={() => sortShownTransactions("category")}>
-              Category:
-            </label>
-            {sortedBy["category"] == "ascending" && (
-              <img
-                src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
-                width="12"
-                height="12"
-              />
-            )}
-            {sortedBy["category"] == "descending" && (
-              <img
-                src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
-                width="12"
-                height="12"
-              />
-            )}
-          </div>
-        </div>
-        <div className="content">
-          {transactions.length > 0 &&
-            transactions.map((t) => <TransactionItem></TransactionItem>)}
-        </div>
-      </div>
+                <div>
+                  <label>Category:</label>
+                </div>
+              </div>
+              <div className="content">
+                {shownTransactions?.length > 0 &&
+                  shownTransactions?.map((t) => (
+                    <TransactionItem transaction={t} account={account} />
+                  ))}
+              </div>
+            </div>
+          ) : (
+            <div className="empty-account">
+              No transactions found in this account.
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
 
-const TransactionItem = () => {
-  return <div></div>;
+const TransactionItem = ({ account, transaction }) => {
+  const global = useGlobalContext();
+  const transactionType =
+    "expense_category" in transaction ? "expense" : "income";
+  const category = getCategory(
+    transactionType === "income"
+      ? transaction?.income_category
+      : transaction?.expense_category
+  );
+
+  function getCategory(id) {
+    const categories =
+      transactionType === "income"
+        ? global.incomeCategories
+        : global.expenseCategories;
+
+    const result = categories.filter((c) => c.id === id);
+    if (result.length === 1) {
+      return result[0]?.category;
+    }
+
+    return "Not Found";
+  }
+
+  return (
+    <div className={"transaction-item"}>
+      {helper.isRecent(transaction?.created_on) && (
+        <label className="new-transaction">NEW!</label>
+      )}
+      <label className="date">{transaction?.date}</label>
+      <label>{transaction?.description}</label>
+      <label style={{ color: transactionType === "expense" ? "red" : "green" }}>
+        {transactionType === "expense" ? "-" : "+"}{" "}
+        {helper.showOrMask(
+          global.privacyMode,
+          helper.formatNumber(transaction?.amount)
+        )}{" "}
+        {helper.getCurrency(account?.currency)}
+      </label>
+      <label>{category}</label>
+    </div>
+  );
 };
 
 export default AccountPage;
