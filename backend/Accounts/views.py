@@ -77,21 +77,25 @@ def get_all_accounts(request):
 
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-@api_view(['GET'])
+
+@api_view(["GET"])
 def get_account_transactions(request, id):
     from itertools import chain
-    
+
     try:
-        expenses = Expense.objects.filter(account=id) 
+        expenses = Expense.objects.filter(account=id)
         incomes = Income.objects.filter(account=id)
 
         serialized_expenses = ExpenseSerializer(expenses, many=True).data
         serialized_incomes = IncomeSerializer(incomes, many=True).data
 
         transactions = list(chain(serialized_expenses, serialized_incomes))
-        transactions.sort(key=lambda x: x.get('date'), reverse=True)
+        transactions.sort(key=lambda x: x.get("date"), reverse=True)
 
         return Response(transactions, status=status.HTTP_200_OK)
     except Exception as e:
         print(e)
-        return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"error": "Something went wrong"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )

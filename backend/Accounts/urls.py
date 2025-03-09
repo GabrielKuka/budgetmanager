@@ -13,6 +13,10 @@ urlpatterns = [
         name="restore_account",
     ),
     path("delete/<int:id>", views.delete_account, name="deleteaccount"),
-    path("transactions/<int:id>", views.get_account_transactions, name="gettransactions"),
+    path(
+        "transactions/<int:id>",
+        views.get_account_transactions,
+        name="gettransactions",
+    ),
     path("all", views.get_all_accounts, name="allaccounts"),
 ]
