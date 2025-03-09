@@ -1,0 +1,77 @@
+@import "../mixins";
+
+.account-page-wrapper {
+  margin-top: 80px;
+  padding-left: 20px;
+
+  &__sidebar {
+    position: fixed;
+    width: 350px;
+    padding: 0px 20px 20px 20px;
+    @include flex(column, center, center);
+    gap: 10px;
+
+    #account_information {
+      border: 1px solid #dadada;
+      box-shadow: 1px 1px 10px #dadada;
+      border-radius: 3px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+
+      width: 270px;
+      padding: 30px;
+      @include flex(column, flex-start, flex-start);
+      gap: 10px;
+
+      .card-label {
+        background-color: cadetblue;
+        color: white;
+        padding: 5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: padding-left 0.3s;
+        width: fit-content;
+        font-weight: bold;
+      }
+
+      &:hover {
+        border-color: cadetblue;
+        box-shadow: 1px 1px 5px cadetblue;
+        .card-label {
+          padding-left: 15px;
+        }
+      }
+
+      .grid-container {
+        width: 100%;
+
+        .grid-row {
+          display: grid;
+          grid-template-columns: 1fr 2fr;
+          margin-top: 10px;
+          border-bottom: 1px solid #dadada;
+
+          span {
+            text-align: right;
+            font-weight: bold;
+          }
+
+          label {
+            color: gray;
+            font-size: 14px;
+          }
+        }
+      }
+    }
+  }
+
+  &__main-container {
+    left: 450px;
+    position: absolute;
+    border: 1px solid #dadada;
+    box-shadow: 1px 1px 2px #dadada;
+    border-radius: 3px;
+    padding-bottom: 20px;
+    width: 900px;
+  }
+}

@@ -1,4 +1,5 @@
 import { React, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field } from "formik";
 import transactionService from "../services/transactionService/transactionService";
 import NoDataCard from "./core/nodata";
@@ -419,6 +420,7 @@ const AccountsList = ({ accounts, refreshAccounts, accountTypeSelected }) => {
 
 const AccountItem = ({ account, refreshAccounts }) => {
   const global = useGlobalContext();
+  const navigate = useNavigate();
   const accountTypes = [
     { source: `${process.env.PUBLIC_URL}/bank_icon.png`, name: "Bank Account" },
     {
@@ -470,7 +472,10 @@ const AccountItem = ({ account, refreshAccounts }) => {
   }
 
   return (
-    <div className="account-item">
+    <div
+      className="account-item"
+      onClick={() => navigate(`/accounts/${account.id}`)}
+    >
       <label id="date">
         {new Date(account.created_on).toISOString().slice(0, 10)}
       </label>

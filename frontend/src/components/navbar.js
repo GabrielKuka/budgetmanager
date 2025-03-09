@@ -105,7 +105,6 @@ const LoggedInNavbar = () => {
   }
 
   const handleLogout = () => {
-    console.log("Hello");
     showConfirm(
       `Are you sure you want to logout ${global.user.data.name}?`,
       () => {
