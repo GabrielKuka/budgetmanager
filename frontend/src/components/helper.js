@@ -47,4 +47,17 @@ export const helper = {
     const date = new Date(dateString);
     return date.toLocaleString("sv-SE").replace("T", " ");
   },
+  amountLabelColor: (itemType) => {
+    // 0 for income, 1 for expense and 2 for transfers
+    switch (itemType) {
+      case 0:
+        return "green";
+      case 1:
+        return "red";
+      case 2:
+        return "cadetblue";
+      default:
+        return "";
+    }
+  },
 };

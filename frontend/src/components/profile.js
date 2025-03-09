@@ -461,7 +461,8 @@ const ExpenseItem = ({
       >
         {helper.getAccountName(global.accounts, expense.account)}
       </label>
-      <label id="amount">
+      <label id="amount" style={{ color: helper.amountLabelColor(1) }}>
+        -{" "}
         {helper.showOrMask(
           global.privacyMode,
           helper.formatNumber(expense.amount)
@@ -534,7 +535,8 @@ const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
       >
         {helper.getAccountName(global.accounts, income.account)}
       </label>
-      <label id="amount">
+      <label id="amount" style={{ color: helper.amountLabelColor(0) }}>
+        +{" "}
         {helper.showOrMask(
           global.privacyMode,
           helper.formatNumber(income.amount)
@@ -607,7 +609,7 @@ const TransferItem = ({ transfer, accounts, setTransactionPopup }) => {
       >
         {helper.getAccountName(global.accounts, transfer.to_account)}
       </label>
-      <label id="amount">
+      <label id="amount" style={{ color: helper.amountLabelColor(2) }}>
         {helper.showOrMask(
           global.privacyMode,
           helper.formatNumber(transfer.amount)

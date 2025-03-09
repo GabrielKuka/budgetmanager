@@ -212,7 +212,9 @@ const TransactionItem = (props) => {
           </label>
         </>
       )}
-      <label id="amount">
+      <label id="amount" style={{ color: helper.amountLabelColor(itemType) }}>
+        {itemType === 0 && <span>+ </span>}
+        {itemType === 1 && <span>- </span>}
         {helper.showOrMask(
           global.privacyMode,
           helper.formatNumber(props.transaction.amount)

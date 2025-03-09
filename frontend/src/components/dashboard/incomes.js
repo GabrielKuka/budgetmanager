@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import TransactionItem from "./transactionItem";
 import transactionService from "../../services/transactionService/transactionService";
 import "react-datepicker/dist/react-datepicker.css";
@@ -7,7 +7,6 @@ import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
 import "./incomes.scss";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
-import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
