@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../../context/ConfirmContext";
 import { useGlobalContext } from "../../context/GlobalContext";
 import { useToast } from "../../context/ToastContext";
@@ -15,6 +16,7 @@ const TransactionPopup = ({
   const global = useGlobalContext();
   const showConfirm = useConfirm();
   const showToast = useToast();
+  const navigate = useNavigate();
 
   let type = -1;
   let categories = [];
@@ -210,10 +212,14 @@ const TransactionPopup = ({
               <div>
                 <label>From Account: </label>
                 <span
+                  className={"account_name"}
                   style={helper.accountLabelStyle(
                     global.accounts,
                     transaction.from_account
                   )}
+                  onClick={() =>
+                    navigate(`/accounts/${transaction.from_account}`)
+                  }
                 >
                   {" "}
                   {helper.getAccountName(
@@ -224,7 +230,12 @@ const TransactionPopup = ({
               </div>
               <div>
                 <label>To Account: </label>
-                <span>
+                <span
+                  className="account_name"
+                  onClick={() =>
+                    navigate(`/accounts/${transaction.to_account}`)
+                  }
+                >
                   {" "}
                   {helper.getAccountName(
                     global.accounts,
@@ -249,6 +260,8 @@ const TransactionPopup = ({
               <div>
                 <label>Account: </label>
                 <span
+                  className="account_name"
+                  onClick={() => navigate(`/accounts/${transaction.account}`)}
                   style={helper.accountLabelStyle(
                     global.accounts,
                     transaction.account

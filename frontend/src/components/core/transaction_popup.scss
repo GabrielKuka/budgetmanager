@@ -89,6 +89,14 @@
         font-weight: bold;
       }
 
+      .account_name {
+        cursor: pointer;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
       .questionmark {
         position: absolute;
         margin-left: 5px;
