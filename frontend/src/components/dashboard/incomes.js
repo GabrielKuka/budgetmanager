@@ -257,7 +257,7 @@ const AddIncome = ({
             <label onClick={() => document.getElementById("date").focus()}>
               Enter Income
             </label>
-            <Field type="text" id="date" name="date" placeholder="Eter date" />
+            <Field type="text" id="date" name="date" placeholder="Enter date" />
             <Field as="select" name="account">
               <option value="" disabled hidden>
                 Select account

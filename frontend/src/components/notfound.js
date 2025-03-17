@@ -1,9 +1,11 @@
 import { React } from "react";
+import "./notfound.scss";
 
 const NotFound = () => {
   return (
-    <div style={{ marginTop: "80px", paddingLeft: "20px" }}>
-      The current url was not found.
+    <div id="notfound-wrapper">
+      The page your are looking for was not found.
+      <img src={`${process.env.PUBLIC_URL}/notfound_image.svg`} />
     </div>
   );
 };
