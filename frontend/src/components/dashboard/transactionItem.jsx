@@ -222,7 +222,10 @@ const TransactionItem = (props) => {
         {props.currency}
       </label>
       {(itemType === 0 || itemType === 1) && (
-        <label id="category">{getCategory(getCategoryType())}</label>
+        <label id="category">
+          <span>{helper.categoryIcon(getCategoryType())}</span>
+          {getCategory(getCategoryType())}
+        </label>
       )}
       <button className={"kebab-button"} onClick={toggleKebab}>
         <img

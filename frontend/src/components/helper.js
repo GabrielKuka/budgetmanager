@@ -1,4 +1,57 @@
 export const helper = {
+  categoryIcon: (category) => {
+    switch (category) {
+      case 1:
+        return "💵";
+      case 2:
+        return "📈";
+      case 3:
+        return "🔣";
+      case 4:
+        return "🎉";
+      case 5:
+        return "💸";
+      case 6:
+        return "💲";
+      case 7:
+        return "🔄";
+
+      case 13:
+        return "🏠";
+      case 14:
+        return "🔣";
+      case 11:
+        return "🍔";
+      case 25:
+        return "🥤";
+      case 15:
+        return "⚡";
+      case 16:
+        return "🚰";
+      case 17:
+        return "🌐";
+      case 18:
+        return "📞";
+      case 19:
+        return "💪";
+      case 21:
+        return "🚆";
+      case 22:
+        return "💰";
+      case 24:
+        return "🏨";
+      case 26:
+        return "💇";
+      case 27:
+        return "🧥";
+      case 28:
+        return "🧴";
+      case 20:
+        return "💡";
+      default:
+        return category;
+    }
+  },
   showOrMask: (priv_mode, value) => {
     return priv_mode ? "****" : value;
   },

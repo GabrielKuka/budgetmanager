@@ -273,6 +273,7 @@ const TransactionPopup = ({
               </div>
               <div>
                 <label>Category: </label>
+                <span>{helper.categoryIcon(getCategoryType())}</span>
                 <span> {getCategory(getCategoryType())}</span>
               </div>
             </>
