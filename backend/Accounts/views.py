@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.db.models.expressions import RowRange
 
 from .models import Account
 from Transactions.models import Expense, Income
@@ -108,12 +109,14 @@ def get_account_data(request, id):
     stat_incomes_month = get_account_stats(
         Income, account, start_of_the_month, today
     )
+
     stat_expenses_year = get_account_stats(
         Expense, account, start_of_the_year, today
     )
     stat_incomes_year = get_account_stats(
         Income, account, start_of_the_year, today
     )
+
     net_month_to_date = round(
         stat_incomes_month["total"] - stat_expenses_month["total"], 2
     )
@@ -173,8 +176,8 @@ def get_account_transactions(request, id):
         )
 
 
-def get_account_stats(transaciton_model, account, from_date, to_date):
-    transactions = transaciton_model.filter(
+def get_account_stats(transaction_model, account, from_date, to_date):
+    transactions = transaction_model.objects.filter(
         account=account, date__gte=from_date, date__lte=to_date
     )
 
@@ -190,20 +193,26 @@ def get_account_stats(transaciton_model, account, from_date, to_date):
         moving_avg=Window(
             expression=Avg("amount"),
             order_by=F("date").asc(),
-            frame=Window.Range(start=-6, end=0),  # 7-day moving average
+            frame=RowRange(start=-6, end=0),  # 7-day moving average
         )
     )
 
     return {
-        "total": round(transactions.aggregate(Sum("amount"))["amount__sum"], 2)
-        or 0,
-        "average": round(
-            transactions.aggregate(Avg("amount"))["amount__avg"], 2
+        "total": round(
+            transactions.aggregate(Sum("amount"))["amount__sum"] or 0, 2
         )
         or 0,
-        "max": round(transactions.aggregate(Max("amount"))["amount__max"], 2)
+        "average": round(
+            transactions.aggregate(Avg("amount"))["amount__avg"] or 0, 2
+        )
         or 0,
-        "min": round(transactions.aggregate(Min("amount"))["amount__min"], 2)
+        "max": round(
+            transactions.aggregate(Max("amount"))["amount__max"] or 0, 2
+        )
+        or 0,
+        "min": round(
+            transactions.aggregate(Min("amount"))["amount__min"] or 0, 2
+        )
         or 0,
         "count": transactions.aggregate(Count("amount"))["amount__count"] or 0,
         "running_total": list(

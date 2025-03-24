@@ -12,11 +12,16 @@ const AccountPage = () => {
   const global = useGlobalContext();
   const account = getAccountObject(id);
   const [transactions, setTransactions] = useState(false);
+  const [accountStats, setAccountStats] = useState(false);
 
   useEffect(() => {
     async function getAccountTransactions() {
-      const result = await accountService.getAccountTransactions(id);
-      setTransactions(result);
+      const transactions = await accountService.getAccountTransactions(id);
+      setTransactions(transactions);
+
+      const stats = await accountService.getAccountStats(id);
+      setAccountStats(stats);
+      console.log(stats);
     }
 
     getAccountTransactions();
@@ -49,7 +54,11 @@ const AccountPage = () => {
 
   return (
     <div className={"account-page-wrapper"}>
-      <Sidebar account={account} accountType={accountTypes[account.type]} />
+      <Sidebar
+        account={account}
+        stats={accountStats}
+        accountType={accountTypes[account.type]}
+      />
       <MainContainer
         account={account}
         accountType={accountTypes[account.type]}
@@ -59,7 +68,7 @@ const AccountPage = () => {
   );
 };
 
-const Sidebar = ({ account, accountType }) => {
+const Sidebar = ({ account, accountType, stats }) => {
   const global = useGlobalContext();
   return (
     <div className={"account-page-wrapper__sidebar"}>
@@ -93,6 +102,40 @@ const Sidebar = ({ account, accountType }) => {
               )}{" "}
               {helper.getCurrency(account.currency)}
             </span>
+          </div>
+          <div className={"grid-row"}>
+            <label>Month to Date:</label>
+            {stats != false && (
+              <span
+                style={{
+                  color: stats["net_month_to_date"] >= 0 ? "green" : "red",
+                }}
+              >
+                {stats["net_month_to_date"] >= 0 ? "+" : ""}{" "}
+                {helper.showOrMask(
+                  global.privacyMode,
+                  helper.formatNumber(stats["net_month_to_date"])
+                )}{" "}
+                {helper.getCurrency(account.currency)}
+              </span>
+            )}
+          </div>
+          <div className={"grid-row"}>
+            <label>Year to Date:</label>
+            {stats != false && (
+              <span
+                style={{
+                  color: stats["net_year_to_date"] >= 0 ? "green" : "red",
+                }}
+              >
+                {stats["net_year_to_date"] >= 0 ? "+" : ""}{" "}
+                {helper.showOrMask(
+                  global.privacyMode,
+                  helper.formatNumber(stats["net_year_to_date"])
+                )}{" "}
+                {helper.getCurrency(account.currency)}
+              </span>
+            )}
           </div>
           <div className="grid-row">
             <label>Created On: </label>
@@ -226,7 +269,11 @@ const MainContainer = ({ account, accountType, transactions }) => {
               <div className="content">
                 {shownTransactions?.length > 0 &&
                   shownTransactions?.map((t) => (
-                    <TransactionItem transaction={t} account={account} />
+                    <TransactionItem
+                      transaction={t}
+                      key={`${"income_category" in t ? "i" : "e"}_${t.id}`}
+                      account={account}
+                    />
                   ))}
               </div>
             </div>
