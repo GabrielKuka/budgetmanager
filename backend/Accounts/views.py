@@ -8,6 +8,18 @@ from Transactions.models import Expense, Income
 from Transactions.serializers import IncomeSerializer, ExpenseSerializer
 from django.shortcuts import get_object_or_404, redirect
 from .serialzers import AccountSerializer
+from django.db.models import (
+    Sum,
+    Avg,
+    Max,
+    Min,
+    Count,
+    Window,
+    F,
+    StdDev,
+    Variance,
+)
+from datetime import datetime
 
 
 @api_view(["POST"])
@@ -79,6 +91,66 @@ def get_all_accounts(request):
 
 
 @api_view(["GET"])
+def get_account_data(request, id):
+
+    token = request.headers["Authorization"]
+    user_id = Token.objects.get(key=token).user_id
+
+    account = get_object_or_404(Account, id=id, user=user_id)
+
+    today = datetime.now()
+    start_of_the_month = datetime(today.year, today.month, 1)
+    start_of_the_year = datetime(today.year, 1, 1)
+
+    stat_expenses_month = get_account_stats(
+        Expense, account, start_of_the_month, today
+    )
+    stat_incomes_month = get_account_stats(
+        Income, account, start_of_the_month, today
+    )
+    stat_expenses_year = get_account_stats(
+        Expense, account, start_of_the_year, today
+    )
+    stat_incomes_year = get_account_stats(
+        Income, account, start_of_the_year, today
+    )
+    net_month_to_date = round(
+        stat_incomes_month["total"] - stat_expenses_month["total"], 2
+    )
+    net_year_to_date = round(
+        stat_incomes_year["total"] - stat_expenses_year["total"], 2
+    )
+
+    result = {
+        "current_balance": round(account.amount, 2),
+        "net_month_to_date": net_month_to_date,
+        "net_year_to_date": net_year_to_date,
+        "transactions_this_month": stat_incomes_month["count"]
+        + stat_expenses_month["count"],
+        "transactions_this_year": stat_incomes_year["count"]
+        + stat_expenses_year["count"],
+        "running_total_expenses_current_month": stat_expenses_month[
+            "running_total"
+        ],
+        "running_total_incomes_current_month": stat_incomes_month[
+            "running_total"
+        ],
+        "running_total_expenses_current_year": stat_expenses_year[
+            "running_total"
+        ],
+        "running_total_incomes_current_year": stat_incomes_year[
+            "running_total"
+        ],
+        "moving_avg_expenses_current_month": stat_expenses_month["moving_avg"],
+        "moving_avg_incomes_current_month": stat_incomes_month["moving_avg"],
+        "moving_avg_expenses_current_year": stat_expenses_year["moving_avg"],
+        "moving_avg_incomes_current_year": stat_incomes_year["moving_avg"],
+    }
+
+    return Response(result, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
 def get_account_transactions(request, id):
     from itertools import chain
 
@@ -99,3 +171,47 @@ def get_account_transactions(request, id):
             {"error": "Something went wrong"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+
+def get_account_stats(transaciton_model, account, from_date, to_date):
+    transactions = transaciton_model.filter(
+        account=account, date__gte=from_date, date__lte=to_date
+    )
+
+    # Calculate running total using window functions
+    running_total_transactions = transactions.annotate(
+        running_total=Window(
+            expression=Sum("amount"), order_by=F("date").asc()
+        )
+    )
+
+    # Calculate moving average using window functions
+    moving_average_transactions = transactions.annotate(
+        moving_avg=Window(
+            expression=Avg("amount"),
+            order_by=F("date").asc(),
+            frame=Window.Range(start=-6, end=0),  # 7-day moving average
+        )
+    )
+
+    return {
+        "total": round(transactions.aggregate(Sum("amount"))["amount__sum"], 2)
+        or 0,
+        "average": round(
+            transactions.aggregate(Avg("amount"))["amount__avg"], 2
+        )
+        or 0,
+        "max": round(transactions.aggregate(Max("amount"))["amount__max"], 2)
+        or 0,
+        "min": round(transactions.aggregate(Min("amount"))["amount__min"], 2)
+        or 0,
+        "count": transactions.aggregate(Count("amount"))["amount__count"] or 0,
+        "running_total": list(
+            running_total_transactions.values(
+                "date", "amount", "running_total"
+            )
+        ),
+        "moving_avg": list(
+            moving_average_transactions.values("date", "amount", "moving_avg")
+        ),
+    }

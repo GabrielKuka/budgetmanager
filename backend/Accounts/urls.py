@@ -18,5 +18,6 @@ urlpatterns = [
         views.get_account_transactions,
         name="gettransactions",
     ),
+    path("stats/<int:id>", views.get_account_data, name="accountdata"),
     path("all", views.get_all_accounts, name="allaccounts"),
 ]
