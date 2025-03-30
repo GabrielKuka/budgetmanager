@@ -140,11 +140,11 @@ const TemplateGroups = (props) => {
       if (t.type == 0) {
         const payload = {
           amount: t.amount,
-          income_category: t.category,
+          category: t.category,
           date: new Date().toISOString().slice(0, 10),
           description: t.description,
           type: t.type,
-          account: t.account,
+          to_account: t.account,
           tags: t.tags,
         };
         await transactionService.addIncome(payload);
@@ -152,12 +152,12 @@ const TemplateGroups = (props) => {
       if (t.type == 1) {
         const payload = {
           amount: t.amount,
-          expense_category: t.category,
+          category: t.category,
           date: new Date().toISOString().slice(0, 10),
           description: t.description,
           type: t.type,
           tags: t.tags,
-          account: t.account,
+          from_account: t.account,
         };
 
         await transactionService.addExpense(payload);
