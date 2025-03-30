@@ -99,7 +99,7 @@ const Sidebar = (props) => {
       }
       let promises = props.shownIncomes?.map(async (e) => {
         return await currencyService.convert(
-          props.getAccountCurrency(e.account),
+          props.getAccountCurrency(e.to_account),
           global.globalCurrency,
           e.amount
         );
@@ -118,10 +118,10 @@ const Sidebar = (props) => {
       const data = [];
       for (const c of props.categories) {
         let promises = props.shownIncomes
-          ?.filter((e) => e.income_category == c.id)
+          ?.filter((e) => e.category == c.id)
           ?.map(async (e) => {
             return await currencyService.convert(
-              props.getAccountCurrency(e?.account),
+              props.getAccountCurrency(e?.to_account),
               global.globalCurrency,
               e.amount
             );
@@ -226,9 +226,9 @@ const AddIncome = ({
       <Formik
         initialValues={{
           amount: "",
-          account: "",
+          to_account: "",
           description: "",
-          income_category: "",
+          category: "",
           date: new Date().toISOString().slice(0, 10),
         }}
         validationSchema={validationSchemas.incomeFormSchema}
@@ -258,7 +258,7 @@ const AddIncome = ({
               Enter Income
             </label>
             <Field type="text" id="date" name="date" placeholder="Enter date" />
-            <Field as="select" name="account">
+            <Field as="select" name="to_account">
               <option value="" disabled hidden>
                 Select account
               </option>
@@ -314,7 +314,7 @@ const AddIncome = ({
               id="description"
               placeholder="Enter a description"
             />
-            <Field as="select" name="income_category">
+            <Field as="select" name="category">
               <option value="" disabled hidden>
                 Income category
               </option>
@@ -538,10 +538,10 @@ const IncomesList = (props) => {
             <TransactionItem
               key={income.id}
               transaction={income}
-              refreshTransactions={props.refreshExpenses}
+              refreshTransactions={props.refreshIncomes}
               categories={props.categories}
               currency={helper.getCurrency(
-                props.getAccountCurrency(income.account)
+                props.getAccountCurrency(income.to_account)
               )}
               setTransactionPopup={props.setTransactionPopup}
               refreshAccounts={global.updateAccounts}

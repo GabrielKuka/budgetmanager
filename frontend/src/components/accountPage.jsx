@@ -290,13 +290,8 @@ const MainContainer = ({ account, accountType, transactions }) => {
 
 const TransactionItem = ({ account, transaction }) => {
   const global = useGlobalContext();
-  const transactionType =
-    "expense_category" in transaction ? "expense" : "income";
-  const category = getCategory(
-    transactionType === "income"
-      ? transaction?.income_category
-      : transaction?.expense_category
-  );
+  const transactionType = transaction.transaction_type;
+  const category = getCategory(transaction.category);
 
   function getCategory(id) {
     const categories =
@@ -309,7 +304,17 @@ const TransactionItem = ({ account, transaction }) => {
       return result[0]?.category;
     }
 
-    return "Not Found";
+    return "(Transfer)";
+  }
+
+  function categoryStyle() {
+    if (category === "(Transfer)") {
+      return {
+        fontStyle: "italic",
+        color: "gray",
+      };
+    }
+    return {};
   }
 
   return (
@@ -327,7 +332,7 @@ const TransactionItem = ({ account, transaction }) => {
         )}{" "}
         {helper.getCurrency(account?.currency)}
       </label>
-      <label>{category}</label>
+      <label style={categoryStyle()}>{category}</label>
     </div>
   );
 };

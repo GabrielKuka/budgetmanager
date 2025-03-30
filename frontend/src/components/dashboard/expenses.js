@@ -87,7 +87,7 @@ const Sidebar = (props) => {
     async function getTotal() {
       let promises = props.shownExpenses?.map(async (e) => {
         return await currencyService.convert(
-          props.getAccountCurrency(e.account),
+          props.getAccountCurrency(e.from_account),
           global.globalCurrency,
           e.amount
         );
@@ -118,7 +118,7 @@ const Sidebar = (props) => {
         );
         let promises = filteredincomes?.map(async (e) => {
           return await currencyService.convert(
-            props.getAccountCurrency(e.account),
+            props.getAccountCurrency(e.to_account),
             global.globalCurrency,
             e.amount
           );
@@ -211,8 +211,8 @@ const AddExpense = ({
           amount: "",
           description: "",
           date: new Date().toISOString().slice(0, 10),
-          account: "",
-          expense_category: "",
+          from_account: "",
+          category: "",
         }}
         validationSchema={validationSchemas.expenseFormSchema}
         validateOnBlur={false}
@@ -241,7 +241,7 @@ const AddExpense = ({
               Enter Expense
             </label>
             <Field type="text" id="date" name="date" placeholder="Enter date" />
-            <Field as="select" name="account">
+            <Field as="select" name="from_account">
               <option value="" disabled hidden>
                 Select account
               </option>
@@ -297,7 +297,7 @@ const AddExpense = ({
               id="description"
               placeholder="Enter a description"
             />
-            <Field as="select" name="expense_category">
+            <Field as="select" name="category">
               <option value="" disabled hidden>
                 Expense category
               </option>
@@ -524,7 +524,7 @@ const ExpensesList = (props) => {
               refreshTransactions={props.refreshExpenses}
               categories={props.categories}
               currency={helper.getCurrency(
-                props.getAccountCurrency(expense.account)
+                props.getAccountCurrency(expense.from_account)
               )}
               setTransactionPopup={props.setTransactionPopup}
               refreshAccounts={global.updateAccounts}

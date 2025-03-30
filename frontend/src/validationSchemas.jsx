@@ -11,7 +11,7 @@ export const validationSchemas = {
       100,
       "Description can be at most 100 charaters."
     ),
-    transaction_category: Yup.string()
+    category: Yup.string()
       .nullable()
       .when("transaction_type", {
         is: (type) => type === "0" || type === "1",
@@ -19,18 +19,13 @@ export const validationSchemas = {
           schema.required("A category is required to be selected."),
         otherwise: (schema) => schema.notRequired(),
       }),
-    account: Yup.string().when("transaction_type", {
-      is: (type) => type === "0" || type === "1",
-      then: (schema) => schema.required("Choose an account."),
-      otherwise: (schema) => schema.notRequired(),
-    }),
     from_account: Yup.string().when("transaction_type", {
-      is: (type) => type === "2",
+      is: (type) => type === "2" || type === "1",
       then: (schema) => schema.required("Choose an origin account."),
       otherwise: (schema) => schema.notRequired(),
     }),
     to_account: Yup.string().when("transaction_type", {
-      is: (type) => type === "2",
+      is: (type) => type === "2" || type === "0",
       then: (schema) => schema.required("Choose a destination account."),
       otherwise: (schema) => schema.notRequired(),
     }),
@@ -63,8 +58,8 @@ export const validationSchemas = {
       50,
       "Description can be at most 50 charaters."
     ),
-    account: Yup.string().required("Account is required."),
-    income_category: Yup.string().required("Income category is required."),
+    to_account: Yup.string().required("Account is required."),
+    category: Yup.string().required("Income category is required."),
   }),
   expenseFormSchema: Yup.object().shape({
     date: Yup.date().required("Date is required."),
@@ -76,8 +71,8 @@ export const validationSchemas = {
       50,
       "Description can be at most 50 charaters."
     ),
-    account: Yup.string().required("Account is required."),
-    expense_category: Yup.string().required("Expense category is required."),
+    from_account: Yup.string().required("Account is required."),
+    category: Yup.string().required("Expense category is required."),
   }),
   transferFormSchema: Yup.object().shape({
     date: Yup.date().required("Date is required."),

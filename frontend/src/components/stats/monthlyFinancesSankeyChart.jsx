@@ -24,11 +24,13 @@ const MonthlyFinancesSankeyChart = (props) => {
       if (!transactions) {
         return;
       }
-      let promises = transactions?.map(async (e) => {
+      let promises = transactions?.map(async (t) => {
         return await currencyService.convert(
-          props.getAccountCurrency(e.account),
+          props.getAccountCurrency(
+            t["transaction_type"] === "expense" ? t.from_account : t.to_account
+          ),
           global.globalCurrency,
-          e.amount
+          t.amount
         );
       });
 
@@ -45,12 +47,12 @@ const MonthlyFinancesSankeyChart = (props) => {
       const data = [];
       for (const c of props.incomeCategories) {
         let promises = currentMonthIncomes
-          ?.filter((e) => e.income_category == c.id)
-          ?.map(async (e) => {
+          ?.filter((t) => t.category == c.id)
+          ?.map(async (t) => {
             return await currencyService.convert(
-              props.getAccountCurrency(e.account),
+              props.getAccountCurrency(t.to_account),
               global.globalCurrency,
-              e.amount
+              t.amount
             );
           });
 
@@ -72,12 +74,12 @@ const MonthlyFinancesSankeyChart = (props) => {
       const data = [];
       for (const c of props.expenseCategories) {
         let promises = currentMonthExpenses
-          ?.filter((e) => e.expense_category == c.id)
-          ?.map(async (e) => {
+          ?.filter((t) => t.category == c.id)
+          ?.map(async (t) => {
             return await currencyService.convert(
-              props.getAccountCurrency(e.account),
+              props.getAccountCurrency(t.from_account),
               global.globalCurrency,
-              e.amount
+              t.amount
             );
           });
 

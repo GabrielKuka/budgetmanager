@@ -38,7 +38,7 @@ const IncomeVsExpenseChart = (props) => {
             }
 
             let amount = await currencyService.convert(
-              props.getAccountCurrency(e.account),
+              props.getAccountCurrency(e.from_account),
               global.globalCurrency,
               e.amount
             );
@@ -62,7 +62,7 @@ const IncomeVsExpenseChart = (props) => {
             }
 
             const amount = await currencyService.convert(
-              props.getAccountCurrency(i.account),
+              props.getAccountCurrency(i.to_account),
               global.globalCurrency,
               i.amount
             );

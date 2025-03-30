@@ -164,13 +164,13 @@ const SearchResults = () => {
       return;
     }
     const inc = searchResults
-      .filter((t) => "income_category" in t)
+      .filter((t) => t["transaction_type"] === "income")
       .sort((a, b) => (a.date > b.date ? -1 : 1));
     const exp = searchResults
-      .filter((t) => "expense_category" in t)
+      .filter((t) => t["transaction_type"] === "expense")
       .sort((a, b) => (a.date > b.date ? -1 : 1));
     const tran = searchResults
-      .filter((t) => "from_account" in t)
+      .filter((t) => t["transaction_type"] === "transfer")
       .sort((a, b) => (a.date > b.date ? -1 : 1));
 
     setIncomes(inc);
@@ -686,22 +686,15 @@ const TransactionItem = ({
   global,
 }) => {
   const account =
-    "account" in transaction ? transaction.account : transaction.from_account;
+    transaction?.transaction_type === "expense" ||
+    transaction?.transaction_type === "transfer"
+      ? transaction.from_account
+      : transaction.to_account;
   const currency = helper.getCurrency(getAccountCurrency(account));
   const [type, setType] = useState("");
 
   useEffect(() => {
-    function getTransactionType() {
-      if ("expense_category" in transaction) {
-        return "expense";
-      }
-      if ("income_category" in transaction) {
-        return "income";
-      }
-      return "transfer";
-    }
-
-    setType(getTransactionType());
+    setType(transaction?.transaction_type);
   }, [transaction]);
 
   return (
@@ -723,9 +716,9 @@ const TransactionItem = ({
               global.privacyMode,
               helper.formatNumber(transaction.amount)
             )}{" "}
-            {helper.getCurrency(getAccountCurrency(transaction.account))} on{" "}
-            {transaction.date} from{" "}
-            {helper.getAccountName(global.accounts, transaction.account)}.
+            {helper.getCurrency(getAccountCurrency(transaction.from_account))}{" "}
+            on {transaction.date} from{" "}
+            {helper.getAccountName(global.accounts, transaction.from_account)}.
           </>
         )}
 
@@ -742,9 +735,9 @@ const TransactionItem = ({
               global.privacyMode,
               helper.formatNumber(transaction.amount)
             )}{" "}
-            {helper.getCurrency(getAccountCurrency(transaction.account))} on{" "}
+            {helper.getCurrency(getAccountCurrency(transaction.to_account))} on{" "}
             {transaction.date} into{" "}
-            {helper.getAccountName(global.accounts, transaction.account)}.
+            {helper.getAccountName(global.accounts, transaction.to_account)}.
           </>
         )}
         {type === "transfer" && (

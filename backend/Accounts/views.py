@@ -1,12 +1,13 @@
 from rest_framework import status
+from django.db.models import Q
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.db.models.expressions import RowRange
 
 from .models import Account
-from Transactions.models import Expense, Income
-from Transactions.serializers import IncomeSerializer, ExpenseSerializer
+from Transactions.models import Transaction
+from Transactions.serializers import TransactionSerializer
 from django.shortcuts import get_object_or_404, redirect
 from .serialzers import AccountSerializer
 from django.db.models import (
@@ -17,8 +18,6 @@ from django.db.models import (
     Count,
     Window,
     F,
-    StdDev,
-    Variance,
 )
 from datetime import datetime
 
@@ -104,17 +103,17 @@ def get_account_data(request, id):
     start_of_the_year = datetime(today.year, 1, 1)
 
     stat_expenses_month = get_account_stats(
-        Expense, account, start_of_the_month, today
+        "expense", account, start_of_the_month, today
     )
     stat_incomes_month = get_account_stats(
-        Income, account, start_of_the_month, today
+        "income", account, start_of_the_month, today
     )
 
     stat_expenses_year = get_account_stats(
-        Expense, account, start_of_the_year, today
+        "expense", account, start_of_the_year, today
     )
     stat_incomes_year = get_account_stats(
-        Income, account, start_of_the_year, today
+        "income", account, start_of_the_year, today
     )
 
     net_month_to_date = round(
@@ -158,16 +157,16 @@ def get_account_transactions(request, id):
     from itertools import chain
 
     try:
-        expenses = Expense.objects.filter(account=id)
-        incomes = Income.objects.filter(account=id)
+        transactions = Transaction.objects.filter(
+            Q(from_account=id) | Q(to_account=id)
+        )
+        serialized_transactions = TransactionSerializer(
+            transactions, many=True
+        ).data
 
-        serialized_expenses = ExpenseSerializer(expenses, many=True).data
-        serialized_incomes = IncomeSerializer(incomes, many=True).data
+        serialized_transactions.sort(key=lambda x: x.get("date"), reverse=True)
 
-        transactions = list(chain(serialized_expenses, serialized_incomes))
-        transactions.sort(key=lambda x: x.get("date"), reverse=True)
-
-        return Response(transactions, status=status.HTTP_200_OK)
+        return Response(serialized_transactions, status=status.HTTP_200_OK)
     except Exception as e:
         print(e)
         return Response(
@@ -176,9 +175,16 @@ def get_account_transactions(request, id):
         )
 
 
-def get_account_stats(transaction_model, account, from_date, to_date):
-    transactions = transaction_model.objects.filter(
-        account=account, date__gte=from_date, date__lte=to_date
+def get_account_stats(transaction_type, account, from_date, to_date):
+    transactions = Transaction.objects.filter(
+        Q(transaction_type=transaction_type) | Q(transaction_type="transfer"),
+        (
+            Q(from_account=account)
+            if transaction_type == "expense"
+            else Q(to_account=account)
+        ),
+        date__gte=from_date,
+        date__lte=to_date,
     )
 
     # Calculate running total using window functions

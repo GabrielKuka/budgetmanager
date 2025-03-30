@@ -95,7 +95,7 @@ const Stats = () => {
               <FoodExpensesChart
                 height={330}
                 width={460}
-                expenses={expenses?.filter((e) => e.expense_category == 11)}
+                expenses={expenses?.filter((e) => e.category === 11)}
                 incomes={incomes}
                 getAccountCurrency={getAccountCurrency}
               />

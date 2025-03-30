@@ -61,21 +61,15 @@ const AddTransactionPopup = ({
   async function addTransaction(payload) {
     let newPayload = null;
     const keyMap = {
-      transaction_category:
-        transactionType === "0" ? "income_category" : "expense_category",
       amount: transactionType === "2" ? "from_amount" : "amount",
     };
     switch (transactionType) {
       case "0":
         newPayload = Object.fromEntries(
-          Object.entries(payload)
-            .filter(
-              ([key]) =>
-                !["from_account", "to_account", "transaction_type"].includes(
-                  key
-                )
-            )
-            .map(([key, value]) => [keyMap[key] || key, value])
+          Object.entries(payload).map(([key, value]) => [
+            keyMap[key] || key,
+            value,
+          ])
         );
         await transactionService.addIncome(newPayload);
         await global.updateIncomes();
@@ -83,14 +77,10 @@ const AddTransactionPopup = ({
         break;
       case "1":
         newPayload = Object.fromEntries(
-          Object.entries(payload)
-            .filter(
-              ([key]) =>
-                !["from_account", "to_account", "transaction_type"].includes(
-                  key
-                )
-            )
-            .map(([key, value]) => [keyMap[key] || key, value])
+          Object.entries(payload).map(([key, value]) => [
+            keyMap[key] || key,
+            value,
+          ])
         );
         await transactionService.addExpense(newPayload);
         await global.updateExpenses();
@@ -98,14 +88,10 @@ const AddTransactionPopup = ({
         break;
       case "2":
         newPayload = Object.fromEntries(
-          Object.entries(payload)
-            .filter(
-              ([key]) =>
-                !["account", "expense_category", "transaction_type"].includes(
-                  key
-                )
-            )
-            .map(([key, value]) => [keyMap[key] || key, value])
+          Object.entries(payload).map(([key, value]) => [
+            keyMap[key] || key,
+            value,
+          ])
         );
         const from_currency = getAccountCurrency(
           parseInt(newPayload["from_account"])
@@ -141,7 +127,6 @@ const AddTransactionPopup = ({
       const fromCurrency = getAccountCurrency(fromAccountValue);
       const toCurrency = getAccountCurrency(toAccountValue);
       const differentCurrencies = fromCurrency !== toCurrency;
-      console.log(`${fromCurrency} - ${toCurrency}`);
       if (differentCurrencies) {
         const defaultRate = await currencyService.convert(
           fromCurrency,
@@ -171,10 +156,9 @@ const AddTransactionPopup = ({
               amount: "",
               description: "",
               date: new Date().toISOString().slice(0, 10),
-              account: "",
               from_account: "",
               to_account: "",
-              transaction_category: "",
+              category: "",
               transaction_type: transactionType,
             }}
             validationSchema={validationSchemas.addTransactionSchema}
@@ -297,7 +281,11 @@ const AddTransactionPopup = ({
                     </Field>
                   </>
                 ) : (
-                  <Field as="select" name="account" className="select_field">
+                  <Field
+                    as="select"
+                    name={`${transactionType === "0" ? "to" : "from"}_account`}
+                    className="select_field"
+                  >
                     <option value="" disabled hidden>
                       Select account
                     </option>
@@ -360,11 +348,7 @@ const AddTransactionPopup = ({
                   placeholder="Enter a description"
                 />
                 {transactionType !== "2" && (
-                  <Field
-                    as="select"
-                    name="transaction_category"
-                    className="select_field"
-                  >
+                  <Field as="select" name="category" className="select_field">
                     <option value="" disabled hidden>
                       Choose an {transactionType === "0" && <>income</>}
                       {transactionType === "1" && <>expense</>} category
@@ -446,19 +430,17 @@ const AddTransactionPopup = ({
                 {errors.date && touched.date ? (
                   <span>{errors.date}</span>
                 ) : null}
-                {transactionType === "2" ? (
+                {(transactionType === "0" || transactionType === "2") && (
                   <>
-                    {errors.from_account && touched.from_account ? (
-                      <span>{errors.from_account}</span>
-                    ) : null}
                     {errors.to_account && touched.to_account ? (
                       <span>{errors.to_account}</span>
                     ) : null}
                   </>
-                ) : (
+                )}
+                {(transactionType === "1" || transactionType === "2") && (
                   <>
-                    {errors.account && touched.account ? (
-                      <span>{errors.account}</span>
+                    {errors.from_account && touched.from_account ? (
+                      <span>{errors.from_account}</span>
                     ) : null}
                   </>
                 )}
@@ -470,9 +452,8 @@ const AddTransactionPopup = ({
                 ) : null}
                 {transactionType !== "2" && (
                   <>
-                    {errors.transaction_category &&
-                    touched.transaction_category ? (
-                      <span>{errors.transaction_category}</span>
+                    {errors.category && touched.category ? (
+                      <span>{errors.category}</span>
                     ) : null}
                   </>
                 )}

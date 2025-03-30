@@ -173,7 +173,9 @@ const Sidebar = (props) => {
       async function getSumOfTransactions(transactions) {
         let promises = transactions?.map(async (t) => {
           return await currencyService.convert(
-            getAccountCurrency(t.account),
+            getAccountCurrency(
+              t["transaction_type"] === "income" ? t.to_account : t.from_account
+            ),
             global.globalCurrency,
             t.amount
           );
@@ -457,21 +459,19 @@ const ExpenseItem = ({
       <label id="description">{expense.description}</label>
       <label
         id="account"
-        style={helper.accountLabelStyle(global.accounts, expense.account)}
+        style={helper.accountLabelStyle(global.accounts, expense.from_account)}
       >
-        {helper.getAccountName(global.accounts, expense.account)}
+        {helper.getAccountName(global.accounts, expense.from_account)}
       </label>
-      <label id="amount" style={{ color: helper.amountLabelColor(1) }}>
+      <label id="amount" style={{ color: helper.amountLabelColor("expense") }}>
         -{" "}
         {helper.showOrMask(
           global.privacyMode,
           helper.formatNumber(expense.amount)
         )}{" "}
-        {helper.getCurrency(getAccountCurrency(expense.account))}
+        {helper.getCurrency(getAccountCurrency(expense.from_account))}
       </label>
-      <label id="category">
-        {getExpenseCategory(expense.expense_category)}
-      </label>
+      <label id="category">{getExpenseCategory(expense.category)}</label>
     </div>
   );
 };
@@ -531,19 +531,19 @@ const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
       <label id="description">{income.description}</label>
       <label
         id="account"
-        style={helper.accountLabelStyle(global.accounts, income.account)}
+        style={helper.accountLabelStyle(global.accounts, income.to_account)}
       >
-        {helper.getAccountName(global.accounts, income.account)}
+        {helper.getAccountName(global.accounts, income.to_account)}
       </label>
-      <label id="amount" style={{ color: helper.amountLabelColor(0) }}>
+      <label id="amount" style={{ color: helper.amountLabelColor("income") }}>
         +{" "}
         {helper.showOrMask(
           global.privacyMode,
           helper.formatNumber(income.amount)
         )}{" "}
-        {helper.getCurrency(getAccountCurrency(income.account))}
+        {helper.getCurrency(getAccountCurrency(income.to_account))}
       </label>
-      <label id="category">{getIncomeCategory(income.income_category)}</label>
+      <label id="category">{getIncomeCategory(income.category)}</label>
     </div>
   );
 };
@@ -609,7 +609,7 @@ const TransferItem = ({ transfer, accounts, setTransactionPopup }) => {
       >
         {helper.getAccountName(global.accounts, transfer.to_account)}
       </label>
-      <label id="amount" style={{ color: helper.amountLabelColor(2) }}>
+      <label id="amount" style={{ color: helper.amountLabelColor("transfer") }}>
         {helper.showOrMask(
           global.privacyMode,
           helper.formatNumber(transfer.amount)

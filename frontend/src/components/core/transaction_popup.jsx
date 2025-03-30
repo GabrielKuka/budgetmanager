@@ -17,30 +17,14 @@ const TransactionPopup = ({
   const showConfirm = useConfirm();
   const showToast = useToast();
   const navigate = useNavigate();
+  const transactionType = transaction.transaction_type;
 
-  let type = -1;
+  let itemType = -1;
   let categories = [];
-  if ("income_category" in transaction) {
-    type = 0;
+  if (transactionType === "income") {
     categories = global.incomeCategories;
-  } else if ("expense_category" in transaction) {
-    type = 1;
+  } else if (transactionType === "expense") {
     categories = global.expenseCategories;
-  } else if ("from_account" in transaction) {
-    type = 2;
-  }
-
-  function getTransactionType() {
-    switch (type) {
-      case 0:
-        return "income";
-      case 1:
-        return "expense";
-      case 2:
-        return "transfer";
-      default:
-        return "";
-    }
   }
 
   function getCategory(id) {
@@ -52,35 +36,35 @@ const TransactionPopup = ({
   }
 
   function getTitle() {
-    if (getTransactionType() === "expense") {
+    if (transactionType === "expense") {
       return `Spent ${helper.showOrMask(
         global.privacyMode,
         helper.formatNumber(transaction.amount)
       )} ${helper.getCurrency(
-        getAccountCurrency(transaction.account)
+        getAccountCurrency(transaction.from_account)
       )} on ${getCategory(
-        getCategoryType()
+        transaction.category
       ).toLowerCase()} from ${helper.getAccountName(
         global.accounts,
-        transaction.account
+        transaction.from_account
       )} account.`;
     }
 
-    if (getTransactionType() === "income") {
+    if (transactionType === "income") {
       return `Earned ${helper.showOrMask(
         global.privacyMode,
         helper.formatNumber(transaction.amount)
       )} ${helper.getCurrency(
-        getAccountCurrency(transaction.account)
+        getAccountCurrency(transaction.to_account)
       )} from ${getCategory(
-        getCategoryType()
+        transaction.category
       ).toLowerCase()} to ${helper.getAccountName(
         global.accounts,
-        transaction.account
+        transaction.to_account
       )} account.`;
     }
 
-    if (getTransactionType() === "transfer") {
+    if (transactionType === "transfer") {
       return `Transfered ${helper.showOrMask(
         global.privacyMode,
         helper.formatNumber(transaction.amount)
@@ -93,31 +77,19 @@ const TransactionPopup = ({
     }
   }
 
-  function getCategoryType() {
-    switch (getTransactionType()) {
-      case "expense":
-        return transaction.expense_category;
-      case "income":
-        return transaction.income_category;
-      default:
-        return "";
-    }
-  }
-
   function closePopup() {
     showPopup(false);
   }
 
   function handleDelete() {
-    const typeStr = getTransactionType();
-    showConfirm(`Delete ${getTransactionType()}?`, async () => {
+    showConfirm(`Delete ${transactionType}?`, async () => {
       const payload = {
-        type: type,
+        type: transactionType,
         id: transaction.id,
       };
-      if (typeStr === "expense") {
+      if (transactionType === "expense") {
         await transactionService.deleteExpense(payload);
-      } else if (typeStr === "income") {
+      } else if (transactionType === "income") {
         await transactionService.deleteIncome(payload);
       } else {
         await transactionService.deleteTransfer(payload);
@@ -130,12 +102,16 @@ const TransactionPopup = ({
 
       closePopup();
       await refreshTransactions();
-      showToast(`${typeStr[0].toUpperCase() + typeStr.substring(1)} deleted.`);
+      showToast(
+        `${
+          transactionType[0].toUpperCase() + transactionType.substring(1)
+        } deleted.`
+      );
     });
   }
 
-  async function addTransaction(type, payload) {
-    switch (type) {
+  async function addTransaction(payload) {
+    switch (transactionType) {
       case "income":
         await transactionService.addIncome(payload);
         showToast("Income Added.");
@@ -152,21 +128,30 @@ const TransactionPopup = ({
 
   function handleRepeatTransaction() {
     showConfirm("Repeat transaction?", async () => {
-      const category_key = type === 0 ? "income_category" : "expense_category";
-      const category_value =
-        type === 0 ? transaction.income_category : transaction.expense_category;
-
+      let t_type = null;
+      if (transactionType === "income") {
+        t_type = 0;
+      }
+      if (transactionType === "expense") {
+        t_type = 1;
+      }
+      if (transactionType === "transfer") {
+        t_type = 2;
+      }
       const payload = {
-        type: type,
+        type: t_type,
         amount: transaction.amount,
-        account: transaction.account,
+        from_account:
+          t_type === 1 || t_type === 2 ? transaction.from_account : null,
+        to_account:
+          t_type === 0 || t_type === 2 ? transaction.to_account : null,
         description: transaction.description,
-        [category_key]: category_value,
+        category: transaction.category,
         tags: transaction.tags.map((tag) => ({ name: tag.name })),
         date: new Date().toISOString().slice(0, 10),
       };
 
-      await addTransaction(getTransactionType(), payload);
+      await addTransaction(payload);
       await refreshTransactions();
 
       closePopup();
@@ -181,9 +166,10 @@ const TransactionPopup = ({
           <div className={"main"}>
             <span className={"title"}>{getTitle()}</span>
             <span className={"date"}>
-              {type == 1 && "Paid on"}
-              {type == 0 && "Earned on"}
-              {type == 2 && "Transfered on"} {transaction.date}
+              {transactionType == "expense" && "Paid on"}
+              {transactionType == "income" && "Earned on"}
+              {transactionType == "transfer" && "Transfered on"}{" "}
+              {transaction.date}
             </span>
           </div>
           <button className={"close-popup"} onClick={closePopup}>
@@ -195,7 +181,7 @@ const TransactionPopup = ({
             <label>ID: </label>
             <span> {transaction.id}</span>
           </div>
-          {getTransactionType() === "transfer" && (
+          {transactionType === "transfer" && (
             <>
               <div>
                 <label>Amount: </label>
@@ -245,7 +231,7 @@ const TransactionPopup = ({
               </div>
             </>
           )}
-          {getTransactionType() !== "transfer" && (
+          {transactionType !== "transfer" && (
             <>
               <div>
                 <label>Amount: </label>
@@ -254,33 +240,52 @@ const TransactionPopup = ({
                     global.privacyMode,
                     helper.formatNumber(transaction.amount)
                   )}{" "}
-                  {helper.getCurrency(getAccountCurrency(transaction.account))}
+                  {helper.getCurrency(
+                    getAccountCurrency(
+                      transactionType === "income"
+                        ? transaction.to_account
+                        : transaction.from_account
+                    )
+                  )}
                 </span>
               </div>
               <div>
                 <label>Account: </label>
                 <span
                   className="account_name"
-                  onClick={() => navigate(`/accounts/${transaction.account}`)}
+                  onClick={() =>
+                    navigate(
+                      `/accounts/${
+                        transactionType === "income"
+                          ? transaction.from_account
+                          : transaction.to_account
+                      }`
+                    )
+                  }
                   style={helper.accountLabelStyle(
                     global.accounts,
                     transaction.account
                   )}
                 >
                   {" "}
-                  {helper.getAccountName(global.accounts, transaction.account)}
+                  {helper.getAccountName(
+                    global.accounts,
+                    transactionType === "income"
+                      ? transaction.to_account
+                      : transaction.from_account
+                  )}
                 </span>
               </div>
               <div>
                 <label>Category: </label>
-                <span>{helper.categoryIcon(getCategoryType())}</span>
-                <span> {getCategory(getCategoryType())}</span>
+                <span>{helper.categoryIcon(transaction.category)}</span>
+                <span> {getCategory(transaction.category)}</span>
               </div>
             </>
           )}
           <div>
             <label>User: </label>
-            <span> {transaction.user}</span>
+            <span> {global.user.data.name}</span>
           </div>
           {transaction?.description && (
             <div>
@@ -319,7 +324,7 @@ const TransactionPopup = ({
           )}
           <div className={"options"}>
             <button onClick={handleDelete} id="deleteButton">
-              Delete {getTransactionType()}
+              Delete {transactionType}
             </button>
             <button
               id="editButton"
@@ -327,7 +332,8 @@ const TransactionPopup = ({
             >
               Edit
             </button>
-            {(type === 0 || type === 1) && (
+            {(transactionType === "income" ||
+              transactionType === "expense") && (
               <button
                 id="repeatTransactionButton"
                 onClick={handleRepeatTransaction}

@@ -12,17 +12,14 @@ const TransactionItem = (props) => {
   const showConfirm = useConfirm();
   const showToast = useToast();
   const kebabMenu = useRef(null);
+  const transactionType = props.transaction?.transaction_type;
 
   let itemType = -1;
   let categories = [];
-  if ("income_category" in props.transaction) {
-    itemType = 0;
+  if (transactionType === "income") {
     categories = global.incomeCategories;
-  } else if ("expense_category" in props.transaction) {
-    itemType = 1;
+  } else if (transactionType === "expense") {
     categories = global.expenseCategories;
-  } else {
-    itemType = 2;
   }
 
   useEffect(() => {
@@ -155,17 +152,6 @@ const TransactionItem = (props) => {
     return "Not found.";
   }
 
-  function getCategoryType() {
-    switch (itemType) {
-      case 0:
-        return props.transaction.income_category;
-      case 1:
-        return props.transaction.expense_category;
-      default:
-        return "";
-    }
-  }
-
   return (
     <div className="transaction-item" onClick={handleShowMore}>
       {helper.isRecent(props.transaction.created_on) && (
@@ -173,18 +159,25 @@ const TransactionItem = (props) => {
       )}
       <label id="date">{props.transaction.date}</label>
       <label id="description">{props.transaction.description}</label>
-      {(itemType === 0 || itemType === 1) && (
+      {(transactionType === "income" || transactionType === "expense") && (
         <label
           id="account"
           style={helper.accountLabelStyle(
             global.accounts,
-            props.transaction.account
+            transactionType === "income"
+              ? props.transaction.to_account
+              : props.transaction.from_account
           )}
         >
-          {helper.getAccountName(global.accounts, props.transaction.account)}
+          {helper.getAccountName(
+            global.accounts,
+            transactionType === "income"
+              ? props.transaction.to_account
+              : props.transaction.from_account
+          )}
         </label>
       )}
-      {itemType === 2 && (
+      {transactionType === "transfer" && (
         <>
           <label
             id="from_account"
@@ -212,19 +205,22 @@ const TransactionItem = (props) => {
           </label>
         </>
       )}
-      <label id="amount" style={{ color: helper.amountLabelColor(itemType) }}>
-        {itemType === 0 && <span>+ </span>}
-        {itemType === 1 && <span>- </span>}
+      <label
+        id="amount"
+        style={{ color: helper.amountLabelColor(transactionType) }}
+      >
+        {transactionType === "income" && <span>+ </span>}
+        {transactionType === "expense" && <span>- </span>}
         {helper.showOrMask(
           global.privacyMode,
-          helper.formatNumber(props.transaction.amount)
+          helper.formatNumber(props.transaction?.amount)
         )}{" "}
         {props.currency}
       </label>
-      {(itemType === 0 || itemType === 1) && (
+      {(transactionType === "income" || transactionType === "expense") && (
         <label id="category">
-          <span>{helper.categoryIcon(getCategoryType())}</span>
-          {getCategory(getCategoryType())}
+          <span>{helper.categoryIcon(props.transaction.category)}</span>
+          {getCategory(props.transaction.category)}
         </label>
       )}
       <button className={"kebab-button"} onClick={toggleKebab}>

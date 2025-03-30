@@ -64,7 +64,7 @@ export const helper = {
   },
   accountLabelStyle: (accounts, id) => {
     const account = accounts?.filter((a) => a.id === id)[0];
-    if (account.deleted) {
+    if (account?.deleted) {
       return { color: "gray", fontStyle: "italic" };
     }
     return null;
@@ -100,14 +100,14 @@ export const helper = {
     const date = new Date(dateString);
     return date.toLocaleString("sv-SE").replace("T", " ");
   },
-  amountLabelColor: (itemType) => {
+  amountLabelColor: (transactionType) => {
     // 0 for income, 1 for expense and 2 for transfers
-    switch (itemType) {
-      case 0:
+    switch (transactionType) {
+      case "income":
         return "green";
-      case 1:
+      case "expense":
         return "red";
-      case 2:
+      case "transfer":
         return "cadetblue";
       default:
         return "";

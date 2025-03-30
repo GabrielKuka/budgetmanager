@@ -16,10 +16,10 @@ const CurrentExpensesBarChart = (props) => {
     const data = [];
     for (const c of props.categories) {
       let promises = props.expenses
-        ?.filter((e) => e.expense_category == c.id)
+        ?.filter((e) => e.category == c.id)
         ?.map(async (e) => {
           return await currencyService.convert(
-            props.getAccountCurrency(e.account),
+            props.getAccountCurrency(e.from_account),
             global.globalCurrency,
             e.amount
           );

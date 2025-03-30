@@ -1,23 +1,13 @@
-from rest_framework import status
-from rest_framework.authtoken.models import Token
+from django.db.models import Q
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
-from Accounts.models import Account
-from Users.models import User
-from tags.models import Tag
-from django.db.models import Q
-
-from .models import Expense, Income, Transfer, TransactionCategory
-from Accounts.serialzers import AccountSerializer
-from .serializers import (
-    ExpenseSerializer,
-    IncomeSerializer,
-    TransferSerializer,
-    TransactionCategorySerializer,
-)
+from rest_framework import status
 from django.utils.dateparse import parse_date
 from datetime import datetime
+from rest_framework.authtoken.models import Token
+
+from .models import Transaction, TransactionCategory, Account
+from .serializers import TransactionSerializer, TransactionCategorySerializer
 
 
 @api_view(["GET"])
@@ -27,35 +17,32 @@ def search(request):
 
     query = request.GET.get("query")
     try:
-        expenses = Expense.objects.filter(
+        transactions = Transaction.objects.filter(
             Q(user=user_id)
             & (
-                Q(expense_category__category__iexact=query)
+                Q(category__category__iexact=query)
                 | Q(description__icontains=query)
                 | Q(tags__name__iexact=query)
             )
         ).distinct()
-        incomes = Income.objects.filter(
-            Q(user=user_id)
-            & (
-                Q(income_category__category__iexact=query)
-                | Q(description__icontains=query)
-                | Q(tags__name__iexact=query)
-            )
-        ).distinct()
-        transfers = Transfer.objects.filter(
-            Q(user=user_id)
-            & (Q(description__icontains=query) | Q(tags__name__iexact=query))
-        ).distinct()
 
-        expense_serializer = ExpenseSerializer(expenses, many=True)
-        income_serializer = IncomeSerializer(incomes, many=True)
-        transfer_serializer = TransferSerializer(transfers, many=True)
+        serializer = TransactionSerializer(transactions, many=True)
 
+        # Group transactions by type for backward compatibility
         response_data = {
-            "expenses": expense_serializer.data,
-            "incomes": income_serializer.data,
-            "transfers": transfer_serializer.data,
+            "expenses": [
+                t
+                for t in serializer.data
+                if t["transaction_type"] == "expense"
+            ],
+            "incomes": [
+                t for t in serializer.data if t["transaction_type"] == "income"
+            ],
+            "transfers": [
+                t
+                for t in serializer.data
+                if t["transaction_type"] == "transfer"
+            ],
         }
         return Response(response_data, status=status.HTTP_200_OK)
     except Exception as e:
@@ -64,7 +51,6 @@ def search(request):
 
 @api_view(["GET"])
 def get_expenses(request):
-
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
@@ -76,11 +62,14 @@ def get_expenses(request):
         from_date = parse_date(from_date)
         to_date = parse_date(to_date)
 
-        expenses = Expense.objects.filter(
-            user=user_id, date__gte=from_date, date__lte=to_date
+        expenses = Transaction.objects.filter(
+            user=user_id,
+            transaction_type="expense",
+            date__gte=from_date,
+            date__lte=to_date,
         )
 
-        serializer = ExpenseSerializer(expenses, many=True)
+        serializer = TransactionSerializer(expenses, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -90,12 +79,11 @@ def get_expenses(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
     except Exception as e:
-        return Response({"error": e}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])
 def get_incomes(request):
-
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
@@ -107,11 +95,14 @@ def get_incomes(request):
         from_date = parse_date(from_date)
         to_date = parse_date(to_date)
 
-        incomes = Income.objects.filter(
-            user=user_id, date__gte=from_date, date__lte=to_date
+        incomes = Transaction.objects.filter(
+            user=user_id,
+            transaction_type="income",
+            date__gte=from_date,
+            date__lte=to_date,
         )
 
-        serializer = IncomeSerializer(incomes, many=True)
+        serializer = TransactionSerializer(incomes, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -121,12 +112,11 @@ def get_incomes(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
     except Exception as e:
-        return Response({"error": e}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])
 def get_transfers(request):
-
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
@@ -138,11 +128,14 @@ def get_transfers(request):
         from_date = parse_date(from_date)
         to_date = parse_date(to_date)
 
-        transfers = Transfer.objects.filter(
-            user=user_id, date__gte=from_date, date__lte=to_date
+        transfers = Transaction.objects.filter(
+            user=user_id,
+            transaction_type="transfer",
+            date__gte=from_date,
+            date__lte=to_date,
         )
 
-        serializer = TransferSerializer(transfers, many=True)
+        serializer = TransactionSerializer(transfers, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -152,7 +145,7 @@ def get_transfers(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
     except Exception as e:
-        return Response({"error": e}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])
@@ -169,25 +162,27 @@ def get_transactions(request):
         to_date = datetime.strptime(to_date, "%d-%m-%Y").date()
 
         # Filter transactions based on the timeframe
-        incomes = Income.objects.filter(
-            user=user_id, date__gte=from_date, date__lte=to_date
-        )
-        expenses = Expense.objects.filter(
-            user=user_id, date__gte=from_date, date__lte=to_date
-        )
-        transfers = Transfer.objects.filter(
+        transactions = Transaction.objects.filter(
             user=user_id, date__gte=from_date, date__lte=to_date
         )
 
-        # Serialize the output
-        incomes_serializer = IncomeSerializer(incomes, many=True)
-        expenses_serializer = ExpenseSerializer(expenses, many=True)
-        transfers_serializer = TransferSerializer(transfers, many=True)
+        serializer = TransactionSerializer(transactions, many=True)
 
+        # Group transactions by type for backward compatibility
         response_data = {
-            "incomes": incomes_serializer.data,
-            "expenses": expenses_serializer.data,
-            "transfers": transfers_serializer.data,
+            "incomes": [
+                t for t in serializer.data if t["transaction_type"] == "income"
+            ],
+            "expenses": [
+                t
+                for t in serializer.data
+                if t["transaction_type"] == "expense"
+            ],
+            "transfers": [
+                t
+                for t in serializer.data
+                if t["transaction_type"] == "transfer"
+            ],
         }
 
         return Response(data=response_data, status=status.HTTP_200_OK)
@@ -198,7 +193,7 @@ def get_transactions(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
     except Exception as e:
-        return Response({"error": e}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])
@@ -206,93 +201,86 @@ def add_transaction(request):
     # Retrieve Token
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
-
-    p = request.data
-    p["user_id"] = user_id
+    p = request.data.copy()
+    p["user"] = user_id
 
     try:
-        # If it's a transfer
-        if p["type"] == 2:
+        transaction_type = int(p.pop("type"))
+
+        # Create base transaction data
+        transaction_data = {
+            "user": user_id,
+            "amount": round(float(p.get("amount", 0)), 2),
+            "date": p.get("date"),
+            "description": p.get("description"),
+            "transaction_type": {0: "income", 1: "expense", 2: "transfer"}[
+                transaction_type
+            ],
+        }
+
+        # Handle different transaction types
+        if transaction_type == 2:  # Transfer
             from_amount = round(float(p.pop("from_amount")), 2)
             to_amount = round(float(p.pop("to_amount")), 2)
 
-            p["to_account_id"] = int(p.pop("to_account"))
-            p["from_account_id"] = int(p.pop("from_account"))
+            from_account_id = int(p.pop("from_account"))
+            to_account_id = int(p.pop("to_account"))
 
             # Update source and dest accounts
-            from_account = Account.objects.filter(pk=p["from_account_id"])
-            to_account = Account.objects.filter(pk=p["to_account_id"])
+            from_account = Account.objects.get(pk=from_account_id)
+            to_account = Account.objects.get(pk=to_account_id)
 
-            from_account.update(
-                amount=from_account.first().amount - from_amount
-            )
-            to_account.update(
-                amount=round(to_account.first().amount, 2) + to_amount
-            )
+            from_account.amount = from_account.amount - from_amount
+            from_account.save()
 
-            p.pop("type")
-            p["amount"] = from_amount
+            to_account.amount = round(to_account.amount, 2) + to_amount
+            to_account.save()
 
-            serializer = TransferSerializer(data=p)
-            if not serializer.is_valid():
-                raise Exception(f"{serializer.errors}")
+            # Set transaction details
+            transaction_data["amount"] = from_amount
+            transaction_data["from_account"] = from_account_id
+            transaction_data["to_account"] = to_account_id
 
-            serializer.save(
-                user_id=user_id,
-                from_account_id=p["from_account_id"],
-                to_account_id=p["to_account_id"],
-            )
-            # Transfer(**p).save()
-        elif p["type"] == 1:  # This is an expense
+        elif transaction_type == 1:  # Expense
             value = round(float(p["amount"]), 2)
-            print(p)
-            p["account_id"] = int(p.pop("account"))
-            p["expense_category_id"] = int(p.pop("expense_category"))
+            account_id = int(p.pop("from_account"))
+            category_id = int(p.pop("category"))
 
             # Update account balance
-            selected_account = Account.objects.filter(pk=p["account_id"])
-            selected_account.update(
-                amount=round(selected_account.first().amount, 2) - value
-            )
-            p.pop("type")
+            account = Account.objects.get(pk=account_id)
+            account.amount = round(account.amount, 2) - value
+            account.save()
+            # Set transaction details
+            transaction_data["from_account"] = account_id
+            transaction_data["category"] = category_id
 
-            serializer = ExpenseSerializer(data=p)
-            if not serializer.is_valid():
-                raise Exception(f"{serializer.errors}")
-
-            serializer.save(
-                user_id=user_id,
-                account_id=p["account_id"],
-                expense_category_id=p["expense_category_id"],
-            )
-            # Expense(**p).save()
-        elif p["type"] == 0:  # This is an income
+        elif transaction_type == 0:  # Income
             value = round(float(p["amount"]), 2)
-            p["account_id"] = int(p.pop("account"))
-            p["income_category_id"] = int(p.pop("income_category"))
+            account_id = int(p.pop("to_account"))
+            category_id = int(p.pop("category"))
 
-            selected_account = Account.objects.filter(pk=p["account_id"])
-            selected_account.update(
-                amount=round(selected_account.first().amount, 2) + value
-            )
-            p.pop("type")
+            # Update account balance
+            account = Account.objects.get(pk=account_id)
+            account.amount = round(account.amount, 2) + value
+            account.save()
 
-            serializer = IncomeSerializer(data=p)
-            if not serializer.is_valid():
-                raise Exception(f"{serializer.errors}")
+            # Set transaction details
+            transaction_data["to_account"] = account_id
+            transaction_data["category"] = category_id
 
-            serializer.save(
-                user_id=user_id,
-                account_id=p["account_id"],
-                income_category_id=p["income_category_id"],
-            )
-            # Income(**p).save()
+        # Create and save the transaction
+        serializer = TransactionSerializer(data=transaction_data)
+        if not serializer.is_valid():
+            raise Exception(f"{serializer.errors}")
+
+        serializer.save()
+
         return Response(
             {"message": "Transaction Added."}, status=status.HTTP_201_CREATED
         )
     except Exception as e:
         return Response(
-            {"error": e},
+            {"error": str(e)},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -303,106 +291,54 @@ def delete_transaction(request):
 
     try:
         transaction_id = int(p["id"])
-        transaction_type = int(p["type"])
-        if transaction_type == 2:  # A transfer
-            transaction = Transfer.objects.get(id=transaction_id)
-            from_account_id = transaction.from_account_id
-            to_account_id = transaction.to_account_id
+        transaction_type = p[
+            "type"
+        ]  # Now this will be 'income', 'expense', or 'transfer'
 
-            from_account = Account.objects.get(id=from_account_id)
-            to_account = Account.objects.get(id=to_account_id)
+        # Get the transaction
+        transaction = Transaction.objects.get(id=transaction_id)
+
+        if transaction.transaction_type == "transfer":
+            # Handle transfer deletion
+            from_account = Account.objects.get(id=transaction.from_account.id)
+            to_account = Account.objects.get(id=transaction.to_account.id)
 
             if not from_account.deleted:
-                account_serializer = AccountSerializer(
-                    from_account,
-                    data={
-                        "amount": round(from_account.amount, 2)
-                        + transaction.amount
-                    },
-                    partial=True,
+                from_account.amount = (
+                    round(from_account.amount, 2) + transaction.amount
                 )
-
-                if account_serializer.is_valid():
-                    account_serializer.save()
-                else:
-                    raise Exception("Source Account could not be updated.")
+                from_account.save()
 
             if not to_account.deleted:
-                account_serializer = AccountSerializer(
-                    to_account,
-                    data={
-                        "amount": round(to_account.amount, 2)
-                        - transaction.amount
-                    },
-                    partial=True,
+                to_account.amount = (
+                    round(to_account.amount, 2) - transaction.amount
                 )
+                to_account.save()
 
-                if account_serializer.is_valid():
-                    account_serializer.save()
-                else:
-                    raise Exception(
-                        "Destination Account could not be updated."
-                    )
-
-            # Delete transaction
-            transaction.delete()
-            return Response(
-                {"msg": "Transaction deleted"}, status=status.HTTP_200_OK
-            )
-        elif transaction_type == 1:  # An expense
-            # Increase the associated account balance
-            transaction = Expense.objects.get(id=transaction_id)
-
-            account_id = transaction.account_id
-            account = Account.objects.get(id=account_id)
+        elif transaction.transaction_type == "expense":
+            # Handle expense deletion - increase account balance
+            account = Account.objects.get(id=transaction.from_account.id)
             if not account.deleted:
-                account_serializer = AccountSerializer(
-                    account,
-                    data={
-                        "amount": round(account.amount, 2) + transaction.amount
-                    },
-                    partial=True,
-                )
+                account.amount = round(account.amount, 2) + transaction.amount
+                account.save()
 
-                if account_serializer.is_valid():
-                    account_serializer.save()
-                else:
-                    raise Exception("Account could not be updated.")
-
-            # Delete the expense object
-            transaction.delete()
-            return Response(
-                {"msg": "Transaction deleted"}, status=status.HTTP_200_OK
-            )
-        elif transaction_type == 0:  # An income
-            # Decrease the associated account balance
-            transaction = Income.objects.get(id=transaction_id)
-
-            account_id = transaction.account_id
-            account = Account.objects.get(id=account_id)
+        elif transaction.transaction_type == "income":
+            # Handle income deletion - decrease account balance
+            account = Account.objects.get(id=transaction.to_account.id)
             if not account.deleted:
-                account_serializer = AccountSerializer(
-                    account,
-                    data={
-                        "amount": round(account.amount, 2) - transaction.amount
-                    },
-                    partial=True,
-                )
-
-                if account_serializer.is_valid():
-                    account_serializer.save()
-                else:
-                    raise Exception("Account could not be updated.")
-
-            # Delete the expense object
-            transaction.delete()
-            return Response(
-                {"msg": "Transaction deleted"}, status=status.HTTP_200_OK
-            )
+                account.amount = round(account.amount, 2) - transaction.amount
+                account.save()
         else:
             raise Exception("Incorrect transaction type.")
+
+        # Delete the transaction
+        transaction.delete()
+        return Response(
+            {"msg": "Transaction deleted"}, status=status.HTTP_200_OK
+        )
+
     except Exception as e:
-        return Response({"error": e}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])
@@ -411,19 +347,35 @@ def get_all_transactions(request):
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
-    pass
+    transactions = Transaction.objects.filter(user_id=user_id)
+    serializer = TransactionSerializer(transactions, many=True)
+
+    # Group transactions by type for backward compatibility
+    response_data = {
+        "incomes": [
+            t for t in serializer.data if t["transaction_type"] == "income"
+        ],
+        "expenses": [
+            t for t in serializer.data if t["transaction_type"] == "expense"
+        ],
+        "transfers": [
+            t for t in serializer.data if t["transaction_type"] == "transfer"
+        ],
+    }
+
+    return Response(response_data, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
 def get_income_categories(request):
-    categories = TransactionCategory.objects.filter(category_type="0")
+    categories = TransactionCategory.objects.filter(category_type=0)
     serializer = TransactionCategorySerializer(categories, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
 def get_expense_categories(request):
-    categories = TransactionCategory.objects.filter(category_type="1")
+    categories = TransactionCategory.objects.filter(category_type=1)
     serializer = TransactionCategorySerializer(categories, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -434,10 +386,10 @@ def get_all_expenses(request):
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
-    results = Expense.objects.filter(user_id=user_id)
-
-    serializer = ExpenseSerializer(results, many=True)
-
+    results = Transaction.objects.filter(
+        user_id=user_id, transaction_type="expense"
+    )
+    serializer = TransactionSerializer(results, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -447,10 +399,10 @@ def get_all_incomes(request):
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
-    results = Income.objects.filter(user_id=user_id)
-
-    serializer = IncomeSerializer(results, many=True)
-
+    results = Transaction.objects.filter(
+        user_id=user_id, transaction_type="income"
+    )
+    serializer = TransactionSerializer(results, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -460,8 +412,8 @@ def get_all_transfers(request):
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
 
-    results = Transfer.objects.filter(user_id=user_id)
-
-    serializer = TransferSerializer(results, many=True)
-
+    results = Transaction.objects.filter(
+        user_id=user_id, transaction_type="transfer"
+    )
+    serializer = TransactionSerializer(results, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
