@@ -21,7 +21,6 @@ const AccountPage = () => {
 
       const stats = await accountService.getAccountStats(id);
       setAccountStats(stats);
-      console.log(stats);
     }
 
     getAccountTransactions();

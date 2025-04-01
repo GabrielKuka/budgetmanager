@@ -14,7 +14,6 @@ const TransactionItem = (props) => {
   const kebabMenu = useRef(null);
   const transactionType = props.transaction?.transaction_type;
 
-  let itemType = -1;
   let categories = [];
   if (transactionType === "income") {
     categories = global.incomeCategories;
@@ -41,18 +40,6 @@ const TransactionItem = (props) => {
     };
   }, []);
 
-  function getTransactionType() {
-    switch (itemType) {
-      case 0:
-        return "income";
-      case 1:
-        return "expense";
-      case 2:
-        return "transfer";
-      default:
-        return "";
-    }
-  }
   function toggleKebab() {
     setShowKebab((prevState) => !prevState);
   }
@@ -80,12 +67,12 @@ const TransactionItem = (props) => {
   }
 
   async function addTransaction(payload) {
-    switch (itemType) {
-      case 0:
+    switch (transactionType) {
+      case "income":
         await transactionService.addIncome(payload);
         showToast("Income Added.");
         break;
-      case 1:
+      case "expense":
         await transactionService.addExpense(payload);
         showToast("Expense Added.");
         break;
@@ -97,24 +84,12 @@ const TransactionItem = (props) => {
 
   function handleRepeatTransaction() {
     showConfirm("Repeat transaction?", async () => {
-      const category_key =
-        itemType === 0 ? "income_category" : "expense_category";
-
-      if (![0, 1].includes(itemType)) {
-        return;
-      }
-
-      const category_value =
-        itemType === 0
-          ? props.transaction.income_category
-          : props.transaction.expense_category;
-
       const payload = {
-        type: itemType,
+        type: transactionType == "income" ? 0 : 1,
         amount: props.transaction.amount,
         account: props.transaction.account,
         description: props.transaction.description,
-        [category_key]: category_value,
+        category: props.transaction.category,
         tags: props.transaction.tags.map((tag) => ({ name: tag.name })),
         date: new Date().toISOString().slice(0, 10),
       };
@@ -125,22 +100,25 @@ const TransactionItem = (props) => {
   }
 
   function handleDelete() {
-    const typeStr = getTransactionType();
-    showConfirm(`Delete ${getTransactionType()}?`, async () => {
+    showConfirm(`Delete ${transactionType}?`, async () => {
       const payload = {
-        type: itemType,
+        type: transactionType == "income" ? 0 : 1,
         id: props.transaction.id,
       };
-      if (typeStr === "expense") {
+      if (transactionType === "expense") {
         await transactionService.deleteExpense(payload);
-      } else if (typeStr === "income") {
+      } else if (transactionType === "income") {
         await transactionService.deleteIncome(payload);
       } else {
         await transactionService.deleteTransfer(payload);
       }
 
       await props.refreshTransactions();
-      showToast(`${typeStr[0].toUpperCase() + typeStr.substring(1)} deleted.`);
+      showToast(
+        `${
+          transactionType[0].toUpperCase() + transactionType.substring(1)
+        } deleted.`
+      );
     });
   }
 
@@ -241,7 +219,7 @@ const TransactionItem = (props) => {
           <button onClick={handleShowMore} id="showMoreButton">
             Show more
           </button>
-          {(itemType === 0 || itemType === 1) && (
+          {(transactionType === "income" || transactionType === "expense") && (
             <button
               onClick={handleRepeatTransaction}
               id="repeatTransactionButton"

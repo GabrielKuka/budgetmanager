@@ -211,6 +211,7 @@ def add_transaction(request):
         transaction_data = {
             "user": user_id,
             "amount": round(float(p.get("amount", 0)), 2),
+            "tags": p.get("tags"),
             "date": p.get("date"),
             "description": p.get("description"),
             "transaction_type": {0: "income", 1: "expense", 2: "transfer"}[
