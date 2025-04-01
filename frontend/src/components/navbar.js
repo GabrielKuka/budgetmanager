@@ -319,17 +319,27 @@ const SuggestionItem = ({
   setTransactionPopup,
   global,
 }) => {
+  const transactionType = suggestion["transaction_type"];
   const account =
-    "account" in suggestion ? suggestion.account : suggestion.from_account;
+    transactionType === "expense" || transactionType === "transfer"
+      ? suggestion.from_account
+      : suggestion.to_account;
   const currency = helper.getCurrency(getAccountCurrency(account));
 
-  function getSuggestionType() {
-    if ("income_category" in suggestion) {
-      return "income";
-    } else if ("expense_category" in suggestion) {
-      return "expense";
-    } else {
-      return "transfer";
+  function suggestionTypeStyle() {
+    switch (transactionType) {
+      case "income":
+        return {
+          color: "green",
+          "border-color": "green",
+        };
+      case "expense":
+        return {
+          color: "red",
+          "border-color": "red",
+        };
+      default:
+        break;
     }
   }
 
@@ -341,18 +351,20 @@ const SuggestionItem = ({
       }}
     >
       <div className={"date"}>
-        <b>Date: </b>
+        <label>Date: </label>
         <span>{suggestion.date}</span>
-        <span className={"suggestion-type"}>{getSuggestionType()}</span>
+        <span style={suggestionTypeStyle()} className={"suggestion-type"}>
+          {transactionType}
+        </span>
       </div>
       {suggestion.description?.length > 0 && (
         <div className={"description"}>
-          <b>Description: </b>
+          <label>Description: </label>
           <span>{suggestion.description}</span>
         </div>
       )}
       <div className={"amount"}>
-        <b>Amount: </b>
+        <label>Amount: </label>
         <span>
           {helper.showOrMask(
             global.privacyMode,
@@ -363,7 +375,7 @@ const SuggestionItem = ({
       </div>
       {suggestion.tags?.length > 0 && (
         <div className={"tags"}>
-          <b>Tags: </b>
+          <label>Tags: </label>
 
           {suggestion?.tags?.map((tag) => (
             <span key={tag.name} className={"tag"}>

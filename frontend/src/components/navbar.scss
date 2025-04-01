@@ -63,6 +63,9 @@
           gap: 5px;
           padding: 5px;
           cursor: pointer;
+          div > label {
+            color: cadetblue;
+          }
           .date {
             width: 100%;
             .suggestion-type {
