@@ -4,10 +4,9 @@
   position: relative;
   cursor: pointer;
   width: 800px;
+  min-height: 28px;
   padding: 20px;
   border-bottom: 1px solid #eeebeb;
-  transition: border-bottom 0.3s, background-color 0.3s, padding 0.3s,
-    font-size 0.3s;
 
   display: grid;
   grid-template-columns: 0.6fr 1.5fr 0.9fr 0.8fr 1.1fr;
@@ -105,10 +104,5 @@
     .kebab-button {
       visibility: visible;
     }
-  }
-
-  &:active {
-    padding: 22px 20px 22px 20px;
-    font-size: 16px;
   }
 }
