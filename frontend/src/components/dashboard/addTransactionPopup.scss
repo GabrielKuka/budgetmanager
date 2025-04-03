@@ -46,13 +46,19 @@
       justify-self: end;
       background-color: #d8807d;
       color: white;
-      width: 30px;
+      width: 40px;
       height: 30px;
       padding: 5px;
       font-weight: bold;
       border: 1px solid #d8807d;
       border-radius: 5px;
       transition: background-color 0.2s ease-in-out;
+    }
+
+    &:hover {
+      .close-popup {
+        background-color: rgb(208, 65, 65);
+      }
     }
   }
 

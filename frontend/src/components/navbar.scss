@@ -47,7 +47,6 @@
           transform: scale(1.2);
         }
       }
-
       .suggestions-container {
         position: absolute;
         background-color: white;
@@ -111,6 +110,15 @@
       padding: 5px;
       transition: background-color 0.3s;
     }
+    #logout-button {
+      transition: background-color 0.3s, padding-left 0.3s ease-in-out,
+        padding-right 0.3s ease-in-out;
+      &:hover {
+        background-color: rgb(255, 0, 0, 0.5);
+        padding-left: 13px;
+        padding-right: 2px;
+      }
+    }
     #add_transaction_btn {
       background-color: cadetblue;
       border-radius: 3px;
@@ -121,17 +129,15 @@
       height: 35px;
       width: 35px;
       cursor: pointer;
-      transition: font-size 0.1s;
+      transition: font-size 0.5s, transform 0.5s ease-in-out;
+
+      &:hover {
+        transform: rotate(90deg);
+      }
     }
     #add_transaction_btn:active {
       font-size: 30px;
     }
-    #logout-button {
-      &:hover {
-        background-color: rgb(255, 0, 0, 0.5);
-      }
-    }
-
     #converter,
     #add_transaction_btn,
     #privacy_btn {

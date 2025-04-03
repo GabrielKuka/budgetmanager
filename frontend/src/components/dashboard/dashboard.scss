@@ -21,11 +21,12 @@
     input[type="image"] {
       padding: 10px;
       border-radius: 5px;
-      transition: background-color ease-in 0.1s;
+      transition: background-color ease-in 0.1s, transform 0.3s ease-in-out;
       cursor: pointer;
 
       &:hover {
         background-color: #dcdcdc;
+        transform: scale(1.1);
       }
     }
 

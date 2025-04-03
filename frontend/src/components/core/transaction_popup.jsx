@@ -257,8 +257,8 @@ const TransactionPopup = ({
                     navigate(
                       `/accounts/${
                         transactionType === "income"
-                          ? transaction.from_account
-                          : transaction.to_account
+                          ? transaction.to_account
+                          : transaction.from_account
                       }`
                     )
                   }

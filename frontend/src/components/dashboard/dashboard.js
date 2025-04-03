@@ -65,6 +65,7 @@ const Sidebar = ({ page, setPage }) => {
   return (
     <div className={"dashboard-wrapper__sidebar"}>
       <input
+        className={"sidebar-icon"}
         type="image"
         id="incomes"
         onClick={(e) => handlePage(e)}
@@ -74,6 +75,7 @@ const Sidebar = ({ page, setPage }) => {
         title="Incomes"
       />
       <input
+        className={"sidebar-icon"}
         type="image"
         id="expenses"
         onClick={(e) => handlePage(e)}
@@ -83,6 +85,7 @@ const Sidebar = ({ page, setPage }) => {
         title="Expenses"
       />
       <input
+        className={"sidebar-icon"}
         type="image"
         id="transfers"
         onClick={(e) => handlePage(e)}

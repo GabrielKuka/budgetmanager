@@ -14,7 +14,7 @@ const ConversionTool = ({ closePopup }) => {
         <div className={"title-bar"}>
           <span className={"title"}>Currency Converter Tool</span>
           <button className={"close-popup"} onClick={closePopup}>
-            X
+            <span>X</span>
           </button>
         </div>
         <Formik
