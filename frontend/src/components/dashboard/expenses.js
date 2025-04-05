@@ -355,12 +355,12 @@ const ExpensesList = (props) => {
 
     const accountFilter =
       selectedAccount >= 0
-        ? props.expenses?.filter((e) => e.account == selectedAccount)
+        ? props.expenses?.filter((e) => e.from_account == selectedAccount)
         : props.expenses;
 
     const categoryFilter =
       selectedCategory >= 0
-        ? props.expenses?.filter((e) => e.expense_category == selectedCategory)
+        ? props.expenses?.filter((e) => e.category == selectedCategory)
         : props.expenses;
 
     const dateFilter = props.expenses?.filter(

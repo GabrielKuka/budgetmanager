@@ -372,12 +372,12 @@ const IncomesList = (props) => {
 
     const accountFilter =
       selectedAccount >= 0
-        ? props.incomes?.filter((e) => e.account == selectedAccount)
+        ? props.incomes?.filter((e) => e.to_account == selectedAccount)
         : props.incomes;
 
     const categoryFilter =
       selectedCategory >= 0
-        ? props.incomes?.filter((e) => e.income_category == selectedCategory)
+        ? props.incomes?.filter((e) => e.category == selectedCategory)
         : props.incomes;
 
     const dateFilter = props.incomes?.filter(
