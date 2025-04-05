@@ -156,13 +156,16 @@ const Sidebar = ({ account, accountType, stats, currentMonthStats }) => {
           <div className={"grid-row"}>
             <label>Expenses:</label>
             <span>
-              {helper.formatNumber(
-                currentMonthStats?.transactionsSumByType?.expense || 0
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(
+                  currentMonthStats?.transactionsSumByType?.expense || 0
+                )
               )}{" "}
               {helper.getCurrency(account.currency)}{" "}
               {currentMonthStats?.transactionsSumByType?.expense !== 0 && (
                 <span className={"num_of_transactions"}>
-                  ({currentMonthStats?.transactionsCountByType?.expense || 0})
+                  ({currentMonthStats?.transactionsCountByType?.expense})
                 </span>
               )}
             </span>
@@ -170,13 +173,16 @@ const Sidebar = ({ account, accountType, stats, currentMonthStats }) => {
           <div className={"grid-row"}>
             <label>Incomes:</label>
             <span>
-              {helper.formatNumber(
-                currentMonthStats?.transactionsSumByType?.income || 0
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(
+                  currentMonthStats?.transactionsSumByType?.income || 0
+                )
               )}{" "}
               {helper.getCurrency(account.currency)}{" "}
               {currentMonthStats?.transactionsSumByType?.income !== 0 && (
                 <span className={"num_of_transactions"}>
-                  ({currentMonthStats?.transactionsCountByType?.income || 0})
+                  ({currentMonthStats?.transactionsCountByType?.income})
                 </span>
               )}
             </span>
@@ -184,13 +190,16 @@ const Sidebar = ({ account, accountType, stats, currentMonthStats }) => {
           <div className={"grid-row"}>
             <label>Transfers:</label>
             <span>
-              {helper.formatNumber(
-                currentMonthStats?.transactionsSumByType?.transfer || 0
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(
+                  currentMonthStats?.transactionsSumByType?.transfer || 0
+                )
               )}{" "}
               {helper.getCurrency(account.currency)}{" "}
               {currentMonthStats?.transactionsSumByType?.transfer !== 0 && (
                 <span className={"num_of_transactions"}>
-                  ({currentMonthStats?.transactionsCountByType?.transfer || 0})
+                  ({currentMonthStats?.transactionsCountByType?.transfer})
                 </span>
               )}
             </span>
@@ -249,8 +258,8 @@ const MainContainer = ({
   }, [groupedTransactions]);
 
   useEffect(() => {
+    let stats = {};
     if (shownTransactions) {
-      let stats = {};
       const transactionsCountByType = shownTransactions.reduce(
         (counts, transaction) => {
           const type = transaction.transaction_type;
@@ -271,9 +280,8 @@ const MainContainer = ({
 
       stats["transactionsCountByType"] = transactionsCountByType;
       stats["transactionsSumByType"] = transactionsSumByType;
-
-      setCurrentMonthStats(stats);
     }
+    setCurrentMonthStats(stats);
   }, [shownTransactions]);
 
   useEffect(() => {
