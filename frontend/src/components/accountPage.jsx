@@ -158,13 +158,49 @@ const MainContainer = ({ account, accountType, transactions }) => {
   const [sortedBy, setSortedBy] = useState({});
   const [shownTransactions, setShownTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState({
+    year: new Date().getFullYear(),
+    month: new Date().toLocaleString("en-US", { month: "short" }),
+  });
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const [years, setYears] = useState([]);
+  const [groupedTransactions, setGroupedTransactions] = useState({});
 
   useEffect(() => {
     if (transactions) {
       setIsLoading(false);
-      setShownTransactions(transactions);
+      setGroupedTransactions(groupTransactionsByMonthYear(transactions));
     }
   }, [transactions]);
+
+  useEffect(() => {
+    if (groupedTransactions) {
+      const results = new Set(
+        Object.keys(groupedTransactions).map((key) => key.split("-")[0])
+      );
+      setYears(Array.from(results));
+      filterTransactions(groupedTransactions);
+    }
+  }, [groupedTransactions]);
+
+  useEffect(() => {
+    if (groupedTransactions) {
+      filterTransactions(groupedTransactions);
+    }
+  }, [selectedPeriod]);
 
   function sortShownTransactions(by = "") {
     if (!by) {
@@ -211,75 +247,143 @@ const MainContainer = ({ account, accountType, transactions }) => {
     setShownTransactions(sorted);
   }
 
+  function groupTransactionsByMonthYear(transactions) {
+    return transactions?.reduce((grouped, transaction) => {
+      // Extract the month-year from the transaction date
+      const date = new Date(transaction.date);
+
+      const monthYear = `${date.getFullYear()}-${date.toLocaleString("en-US", {
+        month: "short",
+      })}`;
+
+      // Initialize the group if it doesn't exist
+      if (!grouped[monthYear]) {
+        grouped[monthYear] = [];
+      }
+
+      // Add the transaction to the appropriate group
+      grouped[monthYear].push(transaction);
+
+      return grouped;
+    }, {});
+  }
+
+  function filterTransactions() {
+    if (groupedTransactions) {
+      setShownTransactions(
+        groupedTransactions[
+          `${selectedPeriod["year"]}-${selectedPeriod["month"]}`
+        ]
+      );
+    }
+  }
+
+  function selectedMonthButtonStyle(m) {
+    if (selectedPeriod["month"] === m) {
+      return {
+        borderBottom: "2px solid cadetblue",
+      };
+    }
+
+    return {};
+  }
+
   return (
     <div className={"main-container"}>
       {isLoading && <div id="loading-div">Loading...</div>}
       {!isLoading && (
         <>
+          <div className={"time-filter-container"}>
+            <select
+              className={"years"}
+              value={selectedPeriod["year"]}
+              onChange={(e) =>
+                setSelectedPeriod((prev) => ({
+                  ...prev,
+                  year: e.target.value,
+                }))
+              }
+            >
+              {years && years?.map((y) => <option key={y}>{y}</option>)}
+            </select>
+            <div className="month-buttons-container">
+              {months.map((m) => (
+                <button
+                  style={selectedMonthButtonStyle(m)}
+                  key={m}
+                  onClick={() =>
+                    setSelectedPeriod((prev) => ({ ...prev, month: m }))
+                  }
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
           {shownTransactions?.length > 0 ? (
-            <div className="transactions-list">
-              <div className="header">
-                <div>
-                  <label onClick={() => sortShownTransactions("date")}>
-                    Date:
-                  </label>
-                  {sortedBy["date"] == "ascending" && (
-                    <img
-                      src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
-                      width="12"
-                      height="12"
-                    />
-                  )}
-                  {sortedBy["date"] == "descending" && (
-                    <img
-                      src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
-                      width="12"
-                      height="12"
-                    />
-                  )}
+            <>
+              <div className="transactions-list">
+                <div className="header">
+                  <div>
+                    <label onClick={() => sortShownTransactions("date")}>
+                      Date:
+                    </label>
+                    {sortedBy["date"] == "ascending" && (
+                      <img
+                        src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+                        width="12"
+                        height="12"
+                      />
+                    )}
+                    {sortedBy["date"] == "descending" && (
+                      <img
+                        src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+                        width="12"
+                        height="12"
+                      />
+                    )}
+                  </div>
+
+                  <label>Description</label>
+
+                  <div>
+                    <label onClick={() => sortShownTransactions("amount")}>
+                      Amount
+                    </label>
+                    {sortedBy["amount"] == "ascending" && (
+                      <img
+                        src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
+                        width="12"
+                        height="12"
+                      />
+                    )}
+                    {sortedBy["amount"] == "descending" && (
+                      <img
+                        src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
+                        width="12"
+                        height="12"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label>Category:</label>
+                  </div>
                 </div>
-
-                <label>Description</label>
-
-                <div>
-                  <label onClick={() => sortShownTransactions("amount")}>
-                    Amount
-                  </label>
-                  {sortedBy["amount"] == "ascending" && (
-                    <img
-                      src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
-                      width="12"
-                      height="12"
-                    />
-                  )}
-                  {sortedBy["amount"] == "descending" && (
-                    <img
-                      src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
-                      width="12"
-                      height="12"
-                    />
-                  )}
-                </div>
-
-                <div>
-                  <label>Category:</label>
+                <div className="content">
+                  {shownTransactions?.length > 0 &&
+                    shownTransactions?.map((t) => (
+                      <TransactionItem
+                        transaction={t}
+                        key={`${"income_category" in t ? "i" : "e"}_${t.id}`}
+                        account={account}
+                      />
+                    ))}
                 </div>
               </div>
-              <div className="content">
-                {shownTransactions?.length > 0 &&
-                  shownTransactions?.map((t) => (
-                    <TransactionItem
-                      transaction={t}
-                      key={`${"income_category" in t ? "i" : "e"}_${t.id}`}
-                      account={account}
-                    />
-                  ))}
-              </div>
-            </div>
+            </>
           ) : (
-            <div className="empty-account">
-              No transactions found in this account.
-            </div>
+            <div className="empty-account">No transactions found.</div>
           )}
         </>
       )}

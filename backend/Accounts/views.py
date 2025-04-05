@@ -1,5 +1,6 @@
 from rest_framework import status
 from django.db.models import Q
+from django.db.models.functions import TruncMonth
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -19,7 +20,7 @@ from django.db.models import (
     Window,
     F,
 )
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 @api_view(["POST"])
@@ -123,6 +124,13 @@ def get_account_data(request, id):
         stat_incomes_year["total"] - stat_expenses_year["total"], 2
     )
 
+    incomes_by_category = transactions_by_category(
+        "income", account, start_of_the_month, today
+    )
+    expenses_by_category = transactions_by_category(
+        "expense", account, start_of_the_month, today
+    )
+
     result = {
         "current_balance": round(account.amount, 2),
         "net_month_to_date": net_month_to_date,
@@ -131,6 +139,10 @@ def get_account_data(request, id):
         + stat_expenses_month["count"],
         "transactions_this_year": stat_incomes_year["count"]
         + stat_expenses_year["count"],
+        "last_month_p_and_l": last_month_account_p_l(account),
+        "incomes_by_category": incomes_by_category,
+        "expenses_by_category": expenses_by_category,
+        "transactions_by_month": transactions_by_month(account),
         "running_total_expenses_current_month": stat_expenses_month[
             "running_total"
         ],
@@ -152,27 +164,86 @@ def get_account_data(request, id):
     return Response(result, status=status.HTTP_200_OK)
 
 
-@api_view(["GET"])
-def get_account_transactions(request, id):
-    from itertools import chain
+def last_month_account_p_l(account):
+    today = datetime.now()
+    first_day_of_current_month = datetime(today.year, today.month, 1)
+    last_day_of_previous_month = first_day_of_current_month - timedelta(days=1)
+    first_day_of_previous_month = datetime(
+        last_day_of_previous_month.year, last_day_of_previous_month.month, 1
+    )
 
-    try:
-        transactions = Transaction.objects.filter(
-            Q(from_account=id) | Q(to_account=id)
+    incomes = Transaction.objects.filter(
+        Q(transaction_type="income") | Q(transaction_type="transfer"),
+        to_account=account,
+        date__gte=first_day_of_previous_month,
+        date__lte=last_day_of_previous_month,
+    )
+    expenses = Transaction.objects.filter(
+        Q(transaction_type="expense") | Q(transaction_type="transfer"),
+        from_account=account,
+        date__gte=first_day_of_previous_month,
+        date__lte=last_day_of_previous_month,
+    )
+
+    total_incomes = round(
+        incomes.aggregate(Sum("amount"))["amount__sum"] or 0, 2
+    )
+    total_expenses = round(
+        expenses.aggregate(Sum("amount"))["amount__sum"] or 0, 2
+    )
+
+    p_and_l = total_incomes - total_expenses
+
+    return p_and_l
+
+
+def transactions_by_month(account):
+
+    # Group transactions by month-year and count totals for each type
+    transactions = (
+        Transaction.objects.filter(
+            Q(from_account=account) | Q(to_account=account)
         )
-        serialized_transactions = TransactionSerializer(
-            transactions, many=True
-        ).data
-
-        serialized_transactions.sort(key=lambda x: x.get("date"), reverse=True)
-
-        return Response(serialized_transactions, status=status.HTTP_200_OK)
-    except Exception as e:
-        print(e)
-        return Response(
-            {"error": "Something went wrong"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        .annotate(month_year=TruncMonth("date"))
+        .values("month_year")
+        .annotate(
+            income_count=Count("id", filter=Q(transaction_type="income")),
+            expense_count=Count("id", filter=Q(transaction_type="expense")),
+            transfer_count=Count("id", filter=Q(transaction_type="transfer")),
         )
+        .order_by("month_year")
+    )
+
+    return transactions
+
+
+def transactions_by_category(transaction_type, account, from_date, to_date):
+    transactions = Transaction.objects.filter(
+        (
+            Q(from_account=account)
+            if transaction_type == "expense"
+            else Q(to_account=account)
+        ),
+        transaction_type=transaction_type,
+        date__gte=from_date,
+        date__lte=to_date,
+    )
+
+    total_amount = round(
+        transactions.aggregate(total=Sum("amount"))["total"] or 0, 2
+    )
+
+    if total_amount <= 0:
+        return []
+
+    transactions_by_category = transactions.values(
+        "category__category"
+    ).annotate(
+        total_amount=Sum("amount"),
+        percentage=(Sum("amount") * 100 / total_amount),
+    )
+
+    return transactions_by_category
 
 
 def get_account_stats(transaction_type, account, from_date, to_date):
@@ -230,3 +301,26 @@ def get_account_stats(transaction_type, account, from_date, to_date):
             moving_average_transactions.values("date", "amount", "moving_avg")
         ),
     }
+
+
+@api_view(["GET"])
+def get_account_transactions(request, id):
+    from itertools import chain
+
+    try:
+        transactions = Transaction.objects.filter(
+            Q(from_account=id) | Q(to_account=id)
+        )
+        serialized_transactions = TransactionSerializer(
+            transactions, many=True
+        ).data
+
+        serialized_transactions.sort(key=lambda x: x.get("date"), reverse=True)
+
+        return Response(serialized_transactions, status=status.HTTP_200_OK)
+    except Exception as e:
+        print(e)
+        return Response(
+            {"error": "Something went wrong"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )

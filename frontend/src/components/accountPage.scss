@@ -91,6 +91,34 @@
       text-transform: uppercase;
     }
 
+    .time-filter-container {
+      @include flex(row, flex-start, center);
+      padding: 20px;
+      padding-left: 25px;
+      gap: 10px;
+      align-self: flex-start;
+
+      .month-buttons-container {
+        @include flex(row, flex-start, center);
+        gap: 5px;
+
+        button {
+          color: cadetblue;
+          font-weight: bold;
+          text-transform: uppercase;
+          background-color: white;
+          padding: 7px;
+          border: none;
+          transition: background-color 0.2s ease-out;
+
+          &:hover {
+            background-color: #dadada;
+            border-radius: 3px;
+          }
+        }
+      }
+    }
+
     .transactions-list {
       .header {
         font-weight: bold;
