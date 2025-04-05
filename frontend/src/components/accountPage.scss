@@ -11,6 +11,18 @@
     @include flex(column, center, center);
     gap: 10px;
 
+    .card-label {
+      background-color: cadetblue;
+      color: white;
+      padding: 5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: padding-left 0.3s;
+      width: fit-content;
+      font-weight: bold;
+    }
+
     #account_information {
       border: 1px solid #dadada;
       box-shadow: 1px 1px 10px #dadada;
@@ -21,18 +33,6 @@
       padding: 30px;
       @include flex(column, flex-start, flex-start);
       gap: 10px;
-
-      .card-label {
-        background-color: cadetblue;
-        color: white;
-        padding: 5px;
-        text-transform: uppercase;
-        cursor: pointer;
-        border-radius: 2px;
-        transition: padding-left 0.3s;
-        width: fit-content;
-        font-weight: bold;
-      }
 
       &:hover {
         border-color: cadetblue;
@@ -59,6 +59,51 @@
           }
           .datetime {
             font-size: 14px;
+          }
+
+          label {
+            color: gray;
+            font-size: 14px;
+          }
+        }
+      }
+    }
+
+    #summary-container {
+      border: 1px solid #dadada;
+      box-shadow: 1px 1px 10px #dadada;
+      border-radius: 3px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+
+      width: 270px;
+      padding: 30px;
+      @include flex(column, flex-start, flex-start);
+      gap: 10px;
+
+      &:hover {
+        border-color: cadetblue;
+        box-shadow: 1px 1px 5px cadetblue;
+        .card-label {
+          padding-left: 15px;
+        }
+      }
+
+      .grid-container {
+        width: 100%;
+
+        .grid-row {
+          display: grid;
+          grid-template-columns: 1.1fr 2fr;
+          margin-top: 10px;
+          border-bottom: 1px solid #dadada;
+
+          span {
+            text-align: right;
+
+            .num_of_transactions {
+              color: gray;
+              font-size: 13px;
+            }
           }
 
           label {

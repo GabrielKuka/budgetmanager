@@ -13,6 +13,7 @@ const AccountPage = () => {
   const account = getAccountObject(id);
   const [transactions, setTransactions] = useState(false);
   const [accountStats, setAccountStats] = useState(false);
+  const [currentMonthStats, setCurrentMonthStats] = useState({});
 
   useEffect(() => {
     async function getAccountTransactions() {
@@ -57,17 +58,19 @@ const AccountPage = () => {
         account={account}
         stats={accountStats}
         accountType={accountTypes[account.type]}
+        currentMonthStats={currentMonthStats}
       />
       <MainContainer
         account={account}
         accountType={accountTypes[account.type]}
         transactions={transactions}
+        setCurrentMonthStats={setCurrentMonthStats}
       />
     </div>
   );
 };
 
-const Sidebar = ({ account, accountType, stats }) => {
+const Sidebar = ({ account, accountType, stats, currentMonthStats }) => {
   const global = useGlobalContext();
   return (
     <div className={"account-page-wrapper__sidebar"}>
@@ -81,10 +84,6 @@ const Sidebar = ({ account, accountType, stats }) => {
           <div className="grid-row">
             <label>Currency: </label>
             <span>{account.currency}</span>
-          </div>
-          <div className="grid-row">
-            <label>Type: </label>
-            <span>{accountType}</span>
           </div>
           <div className="grid-row">
             <label>Active: </label>
@@ -150,11 +149,64 @@ const Sidebar = ({ account, accountType, stats }) => {
           </div>
         </div>
       </div>
+
+      <div id={"summary-container"}>
+        <div className={"card-label"}>Short Summary</div>
+        <div className={"grid-container"}>
+          <div className={"grid-row"}>
+            <label>Expenses:</label>
+            <span>
+              {helper.formatNumber(
+                currentMonthStats?.transactionsSumByType?.expense || 0
+              )}{" "}
+              {helper.getCurrency(account.currency)}{" "}
+              {currentMonthStats?.transactionsSumByType?.expense !== 0 && (
+                <span className={"num_of_transactions"}>
+                  ({currentMonthStats?.transactionsCountByType?.expense || 0})
+                </span>
+              )}
+            </span>
+          </div>
+          <div className={"grid-row"}>
+            <label>Incomes:</label>
+            <span>
+              {helper.formatNumber(
+                currentMonthStats?.transactionsSumByType?.income || 0
+              )}{" "}
+              {helper.getCurrency(account.currency)}{" "}
+              {currentMonthStats?.transactionsSumByType?.income !== 0 && (
+                <span className={"num_of_transactions"}>
+                  ({currentMonthStats?.transactionsCountByType?.income || 0})
+                </span>
+              )}
+            </span>
+          </div>
+          <div className={"grid-row"}>
+            <label>Transfers:</label>
+            <span>
+              {helper.formatNumber(
+                currentMonthStats?.transactionsSumByType?.transfer || 0
+              )}{" "}
+              {helper.getCurrency(account.currency)}{" "}
+              {currentMonthStats?.transactionsSumByType?.transfer !== 0 && (
+                <span className={"num_of_transactions"}>
+                  ({currentMonthStats?.transactionsCountByType?.transfer || 0})
+                </span>
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-const MainContainer = ({ account, accountType, transactions }) => {
+const MainContainer = ({
+  account,
+  accountType,
+  transactions,
+  setCurrentMonthStats,
+}) => {
   const [sortedBy, setSortedBy] = useState({});
   const [shownTransactions, setShownTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -195,6 +247,34 @@ const MainContainer = ({ account, accountType, transactions }) => {
       filterTransactions(groupedTransactions);
     }
   }, [groupedTransactions]);
+
+  useEffect(() => {
+    if (shownTransactions) {
+      let stats = {};
+      const transactionsCountByType = shownTransactions.reduce(
+        (counts, transaction) => {
+          const type = transaction.transaction_type;
+          counts[type] = (counts[type] || 0) + 1;
+          return counts;
+        },
+        { income: 0, expense: 0, transfer: 0 }
+      );
+
+      const transactionsSumByType = shownTransactions.reduce(
+        (counts, transaction) => {
+          const type = transaction.transaction_type;
+          counts[type] = (counts[type] || 0) + transaction.amount;
+          return counts;
+        },
+        { income: 0, expense: 0, transfer: 0 }
+      );
+
+      stats["transactionsCountByType"] = transactionsCountByType;
+      stats["transactionsSumByType"] = transactionsSumByType;
+
+      setCurrentMonthStats(stats);
+    }
+  }, [shownTransactions]);
 
   useEffect(() => {
     if (groupedTransactions) {
