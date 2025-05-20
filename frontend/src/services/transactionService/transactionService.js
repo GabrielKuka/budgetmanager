@@ -4,10 +4,33 @@ import accountService from "./accountService";
 import expenseService from "./expenseService";
 import incomeService from "./incomeService";
 import transferService from "./transferService";
+import axios from "axios";
+import { BASE_URL, BACKEND_PORT } from "../../config";
 
 // Get transaction in a timeframe
 async function getTransactions(dateRange) {
   return await expenseService.getTransactions(dateRange);
+}
+
+async function getWealthStats(currency) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    params: {
+      currency: currency,
+    },
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
+
+  const response = await axios.get(`${ENDPOINT}/get_wealth_stats`, config);
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    alert("Error fetching wealth stats.");
+  }
 }
 
 // Templates
@@ -138,6 +161,7 @@ const transactionService = {
   getUserExpenses,
   getUserIncomes,
   getUserTransfers,
+  getWealthStats,
 };
 
 export default transactionService;

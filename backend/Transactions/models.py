@@ -130,6 +130,15 @@ class Transaction(models.Model):
         help_text="Destination account (for incomes and transfers)",
     )
 
+    @property
+    def account(self):
+        if self.transaction_type == "income":
+            return self.to_account
+        if self.transaction_type in {"expense", "transfer"}:
+            return self.from_account
+
+        return None
+
     # Category reference - only applicable for income and expense
     category = models.ForeignKey(
         TransactionCategory,

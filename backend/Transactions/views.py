@@ -1,10 +1,11 @@
-from django.db.models import Q
+from django.db.models import Q, F
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.dateparse import parse_date
 from datetime import datetime
 from rest_framework.authtoken.models import Token
+from typing import List
 
 from .models import Transaction, TransactionCategory, Account
 from .serializers import TransactionSerializer, TransactionCategorySerializer
@@ -146,6 +147,90 @@ def get_transfers(request):
         )
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+def convert_currency(source: str, targets: List[str]):
+
+    import requests
+
+    url = "https://wise.com/rates/history"
+    rates = dict()
+    for target in targets:
+
+        if source == target:
+            rates[target] = 1
+            continue
+
+        params = {
+            "source": source,
+            "target": target,
+            "length": "1",
+            "unit": "hour",
+            "resolution": "hourly",
+        }
+        response = requests.get(url=url, params=params)
+
+
+        response.raise_for_status()
+        result = response.json()[0]
+
+        rate = float(result["value"])
+
+        rates[target] = rate
+
+    if not rates:
+        raise Exception("No rates were found. This shouldn't happen.")
+    
+    return rates
+
+
+@api_view(['GET'])
+def get_wealth_stats(request):
+    from collections import defaultdict
+
+    token = request.headers["Authorization"]
+    user_id = Token.objects.get(key=token).user_id
+
+    currency = request.GET.get("currency")
+
+    # Get exchange rates
+    rates = convert_currency(currency, ['EUR', 'USD', 'BGN', 'GBP', 'ALL'])
+
+    # Get all accounts for the user and convert their amounts
+    user_accounts = Account.objects.filter(user_id=user_id)
+    current_total_wealth = sum(round(account.amount / rates.get(account.currency, 1), 2) for account in user_accounts)
+
+    transactions = Transaction.objects.filter(user=user_id).exclude(transaction_type="transfer")
+    
+    # Group transactions by "%Y-%m"
+    grouped_transactions = defaultdict(lambda: {"incomes": 0, "expenses": 0})
+
+    for transaction in transactions:
+        month_year = transaction.date.strftime("%Y-%m")
+        converted_amount = transaction.amount / rates.get(transaction.account.currency, 1)
+
+        grouped_transactions[month_year][f"{transaction.transaction_type}s"] += converted_amount
+
+
+    # Sort the grouped transactions by month in descending order
+    sorted_months = sorted(grouped_transactions.keys(), reverse=True)
+
+    current_monthly_wealth = current_total_wealth
+    monthly_differences = []
+    for month_year in sorted_months:
+        net_difference = grouped_transactions[month_year]["incomes"] - grouped_transactions[month_year]["expenses"]
+
+        monthly_differences.append({
+            "date": month_year,
+            "net_difference": round(net_difference, 2),
+            "monthly_wealth": round(current_monthly_wealth, 2),
+        })
+
+        current_monthly_wealth = current_monthly_wealth - net_difference
+
+    monthly_differences.reverse()
+
+    return Response({"monthly_differences":monthly_differences}, status=status.HTTP_200_OK)
+
 
 
 @api_view(["GET"])

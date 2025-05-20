@@ -37,6 +37,19 @@ INSTALLED_APPS = [
 
 CORS_ORIGIN_ALLOW_ALL = True
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3001",
+    "http://192.168.1.9:3001",
+    "http://100.73.35.59:3001",
+    
+    "http://localhost:3002",
+    "http://192.168.1.9:3002",
+    "http://100.73.35.59:3002",
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",

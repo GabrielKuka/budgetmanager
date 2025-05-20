@@ -1,141 +1,61 @@
 import { useEffect, useState } from "react";
 import { useGlobalContext } from "../../context/GlobalContext";
 import { helper } from "../helper";
-import currencyService from "../../services/currencyService";
 import {
   Area,
-  AreaChart,
   CartesianGrid,
   Legend,
+  Bar,
   Tooltip,
   XAxis,
   YAxis,
+  ComposedChart,
 } from "recharts";
+import transactionService from "../../services/transactionService/transactionService";
 
 const WealthOverTime = (props) => {
   const global = useGlobalContext();
   const [data, setData] = useState(null);
+  const [filteredData, setFilteredData] = useState(null);
+  const [years, setYears] = useState([]);
+  const [selectedYear, setSelectedYear] = useState("All Time");
 
   useEffect(() => {
-    async function arrangeData() {
-      const items = [];
-
-      async function getTotalWealth() {
-        let promises = global.activeAccounts.map(async (a) => {
-          return await currencyService.convert(
-            a.currency,
-            global.globalCurrency,
-            a.amount
-          );
-        });
-
-        let results = await Promise.all(promises);
-        let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
-
-        return total;
-      }
-
-      async function getExpensesYoY() {
-        let expensesByMonth = {};
-        for (const e of props.expenses) {
-          const date = new Date(e.date);
-          const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1)
-            .toString()
-            .padStart(2, "0")}`;
-
-          if (!expensesByMonth[monthYear]) {
-            expensesByMonth[monthYear] = 0;
-          }
-
-          let amount = await currencyService.convert(
-            props.getAccountCurrency(e.from_account),
-            global.globalCurrency,
-            e.amount
-          );
-          expensesByMonth[monthYear] += Number(amount) || 0;
-        }
-        return expensesByMonth;
-      }
-
-      async function getIncomesYoY() {
-        let incomesByMonth = {};
-        for (const i of props.incomes) {
-          const date = new Date(i.date);
-
-          const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1)
-            .toString()
-            .padStart(2, "0")}`;
-          if (!incomesByMonth[monthYear]) {
-            incomesByMonth[monthYear] = 0;
-          }
-
-          const amount = await currencyService.convert(
-            props.getAccountCurrency(i.to_account),
-            global.globalCurrency,
-            i.amount
-          );
-
-          incomesByMonth[monthYear] += Number(amount) || 0;
-        }
-        return incomesByMonth;
-      }
-
-      let expensesByMonth = await getExpensesYoY();
-      let incomesByMonth = await getIncomesYoY();
-      const totalWealth = await getTotalWealth();
-
-      // Convert to array and sort by date
-      const sortedEntries = Object.entries(expensesByMonth).sort(
-        ([date1], [date2]) => new Date(date2) - new Date(date1)
+    async function fetchWealthStats() {
+      const wealthStats = await transactionService.getWealthStats(
+        global.globalCurrency
       );
+      const uniqueYears = [
+        ...new Set(
+          wealthStats["monthly_differences"].map(
+            (item) => item.date.split("-")[0]
+          )
+        ),
+      ];
 
-      // Convert back to a Map
-      const sortedMap = new Map(sortedEntries);
-      let currentWealth = totalWealth;
-
-      const currentMonthYear = `${new Date().getFullYear()}-${(
-        new Date().getMonth() + 1
-      )
-        .toString()
-        .padStart(2, "0")}`;
-
-      sortedMap.forEach((currentExpense, monthYear) => {
-        if (monthYear === currentMonthYear) {
-          items.push({
-            date: monthYear,
-            monthlyWealth: totalWealth,
-          });
-          return;
-        }
-        if (
-          typeof incomesByMonth[monthYear] === "undefined" ||
-          expensesByMonth[monthYear] === "undefined"
-        ) {
-          return;
-        }
-        const currentIncome = parseFloat(incomesByMonth[monthYear].toFixed(2));
-        const netChange = parseFloat(
-          (currentIncome - currentExpense).toFixed(2)
-        );
-        currentWealth = parseFloat((currentWealth - netChange).toFixed(2));
-
-        items.push({
-          date: monthYear,
-          monthlyWealth: currentWealth,
-        });
-      });
-
-      setData(items);
+      setYears(["All Time", ...uniqueYears]);
+      setData(wealthStats["monthly_differences"]);
+      setFilteredData(wealthStats["monthly_differences"]);
     }
+    fetchWealthStats();
+  }, [global.globalCurrency]);
 
-    arrangeData();
-  }, [props.expenses, props.incomes, global.globalCurrency]);
+  const handleYearChange = (event) => {
+    const year = event.target.value;
+    setSelectedYear(year);
+
+    if (year === "All Time") {
+      setFilteredData(data);
+    } else {
+      setFilteredData(data.filter((item) => item.date.startsWith(year)));
+    }
+  };
 
   return (
-    <AreaChart
+    <ComposedChart
       width={props.width}
       height={props.height}
-      data={data?.sort((a, b) => new Date(a.date) - new Date(b.date))}
+      data={filteredData?.sort((a, b) => new Date(a.date) - new Date(b.date))}
       margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
     >
       <defs>
@@ -148,22 +68,48 @@ const WealthOverTime = (props) => {
 
       <CartesianGrid strokeDasharray="6 6" />
       <XAxis dataKey="date" />
-      <YAxis />
+      <YAxis yAxisId={"left"} orientation="left" />
+      <YAxis yAxisId={"right"} orientation="right" tick={{ fill: "#8884d8" }} />
       <Tooltip content={<AreaChartChartToolTip />} />
+      <Legend
+        content={(props) => (
+          <CustomLegend
+            selectedYear={selectedYear}
+            handleYearChange={handleYearChange}
+            years={years}
+          />
+        )}
+      />
       <Area
         type="monotone"
-        dataKey="monthlyWealth"
+        dataKey="monthly_wealth"
         stroke="cadetblue"
         fillOpacity={1}
         fill="url(#colorLine)"
+        yAxisId={"left"}
       />
-      <Legend content={<CustomLegend />} />
-    </AreaChart>
+      <Bar
+        dataKey="net_difference"
+        fill="#90EE90"
+        barSize={20}
+        name="Net Difference"
+        yAxisId={"right"}
+        shape={<NetSavingsBar />}
+      />
+    </ComposedChart>
   );
 };
 
 const AreaChartChartToolTip = ({ active, payload }) => {
   const global = useGlobalContext();
+
+  // Function to convert "YYYY-MM" to "Month YYYY"
+  const formatDate = (dateString) => {
+    const [year, month] = dateString.split("-");
+    const date = new Date(year, month - 1); // Month is 0-indexed
+    return date.toLocaleString("en-US", { month: "long", year: "numeric" });
+  };
+
   if (active && payload && payload.length) {
     const data = payload[0]?.payload;
     return (
@@ -172,21 +118,52 @@ const AreaChartChartToolTip = ({ active, payload }) => {
           backgroundColor: "cadetblue",
           padding: "5px",
           borderRadius: "3px",
-          height: "50px",
           color: "white",
           height: "fit-content",
         }}
       >
-        {`${data.date}`}
-        <br />
-        Total:{" "}
-        <b>
-          {helper.showOrMask(
-            global.privacyMode,
-            helper.formatNumber(parseFloat(data.monthlyWealth).toFixed(2))
-          )}{" "}
-          {helper.getCurrency(global.globalCurrency)}
-        </b>
+        <p
+          style={{
+            margin: 0,
+            textAlign: "left",
+            fontSize: "12px",
+            textDecoration: "underline",
+          }}
+        >
+          {formatDate(data.date)}
+        </p>
+        <p
+          style={{
+            margin: 0,
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          Total:{" "}
+          <b
+            style={{
+              display: "block",
+              textAlign: "right",
+              fontWeight: "bold",
+            }}
+          >
+            {helper.showOrMask(
+              global.privacyMode,
+              helper.formatNumber(parseFloat(data.monthly_wealth).toFixed(2))
+            )}{" "}
+            {helper.getCurrency(global.globalCurrency)}
+          </b>
+        </p>
+        <p style={{ margin: 0 }}>
+          Net savings:{" "}
+          <b>
+            {helper.showOrMask(
+              global.privacyMode,
+              helper.formatNumber(parseFloat(data.net_difference).toFixed(2))
+            )}{" "}
+            {helper.getCurrency(global.globalCurrency)}
+          </b>
+        </p>
       </div>
     );
   }
@@ -194,22 +171,43 @@ const AreaChartChartToolTip = ({ active, payload }) => {
   return null;
 };
 
-const CustomLegend = () => {
+const NetSavingsBar = (props) => {
+  const { x, y, width, height, payload } = props;
+  const fillColor = payload.net_difference < 0 ? "red" : "green";
+  const [isHovered, setIsHovered] = useState(false);
+  const adjustedY = payload.net_difference < 0 ? y + height : y;
+  const adjustedHeight = Math.abs(height);
+
   return (
-    <div
-      style={{
-        fontSize: "13px",
-        margin: "10px 0px 10px 40px",
-        backgroundColor: "#D3D3D3",
-        color: "black",
-        padding: "7px",
-        width: "90%",
-        borderRadius: "3px",
-        cursor: "pointer",
-      }}
-    >
-      Total wealth over time.
-    </div>
+    <rect
+      x={x}
+      y={adjustedY}
+      width={width}
+      height={adjustedHeight}
+      fill={fillColor}
+      opacity={isHovered ? 1 : 0.4}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    />
+  );
+};
+
+const CustomLegend = ({ years, handleYearChange, selectedYear }) => {
+  return (
+    <>
+      <div id={"wealth_over_time_legend"}>
+        <label>Total wealth over time and monthly net savings.</label>
+        <div style={{ textAlign: "center" }}>
+          <select value={selectedYear} onChange={handleYearChange}>
+            {years?.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </>
   );
 };
 
