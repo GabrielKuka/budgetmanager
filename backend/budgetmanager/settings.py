@@ -41,7 +41,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3001",
     "http://192.168.1.9:3001",
     "http://100.73.35.59:3001",
-    
     "http://localhost:3002",
     "http://192.168.1.9:3002",
     "http://100.73.35.59:3002",
