@@ -65,23 +65,50 @@ const WealthOverTime = (props) => {
     }
   }, [filteredData]);
 
+  const calculateGrowthRate = (values) => {
+    if (!values || values.length < 2) return [];
+
+    const growthRates = [];
+    for (let i = 1; i < values.length; i++) {
+      const previous = values[i - 1];
+      const current = values[i];
+      const growthRate = ((current - previous) / Math.abs(previous)) * 100;
+      growthRates.push(growthRate);
+    }
+
+    return growthRates;
+  };
+
   const calculateAggregations = () => {
     if (!filteredData || filteredData.length === 0) {
       return;
     }
 
     const netDifferences = filteredData.map((item) => item.net_difference);
+    const totalWealthPerMonth = filteredData.map((item) => item.monthly_wealth);
 
     const sum = netDifferences.reduce((acc, value) => acc + value, 0);
     const average = sum / netDifferences.length;
     const min = Math.min(...netDifferences);
     const max = Math.max(...netDifferences);
+    const wealthGrowthRate = calculateGrowthRate(totalWealthPerMonth);
+    const avgWealthGrowthRate =
+      wealthGrowthRate.reduce((sum, val) => sum + val, 0) /
+      wealthGrowthRate.length;
+    const netSavingsGrowthRate = calculateGrowthRate(netDifferences);
+    const avgNetSavingsGrowthRate =
+      netSavingsGrowthRate.reduce((sum, val) => sum + val, 0) /
+      netSavingsGrowthRate.length;
+
+    console.log(wealthGrowthRate);
 
     setAggs({
       sum: sum,
       average: average,
       min: min,
       max: max,
+      avgWealthGrowthRate: avgWealthGrowthRate,
+      avgNetSavingsGrowthRate: avgNetSavingsGrowthRate,
     });
   };
 
@@ -247,12 +274,6 @@ const CustomLegend = ({ years, handleYearChange, selectedYear, aggs }) => {
         </div>
         <div className={"aggregations"}>
           <table className="aggregations-table">
-            <thead>
-              <tr>
-                <th>Metric</th>
-                <th>Value</th>
-              </tr>
-            </thead>
             <tbody>
               <tr>
                 <td>Total Savings</td>
@@ -260,7 +281,7 @@ const CustomLegend = ({ years, handleYearChange, selectedYear, aggs }) => {
                   {helper.showOrMask(
                     global.privacyMode,
                     helper.formatNumber(aggs.sum)
-                  )}
+                  )}{" "}
                   {helper.getCurrency(global.globalCurrency)}
                 </td>
               </tr>
@@ -270,28 +291,43 @@ const CustomLegend = ({ years, handleYearChange, selectedYear, aggs }) => {
                   {helper.showOrMask(
                     global.privacyMode,
                     helper.formatNumber(aggs.average)
-                  )}
+                  )}{" "}
                   {helper.getCurrency(global.globalCurrency)}
                 </td>
               </tr>
               <tr>
-                <td>Min</td>
+                <td>Min | Max</td>
                 <td>
                   {helper.showOrMask(
                     global.privacyMode,
                     helper.formatNumber(aggs.min)
-                  )}
+                  )}{" "}
+                  {helper.getCurrency(global.globalCurrency)} |{" "}
+                  {helper.showOrMask(
+                    global.privacyMode,
+                    helper.formatNumber(aggs.max)
+                  )}{" "}
                   {helper.getCurrency(global.globalCurrency)}
                 </td>
               </tr>
               <tr>
-                <td>Max</td>
+                <td>Average Wealth Growth Rate</td>
                 <td>
                   {helper.showOrMask(
                     global.privacyMode,
-                    helper.formatNumber(aggs.max)
-                  )}
-                  {helper.getCurrency(global.globalCurrency)}
+                    helper.formatNumber(aggs.avgWealthGrowthRate)
+                  )}{" "}
+                  %
+                </td>
+              </tr>
+              <tr>
+                <td>Average Net Savings Growth Rate</td>
+                <td>
+                  {helper.showOrMask(
+                    global.privacyMode,
+                    helper.formatNumber(aggs.avgNetSavingsGrowthRate)
+                  )}{" "}
+                  %
                 </td>
               </tr>
             </tbody>
