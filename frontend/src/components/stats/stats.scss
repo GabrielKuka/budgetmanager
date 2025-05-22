@@ -42,15 +42,44 @@
 
     #wealth_over_time_legend {
       font-size: 13px;
-      margin: 10px 0px 10px 40px;
+      margin: 10px 0px 10px 15px;
       color: black;
       padding: 7px;
       width: 90%;
       border-radius: 3px;
       cursor: pointer;
       background-color: #d3d3d3;
-      @include flex(row, flex-start, center);
-      gap: 10px;
+
+      .header {
+        @include flex(row, flex-start, center);
+        gap: 10px;
+      }
+
+      .aggregations-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+
+        th,
+        td {
+          border: 1px solid #dadada;
+          padding: 8px;
+          text-align: left;
+        }
+
+        th {
+          background-color: #f0f0f0;
+          font-weight: bold;
+        }
+
+        td {
+          background-color: #ffffff;
+        }
+
+        tr:nth-child(even) td {
+          background-color: #f9f9f9;
+        }
+      }
     }
   }
 }

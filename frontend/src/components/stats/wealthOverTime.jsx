@@ -19,6 +19,7 @@ const WealthOverTime = (props) => {
   const [filteredData, setFilteredData] = useState(null);
   const [years, setYears] = useState([]);
   const [selectedYear, setSelectedYear] = useState("All Time");
+  const [aggs, setAggs] = useState("");
 
   useEffect(() => {
     async function fetchWealthStats() {
@@ -32,23 +33,56 @@ const WealthOverTime = (props) => {
           )
         ),
       ];
-
-      setYears(["All Time", ...uniqueYears]);
+      if (years.length === 0) {
+        setYears(["All Time", ...uniqueYears]);
+      }
       setData(wealthStats["monthly_differences"]);
-      setFilteredData(wealthStats["monthly_differences"]);
     }
     fetchWealthStats();
   }, [global.globalCurrency]);
 
-  const handleYearChange = (event) => {
-    const year = event.target.value;
-    setSelectedYear(year);
+  useEffect(() => {
+    filterData(selectedYear);
+  }, [data]);
 
+  function filterData(year) {
     if (year === "All Time") {
       setFilteredData(data);
     } else {
       setFilteredData(data.filter((item) => item.date.startsWith(year)));
     }
+  }
+
+  const handleYearChange = (event) => {
+    const year = event.target.value;
+    setSelectedYear(year);
+    filterData(year);
+  };
+
+  useEffect(() => {
+    if (filteredData) {
+      calculateAggregations();
+    }
+  }, [filteredData]);
+
+  const calculateAggregations = () => {
+    if (!filteredData || filteredData.length === 0) {
+      return;
+    }
+
+    const netDifferences = filteredData.map((item) => item.net_difference);
+
+    const sum = netDifferences.reduce((acc, value) => acc + value, 0);
+    const average = sum / netDifferences.length;
+    const min = Math.min(...netDifferences);
+    const max = Math.max(...netDifferences);
+
+    setAggs({
+      sum: sum,
+      average: average,
+      min: min,
+      max: max,
+    });
   };
 
   return (
@@ -57,6 +91,7 @@ const WealthOverTime = (props) => {
       height={props.height}
       data={filteredData?.sort((a, b) => new Date(a.date) - new Date(b.date))}
       margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+      id="wealth_over_time_chart"
     >
       <defs>
         <linearGradient id="colorLine" x1="0" y1="0" x2="0" y2="1">
@@ -77,6 +112,7 @@ const WealthOverTime = (props) => {
             selectedYear={selectedYear}
             handleYearChange={handleYearChange}
             years={years}
+            aggs={aggs}
           />
         )}
       />
@@ -192,19 +228,74 @@ const NetSavingsBar = (props) => {
   );
 };
 
-const CustomLegend = ({ years, handleYearChange, selectedYear }) => {
+const CustomLegend = ({ years, handleYearChange, selectedYear, aggs }) => {
+  const global = useGlobalContext();
   return (
     <>
       <div id={"wealth_over_time_legend"}>
-        <label>Total wealth over time and monthly net savings.</label>
-        <div style={{ textAlign: "center" }}>
-          <select value={selectedYear} onChange={handleYearChange}>
-            {years?.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
+        <div className={"header"}>
+          <label>Total wealth over time and monthly net savings.</label>
+          <div style={{ textAlign: "center" }}>
+            <select value={selectedYear} onChange={handleYearChange}>
+              {years?.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className={"aggregations"}>
+          <table className="aggregations-table">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Total Savings</td>
+                <td>
+                  {helper.showOrMask(
+                    global.privacyMode,
+                    helper.formatNumber(aggs.sum)
+                  )}
+                  {helper.getCurrency(global.globalCurrency)}
+                </td>
+              </tr>
+              <tr>
+                <td>Average</td>
+                <td>
+                  {helper.showOrMask(
+                    global.privacyMode,
+                    helper.formatNumber(aggs.average)
+                  )}
+                  {helper.getCurrency(global.globalCurrency)}
+                </td>
+              </tr>
+              <tr>
+                <td>Min</td>
+                <td>
+                  {helper.showOrMask(
+                    global.privacyMode,
+                    helper.formatNumber(aggs.min)
+                  )}
+                  {helper.getCurrency(global.globalCurrency)}
+                </td>
+              </tr>
+              <tr>
+                <td>Max</td>
+                <td>
+                  {helper.showOrMask(
+                    global.privacyMode,
+                    helper.formatNumber(aggs.max)
+                  )}
+                  {helper.getCurrency(global.globalCurrency)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </>

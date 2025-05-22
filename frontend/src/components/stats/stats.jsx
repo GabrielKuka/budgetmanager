@@ -82,11 +82,11 @@ const Stats = () => {
                 incomes={incomes}
               />
             </div>
-            <div className={"chart-container"}>
+            <div className={"chart-container"} id="wealthOverTimeContainer">
               <WealthOverTime
                 getAccountCurrency={getAccountCurrency}
-                height={330}
-                width={500}
+                height={600}
+                width={1000}
                 expenses={expenses}
                 incomes={incomes}
               />
