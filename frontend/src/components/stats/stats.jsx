@@ -94,7 +94,7 @@ const Stats = () => {
             <div className={"chart-container"}>
               <FoodExpensesChart
                 height={330}
-                width={460}
+                width={1000}
                 expenses={expenses?.filter((e) => e.category === 11)}
                 incomes={incomes}
                 getAccountCurrency={getAccountCurrency}

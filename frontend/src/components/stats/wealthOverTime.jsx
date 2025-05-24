@@ -11,7 +11,7 @@ import {
   YAxis,
   ComposedChart,
 } from "recharts";
-import transactionService from "../../services/transactionService/transactionService";
+import statService from "../../services/transactionService/statService";
 
 const WealthOverTime = (props) => {
   const global = useGlobalContext();
@@ -23,7 +23,7 @@ const WealthOverTime = (props) => {
 
   useEffect(() => {
     async function fetchWealthStats() {
-      const wealthStats = await transactionService.getWealthStats(
+      const wealthStats = await statService.getWealthStats(
         global.globalCurrency
       );
       const uniqueYears = [
@@ -99,8 +99,6 @@ const WealthOverTime = (props) => {
     const avgNetSavingsGrowthRate =
       netSavingsGrowthRate.reduce((sum, val) => sum + val, 0) /
       netSavingsGrowthRate.length;
-
-    console.log(wealthGrowthRate);
 
     setAggs({
       sum: sum,

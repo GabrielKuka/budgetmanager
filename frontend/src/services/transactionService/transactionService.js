@@ -12,27 +12,6 @@ async function getTransactions(dateRange) {
   return await expenseService.getTransactions(dateRange);
 }
 
-async function getWealthStats(currency) {
-  const token = JSON.parse(localStorage.getItem("authToken"));
-  const config = {
-    params: {
-      currency: currency,
-    },
-    headers: {
-      Authorization: token,
-    },
-  };
-
-  const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
-
-  const response = await axios.get(`${ENDPOINT}/get_wealth_stats`, config);
-  if (response.status === 200) {
-    return response.data;
-  } else {
-    alert("Error fetching wealth stats.");
-  }
-}
-
 // Templates
 async function addTemplate(payload) {
   return await templateService.addTemplate(payload);
@@ -161,7 +140,6 @@ const transactionService = {
   getUserExpenses,
   getUserIncomes,
   getUserTransfers,
-  getWealthStats,
 };
 
 export default transactionService;

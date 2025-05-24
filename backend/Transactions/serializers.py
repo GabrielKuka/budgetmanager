@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from Accounts.serialzers import AccountSerializer
 from tags.serializers import TagSerializer
 
 from .models import TransactionCategory, Transaction
@@ -22,6 +23,16 @@ class TransactionSerializer(serializers.ModelSerializer):
             transactions.tags.add(tag)
 
         return transactions
+
+
+class FoodTransactionSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    date = serializers.DateField()
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    description = serializers.CharField(allow_null=True)
+    tags = serializers.ListField(
+        child=serializers.CharField(), allow_empty=True
+    )
 
 
 class TransactionCategorySerializer(serializers.ModelSerializer):

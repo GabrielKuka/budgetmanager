@@ -1,106 +1,49 @@
 import { useState, useEffect } from "react";
-import currencyService from "../../services/currencyService";
 import {
-  Line,
-  LineChart,
+  Bar,
   Tooltip,
   Legend,
   XAxis,
   YAxis,
-  CartesianGrid,
+  ResponsiveContainer,
+  BarChart,
 } from "recharts";
 import { helper } from "../helper";
 import { useGlobalContext } from "../../context/GlobalContext";
+import statService from "../../services/transactionService/statService";
 
 const FoodExpensesChart = (props) => {
   const global = useGlobalContext();
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    async function getData() {
-      const items = [];
-      const today = new Date();
-      const twelveMonthsAgo = new Date();
-      twelveMonthsAgo.setFullYear(today.getFullYear() - 1);
-
-      // Get Total Income for each month
-      let incomesByMonth = {};
-      for (const i of props.incomes) {
-        const date = new Date(i.date);
-
-        if (date > twelveMonthsAgo) {
-          const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1)
-            .toString()
-            .padStart(2, "0")}`;
-          if (!incomesByMonth[monthYear]) {
-            incomesByMonth[monthYear] = 0;
-          }
-
-          const amount = await currencyService.convert(
-            props.getAccountCurrency(i.to_account),
-            global.globalCurrency,
-            i.amount
-          );
-
-          incomesByMonth[monthYear] += Number(amount) || 0;
-        }
-      }
-
-      // Get food expenses for each month
-      let foodExpensesByMonth = {};
-      for (const e of props.expenses) {
-        const date = new Date(e.date);
-        if (date > twelveMonthsAgo) {
-          const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1)
-            .toString()
-            .padStart(2, "0")}`;
-
-          if (!foodExpensesByMonth[monthYear]) {
-            foodExpensesByMonth[monthYear] = 0;
-          }
-
-          let amount = await currencyService.convert(
-            props.getAccountCurrency(e.from_account),
-            global.globalCurrency,
-            e.amount
-          );
-          foodExpensesByMonth[monthYear] += Number(amount) || 0;
-        }
-      }
-      // Calculate the ratio
-      for (const date in foodExpensesByMonth) {
-        if (incomesByMonth[date] < foodExpensesByMonth[date]) {
-          continue;
-        }
-        items.push({
-          date: date,
-          ratio: parseFloat(
-            (foodExpensesByMonth[date] / incomesByMonth[date]) * 100
-          ),
-          income: incomesByMonth[date],
-          food: foodExpensesByMonth[date],
-        });
-      }
-      setData(items);
+    async function getFoodStats() {
+      const data = await statService.getFoodStats(global.globalCurrency);
+      console.log(data["data"]);
+      setData(data["data"]);
     }
 
-    getData();
-  }, [props.expenses, props.income]);
+    getFoodStats();
+  }, [global.globalCurrency]);
 
   return (
-    <LineChart
-      width={props.width}
-      height={props.height}
-      data={data?.sort((a, b) => new Date(a.date) - new Date(b.date))}
-      margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="date" />
-      <YAxis />
-      <Tooltip content={<CustomTooltip />} />
-      <Legend content={<CustomLenged />} />
-      <Line type="monotone" dataKey="ratio" stroke="#8884d8" />
-    </LineChart>
+    <ResponsiveContainer width={props.width} height={props.height}>
+      <BarChart
+        data={data}
+        width={props.width}
+        height={props.height}
+        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+      >
+        <XAxis dataKey="year_month" />
+        <YAxis />
+        <Tooltip content={<CustomTooltip />} />
+        <Legend content={<CustomLenged />} />
+        <Bar dataKey="kaufland" stackId="a" fill="red" />
+        <Bar dataKey="billa" stackId="a" fill="yellow" />
+        <Bar dataKey="lidl" stackId="a" fill="blue" />
+        <Bar dataKey="others" stackId="a" fill="#82ca9d" />
+      </BarChart>
+    </ResponsiveContainer>
   );
 };
 
@@ -118,7 +61,7 @@ const CustomLenged = () => {
         cursor: "pointer",
       }}
     >
-      This chart shows food expenses compared to income monthly.
+      Food Expenses Every Month
     </div>
   );
 };
@@ -138,25 +81,50 @@ const CustomTooltip = ({ active, payload }) => {
           height: "fit-content",
         }}
       >
-        Income:{" "}
+        Total:{" "}
         <b>
           {`${helper.showOrMask(
             global.privacyMode,
-            parseFloat(data.income).toFixed(2)
+            parseFloat(data.total_amount).toFixed(2)
           )}`}{" "}
           {helper.getCurrency(global.globalCurrency)}
         </b>
         <br />
-        Food:{" "}
+        Kaufland:{" "}
         <b>
           {`${helper.showOrMask(
             global.privacyMode,
-            parseFloat(data.food).toFixed(2)
+            parseFloat(data.kaufland).toFixed(2)
           )}`}{" "}
           {helper.getCurrency(global.globalCurrency)}{" "}
         </b>
         <br />
-        Ratio: <b>{`${parseFloat(data.ratio).toFixed(2)}`} %</b>
+        Billa:{" "}
+        <b>
+          {`${helper.showOrMask(
+            global.privacyMode,
+            parseFloat(data.billa).toFixed(2)
+          )}`}{" "}
+          {helper.getCurrency(global.globalCurrency)}{" "}
+        </b>
+        <br />
+        Lidl:{" "}
+        <b>
+          {`${helper.showOrMask(
+            global.privacyMode,
+            parseFloat(data.lidl).toFixed(2)
+          )}`}{" "}
+          {helper.getCurrency(global.globalCurrency)}{" "}
+        </b>
+        <br />
+        Others:{" "}
+        <b>
+          {`${helper.showOrMask(
+            global.privacyMode,
+            parseFloat(data.others).toFixed(2)
+          )}`}{" "}
+          {helper.getCurrency(global.globalCurrency)}{" "}
+        </b>
       </div>
     );
   }

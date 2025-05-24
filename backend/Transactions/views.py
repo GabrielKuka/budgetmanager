@@ -6,9 +6,14 @@ from django.utils.dateparse import parse_date
 from datetime import datetime
 from rest_framework.authtoken.models import Token
 from typing import List
+from collections import defaultdict
 
 from .models import Transaction, TransactionCategory, Account
-from .serializers import TransactionSerializer, TransactionCategorySerializer
+from .serializers import (
+    FoodTransactionSerializer,
+    TransactionSerializer,
+    TransactionCategorySerializer,
+)
 
 
 @api_view(["GET"])
@@ -184,8 +189,101 @@ def convert_currency(source: str, targets: List[str]):
 
 
 @api_view(["GET"])
+def get_food_stats(request):
+
+    token = request.headers["Authorization"]
+    user_id = Token.objects.get(key=token).user_id
+
+    currency = request.GET.get("currency")
+
+    # Get exchange rates
+    rates = convert_currency(currency, ["EUR", "USD", "BGN", "GBP", "ALL"])
+
+    food_transactions = (
+        Transaction.objects.filter(
+            user=user_id,
+            transaction_type="expense",
+            category__category__iexact="Food",
+        )
+        .exclude(transaction_type="transfer")
+        .values(
+            "id", "date", "amount", "description", "tags__name", "from_account"
+        )
+    )
+
+    # Aggregate tags into a list for each transaction
+    aggregated_transactions = defaultdict(lambda: {"tags": []})
+    for transaction in food_transactions:
+        transaction_currency = Account.objects.get(
+            id=transaction["from_account"]
+        ).currency
+        transaction_id = transaction["id"]
+        if "id" not in aggregated_transactions[transaction_id]:
+            aggregated_transactions[transaction_id].update(
+                {
+                    "id": transaction["id"],
+                    "date": transaction["date"],
+                    "amount": transaction["amount"]
+                    / rates.get(transaction_currency, 1),
+                    "description": transaction["description"],
+                }
+            )
+        aggregated_transactions[transaction_id]["tags"].append(
+            transaction["tags__name"]
+        )
+
+    # Convert the aggregated transactions to a list
+    result = list(aggregated_transactions.values())
+
+    # Group transactions by %Y-%m and perform aggregations
+    grouped_by_month = defaultdict(
+        lambda: {
+            "transactions": [],
+            "total_amount": 0,
+            "kaufland_sum":0,
+            "billa_sum":0,
+            "lidl_sum":0,
+        }
+    )
+    for transaction in result:
+        # Extract the year-month from the date
+        year_month = transaction["date"].strftime("%Y-%m")
+
+        # Add the transaction to the group
+        grouped_by_month[year_month]["transactions"].append(transaction)
+        grouped_by_month[year_month]["total_amount"] += transaction["amount"]
+
+        description = transaction["description"].lower() if transaction["description"] else ""
+        # Check tags and add amounts to specific tag sums
+        if "kaufland" in description:
+            grouped_by_month[year_month]["kaufland_sum"] += transaction["amount"]
+        if "lidl" in description:
+            grouped_by_month[year_month]["lidl_sum"] += transaction["amount"]
+        if "billa" in description:
+            grouped_by_month[year_month]["billa_sum"] += transaction["amount"]
+
+
+    # Convert grouped data to a list
+    grouped_result = [
+        {
+            "year_month": year_month,
+            "total_amount": round(data["total_amount"], 2),
+            "transactions": data["transactions"],
+            "kaufland": round(data["kaufland_sum"], 2),
+            "lidl": round(data["lidl_sum"], 2),
+            "billa": round(data["billa_sum"], 2),
+            "others": round(data['total_amount'] - (
+                data["kaufland_sum"] + data["lidl_sum"] + data["billa_sum"]), 2),
+            "transactions": data["transactions"],
+        }
+        for year_month, data in grouped_by_month.items()
+    ]
+
+    return Response({"data": grouped_result}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
 def get_wealth_stats(request):
-    from collections import defaultdict
 
     token = request.headers["Authorization"]
     user_id = Token.objects.get(key=token).user_id
