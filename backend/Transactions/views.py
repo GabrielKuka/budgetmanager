@@ -240,9 +240,9 @@ def get_food_stats(request):
         lambda: {
             "transactions": [],
             "total_amount": 0,
-            "kaufland_sum":0,
-            "billa_sum":0,
-            "lidl_sum":0,
+            "kaufland_sum": 0,
+            "billa_sum": 0,
+            "lidl_sum": 0,
         }
     )
     for transaction in result:
@@ -253,15 +253,20 @@ def get_food_stats(request):
         grouped_by_month[year_month]["transactions"].append(transaction)
         grouped_by_month[year_month]["total_amount"] += transaction["amount"]
 
-        description = transaction["description"].lower() if transaction["description"] else ""
+        description = (
+            transaction["description"].lower()
+            if transaction["description"]
+            else ""
+        )
         # Check tags and add amounts to specific tag sums
         if "kaufland" in description:
-            grouped_by_month[year_month]["kaufland_sum"] += transaction["amount"]
+            grouped_by_month[year_month]["kaufland_sum"] += transaction[
+                "amount"
+            ]
         if "lidl" in description:
             grouped_by_month[year_month]["lidl_sum"] += transaction["amount"]
         if "billa" in description:
             grouped_by_month[year_month]["billa_sum"] += transaction["amount"]
-
 
     # Convert grouped data to a list
     grouped_result = [
@@ -272,8 +277,13 @@ def get_food_stats(request):
             "kaufland": round(data["kaufland_sum"], 2),
             "lidl": round(data["lidl_sum"], 2),
             "billa": round(data["billa_sum"], 2),
-            "others": round(data['total_amount'] - (
-                data["kaufland_sum"] + data["lidl_sum"] + data["billa_sum"]), 2),
+            "others": round(
+                data["total_amount"]
+                - (
+                    data["kaufland_sum"] + data["lidl_sum"] + data["billa_sum"]
+                ),
+                2,
+            ),
             "transactions": data["transactions"],
         }
         for year_month, data in grouped_by_month.items()
