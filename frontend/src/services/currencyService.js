@@ -10,7 +10,7 @@ const ENDPOINT = `${CURRENCY_BASE_URL}/latest.json?app_id=${CURRENCY_API_KEY}`;
 
 async function convert(from, to, amount) {
   if (from === to) {
-    return parseFloat(amount).toFixed(2);
+    return parseFloat(amount);
   }
 
   // Check if rates are stored in cookies
@@ -25,7 +25,7 @@ async function convert(from, to, amount) {
       const toUSDamount = amount / fromUSDrate;
       const toAmount = toUSDamount * rates[to];
 
-      return parseFloat(toAmount).toFixed(2);
+      return parseFloat(toAmount);
     }
   }
 
@@ -38,7 +38,7 @@ async function convert(from, to, amount) {
 
   localStorage.setItem(`rates`, JSON.stringify(rates));
   localStorage.setItem(`rates_time`, new Date().getTime());
-  return parseFloat(toAmount).toFixed(2);
+  return parseFloat(toAmount);
 }
 
 async function convertInvestments(currency) {

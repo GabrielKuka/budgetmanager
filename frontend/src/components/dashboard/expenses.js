@@ -23,10 +23,10 @@ const Expenses = () => {
 
   useEffect(() => {
     setAccounts(global.activeAccounts);
-  }, [global.activeAccounts]);
+  }, []);
 
   function getAccountCurrency(id) {
-    const account = global.accounts?.filter((a) => a.id === id);
+    const account = global.activeAccounts?.filter((a) => a.id == id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -385,7 +385,7 @@ const ExpensesList = (props) => {
       date: (item) => new Date(item.date),
       amount: async (item) => {
         const convertedAmount = await currencyService.convert(
-          props.getAccountCurrency(item.account),
+          props.getAccountCurrency(item.from_account),
           global.globalCurrency,
           item.amount
         );
@@ -394,7 +394,6 @@ const ExpensesList = (props) => {
     };
 
     const transform = sortKeyFunction[by] || ((item) => item[by]);
-
     // Convert amounts to a single currency
     const itemsWithTransformedValues = await Promise.all(
       props.shownExpenses.map(async (item) => ({

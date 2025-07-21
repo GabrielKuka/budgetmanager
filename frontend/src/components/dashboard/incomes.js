@@ -402,7 +402,7 @@ const IncomesList = (props) => {
       date: (item) => new Date(item.date),
       amount: async (item) => {
         const convertedAmount = await currencyService.convert(
-          props.getAccountCurrency(item.account),
+          props.getAccountCurrency(item.to_account),
           global.globalCurrency,
           item.amount
         );
