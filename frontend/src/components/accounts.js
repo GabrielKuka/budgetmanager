@@ -472,14 +472,11 @@ const AccountItem = ({ account, refreshAccounts }) => {
   }
 
   return (
-    <div
-      className="account-item"
-      onClick={() => navigate(`/accounts/${account.id}`)}
-    >
+    <div className="account-item">
       <label id="date">
         {new Date(account.created_on).toISOString().slice(0, 10)}
       </label>
-      <label id="name">
+      <label id="name" onClick={() => navigate(`/accounts/${account.id}`)}>
         {account.name.toLowerCase().includes("Revolut".toLowerCase()) && (
           <img
             alt="revolut_icon"
