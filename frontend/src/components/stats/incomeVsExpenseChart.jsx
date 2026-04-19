@@ -37,8 +37,11 @@ const IncomeVsExpenseChart = (props) => {
               expensesByMonth[monthYear] = 0;
             }
 
+            const expenseCurrency = props.getTransactionCurrency
+              ? props.getTransactionCurrency(e)
+              : props.getAccountCurrency(e.from_account);
             let amount = await currencyService.convert(
-              props.getAccountCurrency(e.from_account),
+              expenseCurrency,
               global.globalCurrency,
               e.amount
             );
@@ -61,8 +64,11 @@ const IncomeVsExpenseChart = (props) => {
               incomesByMonth[monthYear] = 0;
             }
 
+            const incomeCurrency = props.getTransactionCurrency
+              ? props.getTransactionCurrency(i)
+              : props.getAccountCurrency(i.to_account);
             const amount = await currencyService.convert(
-              props.getAccountCurrency(i.to_account),
+              incomeCurrency,
               global.globalCurrency,
               i.amount
             );
@@ -76,17 +82,18 @@ const IncomeVsExpenseChart = (props) => {
       const expensesByMonth = await getExpensesYoY();
       const incomesByMonth = await getIncomesYoY();
 
-      for (let monthYear in expensesByMonth) {
-        if (
-          typeof incomesByMonth[monthYear] === "undefined" ||
-          expensesByMonth[monthYear] === "undefined"
-        ) {
-          continue;
-        }
-        const currentIncome = parseFloat(incomesByMonth[monthYear].toFixed(2));
-        const currentExpense = parseFloat(
-          expensesByMonth[monthYear].toFixed(2)
-        );
+      const allMonths = Array.from(
+        new Set([
+          ...Object.keys(expensesByMonth),
+          ...Object.keys(incomesByMonth),
+        ])
+      );
+
+      for (let monthYear of allMonths) {
+        const monthIncome = incomesByMonth[monthYear] || 0;
+        const monthExpense = expensesByMonth[monthYear] || 0;
+        const currentIncome = parseFloat(monthIncome.toFixed(2));
+        const currentExpense = parseFloat(monthExpense.toFixed(2));
 
         items.push({
           date: monthYear,

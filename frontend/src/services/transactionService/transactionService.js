@@ -1,37 +1,14 @@
-import templateService from "./templateService";
-import templateGroupsService from "./templateGroupsService";
 import accountService from "./accountService";
 import expenseService from "./expenseService";
 import incomeService from "./incomeService";
 import transferService from "./transferService";
 import axios from "axios";
 import { BASE_URL, BACKEND_PORT } from "../../config";
+const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
 
 // Get transaction in a timeframe
 async function getTransactions(dateRange) {
   return await expenseService.getTransactions(dateRange);
-}
-
-// Templates
-async function addTemplate(payload) {
-  return await templateService.addTemplate(payload);
-}
-
-async function getTemplates() {
-  return await templateService.getTemplates();
-}
-
-// Template Groups
-async function addTemplateGroup(payload) {
-  return await templateGroupsService.addTemplateGroup(payload);
-}
-
-async function deleteTemplateGroup(id) {
-  return await templateGroupsService.deleteTemplateGroup(id);
-}
-
-async function getTemplateGroups() {
-  return await templateGroupsService.getTemplateGroups();
 }
 
 // Accounts
@@ -114,6 +91,17 @@ async function deleteTransfer(payload) {
   return await transferService.deleteTransfer(payload);
 }
 
+async function addTransaction(payload) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+  const response = await axios.post(`${ENDPOINT}/add`, payload, config);
+  return response.data;
+}
+
 const transactionService = {
   getAllIncomeCategories,
   getAllExpenseCategories,
@@ -131,15 +119,11 @@ const transactionService = {
   deleteAccount,
   restoreAccount,
   getAllUserIncomes,
-  getTemplateGroups,
-  addTemplateGroup,
-  addTemplate,
-  getTemplates,
-  deleteTemplateGroup,
   getTransactions,
   getUserExpenses,
   getUserIncomes,
   getUserTransfers,
+  addTransaction,
 };
 
 export default transactionService;

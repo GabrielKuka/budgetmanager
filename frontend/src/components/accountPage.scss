@@ -50,12 +50,34 @@
           grid-template-columns: 1.1fr 2fr;
           margin-top: 10px;
           border-bottom: 1px solid #dadada;
+          align-items: center;
+          min-height: 30px;
+          padding-bottom: 2px;
 
           span {
             text-align: right;
           }
           #account-name {
             font-weight: bold;
+            display: inline-flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+
+            .account-status-indicator {
+              font-size: 14px;
+              line-height: 1;
+              font-weight: 700;
+            }
+
+            .account-status-indicator.active {
+              color: #2f9e44;
+            }
+
+            .account-status-indicator.inactive {
+              color: #c92a2a;
+            }
           }
           .datetime {
             font-size: 14px;
@@ -64,6 +86,38 @@
           label {
             color: gray;
             font-size: 14px;
+          }
+        }
+
+        .grid-row.aggregate-row {
+          label,
+          span {
+            font-weight: 600;
+            color: #2f3b43;
+          }
+        }
+
+        .grid-row.cash-sub-row {
+          margin-top: 4px;
+          min-height: 24px;
+          padding-bottom: 1px;
+
+          label,
+          span {
+            font-size: 13px;
+            color: #62727d;
+          }
+
+          label {
+            padding-left: 10px;
+          }
+        }
+
+        .grid-row.grand-total-row {
+          label,
+          span {
+            font-weight: 700;
+            color: #1d2a31;
           }
         }
       }

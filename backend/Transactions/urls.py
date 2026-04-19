@@ -5,6 +5,11 @@ from . import views
 urlpatterns = [
     path("add", views.add_transaction, name="add-transaction"),
     path("delete", views.delete_transaction, name="delete-transaction"),
+    path(
+        "delete/<int:pk>",
+        views.delete_transaction_by_pk,
+        name="delete-transaction-by-pk",
+    ),
     path("all", views.get_all_transactions, name="get-all-transactions"),
     path("allexpenses", views.get_all_expenses, name="get-all-expenses"),
     path("allincomes", views.get_all_incomes, name="get-all-incomes"),

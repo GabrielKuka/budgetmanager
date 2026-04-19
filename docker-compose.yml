@@ -4,22 +4,30 @@ services:
       context: ./backend
     container_name: budgetmanager_backend
     restart: always
-    ports:
-      - "8001:8001"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.budget-backend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.budget-backend.entrypoints=budget-backend"
+      - "traefik.http.services.budget-backend.loadbalancer.server.port=8001"
     volumes:
       - /home/user1/budgetmanager/budgetdb:/app/budgetdb
     networks:
       - budget_network
+      - proxy
 
   frontend:
     build:
       context: ./frontend
     container_name: budgetmanager_frontend
     restart: always
-    ports:
-      - "3001:3001"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.budget-frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.budget-frontend.entrypoints=budget-frontend"
+      - "traefik.http.services.budget-frontend.loadbalancer.server.port=3001"
     networks:
       - budget_network
+      - proxy
 
 volumes:
   budgetdb:
@@ -27,3 +35,5 @@ volumes:
 networks:
   budget_network:
     driver: bridge
+  proxy:
+    external: true

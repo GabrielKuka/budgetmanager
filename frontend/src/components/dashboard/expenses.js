@@ -9,6 +9,7 @@ import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
 import CurrentExpensesBarChart from "../stats/currentExpensesBarChart";
+import PercentExpensesPieChart from "../stats/percentExpensesPie";
 import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
 import { validationSchemas } from "../../validationSchemas";
@@ -145,13 +146,6 @@ const Sidebar = (props) => {
 
   return (
     <div className={"expenses-wrapper__sidebar"}>
-      <AddExpense
-        accounts={props.accounts}
-        categories={props.categories}
-        refreshExpenses={props.refreshExpenses}
-        refreshAccounts={props.refreshAccounts}
-        getAccountCurrency={props.getAccountCurrency}
-      />
       <div className={"summary"}>
         <b>
           {helper.showOrMask(
@@ -179,6 +173,17 @@ const Sidebar = (props) => {
         width={330}
         height={250}
       />
+      <div className="pie-chart-card">
+        <div className="chart-title">By category</div>
+        <PercentExpensesPieChart
+          expenses={props.shownExpenses}
+          categories={props.categories}
+          getAccountCurrency={props.getAccountCurrency}
+          width={330}
+          height={250}
+          outerRadius={112}
+        />
+      </div>
     </div>
   );
 };
@@ -462,7 +467,7 @@ const ExpensesList = (props) => {
           )}
           <select id="account" defaultValue={"-1"} onChange={filterExpenses}>
             <option value="-1">All</option>
-            {global.accounts?.map((a) => (
+            {props.accounts?.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
               </option>

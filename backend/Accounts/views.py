@@ -1,209 +1,506 @@
-from rest_framework import status
-from django.db.models import Q
+from datetime import timedelta
+from decimal import Decimal, ROUND_HALF_UP
+
+from django.db import transaction as db_transaction
+from django.db.models import Count, DecimalField, ExpressionWrapper, F, Q, Sum
 from django.db.models.functions import TruncMonth
-from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.db.models.expressions import RowRange
-
-from .models import Account
-from Transactions.models import Transaction
-from Transactions.serializers import TransactionSerializer
-from django.shortcuts import get_object_or_404, redirect
-from .serialzers import AccountSerializer
-from django.db.models import (
-    Sum,
-    Avg,
-    Max,
-    Min,
-    Count,
-    Window,
-    F,
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
 )
-from datetime import datetime, timedelta
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from Transactions.models import Transaction
+
+from .models import Account, CashBalance, Currency
+from .serializers import AccountSerializer
 
 
-@api_view(["POST"])
-def create_account(request):
-    # Retrieve user token
-    token = request.headers["Authorization"]
-    user_id = Token.objects.get(key=token).user_id
-    p = request.data
-    p["user_id"] = user_id
-
-    try:
-        Account(**p).save()
-        return Response(
-            {"message": "Account created."}, status=status.HTTP_201_CREATED
-        )
-    except:
-        return Response(
-            {"error": "Error creating account."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+def _to_decimal(value):
+    if isinstance(value, Decimal):
+        return value
+    if value is None:
+        return Decimal("0")
+    return Decimal(str(value))
 
 
-@api_view(["PUT"])
-def soft_delete(request, account_id):
-    account = get_object_or_404(Account, id=account_id)
-    account.soft_delete()
-
-    return Response(
-        {"message": "Account soft deleted."}, status=status.HTTP_200_OK
-    )
+def _round_2(value):
+    return float(_to_decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
 
-@api_view(["PUT"])
-def restore_account(request, account_id):
-    account = get_object_or_404(Account, id=account_id)
-    account.restore()
+def _summarize_rows(rows):
+    ordered_rows = sorted(rows, key=lambda row: row["date"])
+    amounts = [_to_decimal(row.get("amount", row.get("calc_amount", 0))) for row in ordered_rows]
 
-    return Response(
-        {"message": "Account restored."}, status=status.HTTP_200_OK
-    )
+    if not amounts:
+        return {
+            "total": 0.0,
+            "average": 0.0,
+            "max": 0.0,
+            "min": 0.0,
+            "count": 0,
+            "running_total": [],
+            "moving_avg": [],
+        }
 
+    total = sum(amounts, Decimal("0"))
+    running_total = []
+    moving_avg = []
+    rolling = []
+    cumulative = Decimal("0")
 
-@api_view(["DELETE"])
-def delete_account(request, id):
-
-    try:
-        Account.objects.filter(pk=id).delete()
-        return Response(
-            {"message": "Account deleted."}, status=status.HTTP_200_OK
-        )
-    except:
-        return Response(
-            {"error": "Error deleting account."},
-            status=status.HTTP_400_BAD_REQUEST,
+    for row, amount in zip(ordered_rows, amounts):
+        cumulative += amount
+        running_total.append(
+            {
+                "date": row["date"],
+                "amount": _round_2(amount),
+                "running_total": _round_2(cumulative),
+            }
         )
 
+        rolling.append(amount)
+        if len(rolling) > 7:
+            rolling.pop(0)
+        avg = sum(rolling, Decimal("0")) / Decimal(len(rolling))
+        moving_avg.append(
+            {
+                "date": row["date"],
+                "amount": _round_2(amount),
+                "moving_avg": _round_2(avg),
+            }
+        )
 
-@api_view(["GET"])
-def get_all_accounts(request):
-    # Retrieve user token
-    token = request.headers["Authorization"]
-    user_id = Token.objects.get(key=token).user_id
+    return {
+        "total": _round_2(total),
+        "average": _round_2(total / len(amounts)),
+        "max": _round_2(max(amounts)),
+        "min": _round_2(min(amounts)),
+        "count": len(amounts),
+        "running_total": running_total,
+        "moving_avg": moving_avg,
+    }
 
-    accounts = Account.objects.filter(user=user_id)
 
-    serializer = AccountSerializer(accounts, many=True)
+@api_view(["GET", "POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def account_collection(request):
+    if request.method == "GET":
+        accounts = (
+            Account.objects.filter(user=request.user)
+            .prefetch_related(
+                "cash_balances__currency",
+                "holdings__security__currency",
+                "holdings__security__prices",
+            )
+            .order_by("id")
+        )
+        return Response(
+            AccountSerializer(accounts, many=True).data, status=status.HTTP_200_OK
+        )
 
+    payload = request.data.copy()
+    raw_cash_balances = payload.pop("cash_balances", None)
+    currency_code = str(payload.pop("currency", "")).strip().upper()
+    amount_raw = payload.pop("amount", None)
+
+    serializer = AccountSerializer(data=payload)
+    serializer.is_valid(raise_exception=True)
+
+    parsed_cash_balances = None
+    if raw_cash_balances is not None:
+        if not isinstance(raw_cash_balances, list) or len(raw_cash_balances) == 0:
+            return Response(
+                {"error": "cash_balances must contain at least one item."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        parsed_cash_balances = []
+        seen_currency_ids = set()
+        for row in raw_cash_balances:
+            if not isinstance(row, dict):
+                return Response(
+                    {"error": "Each cash balance must be an object."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            raw_currency = row.get("currency")
+            if raw_currency in (None, ""):
+                return Response(
+                    {"error": "Each cash balance requires currency."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            raw_amount = row.get("amount", 0)
+            try:
+                amount = _to_decimal(raw_amount)
+            except Exception:
+                return Response(
+                    {"error": "Invalid cash balance amount."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if amount < 0:
+                return Response(
+                    {"error": "Cash balance amount must be >= 0."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            currency = None
+            if isinstance(raw_currency, int) or (
+                isinstance(raw_currency, str) and raw_currency.isdigit()
+            ):
+                currency = Currency.objects.filter(pk=int(raw_currency)).first()
+            else:
+                currency = Currency.objects.filter(
+                    code=str(raw_currency).strip().upper()
+                ).first()
+
+            if currency is None:
+                return Response(
+                    {"error": f"Currency '{raw_currency}' not found."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if currency.id in seen_currency_ids:
+                return Response(
+                    {"error": "Duplicate currencies in cash_balances are not allowed."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            seen_currency_ids.add(currency.id)
+            parsed_cash_balances.append({"currency": currency, "amount": amount})
+    else:
+        if amount_raw not in (None, "") and not currency_code:
+            return Response(
+                {"error": "Currency is required when amount is provided."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        currency = None
+        amount = None
+        if currency_code:
+            currency = Currency.objects.filter(code=currency_code).first()
+            if currency is None:
+                return Response(
+                    {"error": f"Currency '{currency_code}' not found."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            try:
+                amount = _to_decimal(amount_raw)
+            except Exception:
+                return Response(
+                    {"error": "Invalid account amount."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if amount < 0:
+                return Response(
+                    {"error": "Account amount must be >= 0."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+    with db_transaction.atomic():
+        account = serializer.save(user=request.user)
+        if parsed_cash_balances is not None:
+            created_rows = []
+            for row in parsed_cash_balances:
+                created_rows.append(
+                    CashBalance.objects.create(
+                        account=account,
+                        currency=row["currency"],
+                        balance=row["amount"],
+                    )
+                )
+
+            primary = next(
+                (row for row in created_rows if row.currency.code == "EUR"),
+                created_rows[0],
+            )
+            account.amount = float(primary.balance)
+            account.currency = primary.currency.code
+            account.save(update_fields=["amount", "currency"])
+        elif currency is not None:
+            account.amount = float(amount)
+            account.currency = currency.code
+            account.save(update_fields=["amount", "currency"])
+            CashBalance.objects.create(
+                account=account, currency=currency, balance=amount
+            )
+
+    return Response(AccountSerializer(account).data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["PUT", "PATCH", "DELETE"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def account_detail(request, account_id, deleted=None):
+    account = get_object_or_404(Account, id=account_id, user=request.user)
+
+    if request.method == "DELETE":
+        account.delete()
+        return Response({"message": "Account deleted."}, status=status.HTTP_200_OK)
+
+    if deleted is not None:
+        account.deleted = bool(deleted)
+        account.save(update_fields=["deleted"])
+        message = "Account soft deleted." if account.deleted else "Account restored."
+        return Response(
+            {"message": message, "deleted": account.deleted},
+            status=status.HTTP_200_OK,
+        )
+
+    serializer = AccountSerializer(account, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    serializer.save(user=request.user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
-def get_account_data(request, id):
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def account_stats(request, account_id):
+    account = get_object_or_404(Account, id=account_id, user=request.user)
+    today = timezone.now().date()
+    start_of_month = today.replace(day=1)
+    start_of_year = today.replace(month=1, day=1)
+    first_day_current_month = today.replace(day=1)
+    last_day_prev_month = first_day_current_month - timedelta(days=1)
+    first_day_prev_month = last_day_prev_month.replace(day=1)
 
-    token = request.headers["Authorization"]
-    user_id = Token.objects.get(key=token).user_id
-
-    account = get_object_or_404(Account, id=id, user=user_id)
-
-    today = datetime.now()
-    start_of_the_month = datetime(today.year, today.month, 1)
-    start_of_the_year = datetime(today.year, 1, 1)
-
-    stat_expenses_month = get_account_stats(
-        "expense", account, start_of_the_month, today
-    )
-    stat_incomes_month = get_account_stats(
-        "income", account, start_of_the_month, today
-    )
-
-    stat_expenses_year = get_account_stats(
-        "expense", account, start_of_the_year, today
-    )
-    stat_incomes_year = get_account_stats(
-        "income", account, start_of_the_year, today
-    )
-
-    net_month_to_date = round(
-        stat_incomes_month["total"] - stat_expenses_month["total"], 2
-    )
-    net_year_to_date = round(
-        stat_incomes_year["total"] - stat_expenses_year["total"], 2
-    )
-
-    incomes_by_category = transactions_by_category(
-        "income", account, start_of_the_month, today
-    )
-    expenses_by_category = transactions_by_category(
-        "expense", account, start_of_the_month, today
-    )
-
-    result = {
-        "current_balance": round(account.amount, 2),
-        "net_month_to_date": net_month_to_date,
-        "net_year_to_date": net_year_to_date,
-        "transactions_this_month": stat_incomes_month["count"]
-        + stat_expenses_month["count"],
-        "transactions_this_year": stat_incomes_year["count"]
-        + stat_expenses_year["count"],
-        "last_month_p_and_l": last_month_account_p_l(account),
-        "incomes_by_category": incomes_by_category,
-        "expenses_by_category": expenses_by_category,
-        "transactions_by_month": transactions_by_month(account),
-        "running_total_expenses_current_month": stat_expenses_month[
-            "running_total"
-        ],
-        "running_total_incomes_current_month": stat_incomes_month[
-            "running_total"
-        ],
-        "running_total_expenses_current_year": stat_expenses_year[
-            "running_total"
-        ],
-        "running_total_incomes_current_year": stat_incomes_year[
-            "running_total"
-        ],
-        "moving_avg_expenses_current_month": stat_expenses_month["moving_avg"],
-        "moving_avg_incomes_current_month": stat_incomes_month["moving_avg"],
-        "moving_avg_expenses_current_year": stat_expenses_year["moving_avg"],
-        "moving_avg_incomes_current_year": stat_incomes_year["moving_avg"],
-    }
-
-    return Response(result, status=status.HTTP_200_OK)
-
-
-def last_month_account_p_l(account):
-    today = datetime.now()
-    first_day_of_current_month = datetime(today.year, today.month, 1)
-    last_day_of_previous_month = first_day_of_current_month - timedelta(days=1)
-    first_day_of_previous_month = datetime(
-        last_day_of_previous_month.year, last_day_of_previous_month.month, 1
-    )
-
-    incomes = Transaction.objects.filter(
-        Q(transaction_type="income") | Q(transaction_type="transfer"),
-        to_account=account,
-        date__gte=first_day_of_previous_month,
-        date__lte=last_day_of_previous_month,
-    )
-    expenses = Transaction.objects.filter(
-        Q(transaction_type="expense") | Q(transaction_type="transfer"),
-        from_account=account,
-        date__gte=first_day_of_previous_month,
-        date__lte=last_day_of_previous_month,
-    )
-
-    total_incomes = round(
-        incomes.aggregate(Sum("amount"))["amount__sum"] or 0, 2
-    )
-    total_expenses = round(
-        expenses.aggregate(Sum("amount"))["amount__sum"] or 0, 2
-    )
-
-    p_and_l = total_incomes - total_expenses
-
-    return p_and_l
-
-
-def transactions_by_month(account):
-
-    # Group transactions by month-year and count totals for each type
-    transactions = (
+    income_month_rows = list(
         Transaction.objects.filter(
-            Q(from_account=account) | Q(to_account=account)
+            user=request.user,
+            transaction_type="income",
+            income_detail__to_cash_balance__account=account,
+            date__gte=start_of_month,
+            date__lte=today,
         )
+        .annotate(calc_amount=F("income_detail__amount"))
+        .values("date", "calc_amount")
+    ) + list(
+        Transaction.objects.filter(
+            user=request.user,
+            transaction_type="transfer",
+            transfer_detail__to_cash_balance__account=account,
+            date__gte=start_of_month,
+            date__lte=today,
+        )
+        .annotate(
+            calc_amount=ExpressionWrapper(
+                F("transfer_detail__amount") * F("transfer_detail__fx_rate"),
+                output_field=DecimalField(max_digits=19, decimal_places=8),
+            )
+        )
+        .values("date", "calc_amount")
+    )
+
+    expense_month_rows = list(
+        Transaction.objects.filter(
+            user=request.user,
+            transaction_type="expense",
+            expense_detail__from_cash_balance__account=account,
+            date__gte=start_of_month,
+            date__lte=today,
+        )
+        .annotate(calc_amount=F("expense_detail__amount"))
+        .values("date", "calc_amount")
+    ) + list(
+        Transaction.objects.filter(
+            user=request.user,
+            transaction_type="transfer",
+            transfer_detail__from_cash_balance__account=account,
+            date__gte=start_of_month,
+            date__lte=today,
+        )
+        .annotate(calc_amount=F("transfer_detail__amount"))
+        .values("date", "calc_amount")
+    )
+
+    income_year_rows = list(
+        Transaction.objects.filter(
+            user=request.user,
+            transaction_type="income",
+            income_detail__to_cash_balance__account=account,
+            date__gte=start_of_year,
+            date__lte=today,
+        )
+        .annotate(calc_amount=F("income_detail__amount"))
+        .values("date", "calc_amount")
+    ) + list(
+        Transaction.objects.filter(
+            user=request.user,
+            transaction_type="transfer",
+            transfer_detail__to_cash_balance__account=account,
+            date__gte=start_of_year,
+            date__lte=today,
+        )
+        .annotate(
+            calc_amount=ExpressionWrapper(
+                F("transfer_detail__amount") * F("transfer_detail__fx_rate"),
+                output_field=DecimalField(max_digits=19, decimal_places=8),
+            )
+        )
+        .values("date", "calc_amount")
+    )
+
+    expense_year_rows = list(
+        Transaction.objects.filter(
+            user=request.user,
+            transaction_type="expense",
+            expense_detail__from_cash_balance__account=account,
+            date__gte=start_of_year,
+            date__lte=today,
+        )
+        .annotate(calc_amount=F("expense_detail__amount"))
+        .values("date", "calc_amount")
+    ) + list(
+        Transaction.objects.filter(
+            user=request.user,
+            transaction_type="transfer",
+            transfer_detail__from_cash_balance__account=account,
+            date__gte=start_of_year,
+            date__lte=today,
+        )
+        .annotate(calc_amount=F("transfer_detail__amount"))
+        .values("date", "calc_amount")
+    )
+
+    last_month_income_rows = list(
+        Transaction.objects.filter(
+            user=request.user,
+            transaction_type="income",
+            income_detail__to_cash_balance__account=account,
+            date__gte=first_day_prev_month,
+            date__lte=last_day_prev_month,
+        )
+        .annotate(calc_amount=F("income_detail__amount"))
+        .values("calc_amount")
+    ) + list(
+        Transaction.objects.filter(
+            user=request.user,
+            transaction_type="transfer",
+            transfer_detail__to_cash_balance__account=account,
+            date__gte=first_day_prev_month,
+            date__lte=last_day_prev_month,
+        )
+        .annotate(
+            calc_amount=ExpressionWrapper(
+                F("transfer_detail__amount") * F("transfer_detail__fx_rate"),
+                output_field=DecimalField(max_digits=19, decimal_places=8),
+            )
+        )
+        .values("calc_amount")
+    )
+    last_month_expense_rows = list(
+        Transaction.objects.filter(
+            user=request.user,
+            transaction_type="expense",
+            expense_detail__from_cash_balance__account=account,
+            date__gte=first_day_prev_month,
+            date__lte=last_day_prev_month,
+        )
+        .annotate(calc_amount=F("expense_detail__amount"))
+        .values("calc_amount")
+    ) + list(
+        Transaction.objects.filter(
+            user=request.user,
+            transaction_type="transfer",
+            transfer_detail__from_cash_balance__account=account,
+            date__gte=first_day_prev_month,
+            date__lte=last_day_prev_month,
+        )
+        .annotate(calc_amount=F("transfer_detail__amount"))
+        .values("calc_amount")
+    )
+
+    income_month = _summarize_rows(income_month_rows)
+    expense_month = _summarize_rows(expense_month_rows)
+    income_year = _summarize_rows(income_year_rows)
+    expense_year = _summarize_rows(expense_year_rows)
+
+    income_categories = list(
+        Transaction.objects.filter(
+            user=request.user,
+            transaction_type="income",
+            income_detail__to_cash_balance__account=account,
+            date__gte=start_of_month,
+            date__lte=today,
+        )
+        .values("income_detail__category__category")
+        .annotate(total_amount=Sum("income_detail__amount"))
+    )
+    total_income_cats = sum(
+        (_to_decimal(item["total_amount"]) for item in income_categories), Decimal("0")
+    )
+    incomes_by_category = []
+    for item in income_categories:
+        amount = _to_decimal(item["total_amount"])
+        if total_income_cats > 0:
+            incomes_by_category.append(
+                {
+                    "category__category": item["income_detail__category__category"]
+                    or "Uncategorized",
+                    "total_amount": _round_2(amount),
+                    "percentage": _round_2(
+                        (amount * Decimal("100")) / total_income_cats
+                    ),
+                }
+            )
+
+    expense_categories = list(
+        Transaction.objects.filter(
+            user=request.user,
+            transaction_type="expense",
+            expense_detail__from_cash_balance__account=account,
+            date__gte=start_of_month,
+            date__lte=today,
+        )
+        .values("expense_detail__category__category")
+        .annotate(total_amount=Sum("expense_detail__amount"))
+    )
+    total_expense_cats = sum(
+        (_to_decimal(item["total_amount"]) for item in expense_categories), Decimal("0")
+    )
+    expenses_by_category = []
+    for item in expense_categories:
+        amount = _to_decimal(item["total_amount"])
+        if total_expense_cats > 0:
+            expenses_by_category.append(
+                {
+                    "category__category": item["expense_detail__category__category"]
+                    or "Uncategorized",
+                    "total_amount": _round_2(amount),
+                    "percentage": _round_2(
+                        (amount * Decimal("100")) / total_expense_cats
+                    ),
+                }
+            )
+
+    transactions_by_month = list(
+        Transaction.objects.filter(user=request.user)
+        .filter(
+            Q(
+                transaction_type="income",
+                income_detail__to_cash_balance__account=account,
+            )
+            | Q(
+                transaction_type="expense",
+                expense_detail__from_cash_balance__account=account,
+            )
+            | Q(
+                transaction_type="transfer",
+                transfer_detail__from_cash_balance__account=account,
+            )
+            | Q(
+                transaction_type="transfer",
+                transfer_detail__to_cash_balance__account=account,
+            )
+        )
+        .distinct()
         .annotate(month_year=TruncMonth("date"))
         .values("month_year")
         .annotate(
@@ -214,113 +511,134 @@ def transactions_by_month(account):
         .order_by("month_year")
     )
 
-    return transactions
-
-
-def transactions_by_category(transaction_type, account, from_date, to_date):
-    transactions = Transaction.objects.filter(
-        (
-            Q(from_account=account)
-            if transaction_type == "expense"
-            else Q(to_account=account)
-        ),
-        transaction_type=transaction_type,
-        date__gte=from_date,
-        date__lte=to_date,
-    )
-
-    total_amount = round(
-        transactions.aggregate(total=Sum("amount"))["total"] or 0, 2
-    )
-
-    if total_amount <= 0:
-        return []
-
-    transactions_by_category = transactions.values(
-        "category__category"
-    ).annotate(
-        total_amount=Sum("amount"),
-        percentage=(Sum("amount") * 100 / total_amount),
-    )
-
-    return transactions_by_category
-
-
-def get_account_stats(transaction_type, account, from_date, to_date):
-    transactions = Transaction.objects.filter(
-        Q(transaction_type=transaction_type) | Q(transaction_type="transfer"),
-        (
-            Q(from_account=account)
-            if transaction_type == "expense"
-            else Q(to_account=account)
-        ),
-        date__gte=from_date,
-        date__lte=to_date,
-    )
-
-    # Calculate running total using window functions
-    running_total_transactions = transactions.annotate(
-        running_total=Window(
-            expression=Sum("amount"), order_by=F("date").asc()
-        )
-    )
-
-    # Calculate moving average using window functions
-    moving_average_transactions = transactions.annotate(
-        moving_avg=Window(
-            expression=Avg("amount"),
-            order_by=F("date").asc(),
-            frame=RowRange(start=-6, end=0),  # 7-day moving average
-        )
-    )
-
-    return {
-        "total": round(
-            transactions.aggregate(Sum("amount"))["amount__sum"] or 0, 2
-        )
-        or 0,
-        "average": round(
-            transactions.aggregate(Avg("amount"))["amount__avg"] or 0, 2
-        )
-        or 0,
-        "max": round(
-            transactions.aggregate(Max("amount"))["amount__max"] or 0, 2
-        )
-        or 0,
-        "min": round(
-            transactions.aggregate(Min("amount"))["amount__min"] or 0, 2
-        )
-        or 0,
-        "count": transactions.aggregate(Count("amount"))["amount__count"] or 0,
-        "running_total": list(
-            running_total_transactions.values(
-                "date", "amount", "running_total"
+    balances = list(account.cash_balances.all())
+    primary_balance = None
+    if balances:
+        primary_balance = (
+            next(
+                (balance for balance in balances if balance.currency.code == "EUR"),
+                None,
             )
+            or balances[0]
+        )
+
+    last_month_income_total = sum(
+        (_to_decimal(item.get("calc_amount", item.get("amount"))) for item in last_month_income_rows), Decimal("0")
+    )
+    last_month_expense_total = sum(
+        (_to_decimal(item.get("calc_amount", item.get("amount"))) for item in last_month_expense_rows), Decimal("0")
+    )
+
+    result = {
+        "current_balance": (
+            _round_2(primary_balance.balance) if primary_balance else 0.0
         ),
-        "moving_avg": list(
-            moving_average_transactions.values("date", "amount", "moving_avg")
+        "net_month_to_date": _round_2(
+            _to_decimal(income_month["total"]) - _to_decimal(expense_month["total"])
         ),
+        "net_year_to_date": _round_2(
+            _to_decimal(income_year["total"]) - _to_decimal(expense_year["total"])
+        ),
+        "transactions_this_month": income_month["count"] + expense_month["count"],
+        "transactions_this_year": income_year["count"] + expense_year["count"],
+        "last_month_p_and_l": _round_2(
+            last_month_income_total - last_month_expense_total
+        ),
+        "incomes_by_category": sorted(
+            incomes_by_category, key=lambda row: row["total_amount"], reverse=True
+        ),
+        "expenses_by_category": sorted(
+            expenses_by_category, key=lambda row: row["total_amount"], reverse=True
+        ),
+        "transactions_by_month": transactions_by_month,
+        "running_total_expenses_current_month": expense_month["running_total"],
+        "running_total_incomes_current_month": income_month["running_total"],
+        "running_total_expenses_current_year": expense_year["running_total"],
+        "running_total_incomes_current_year": income_year["running_total"],
+        "moving_avg_expenses_current_month": expense_month["moving_avg"],
+        "moving_avg_incomes_current_month": income_month["moving_avg"],
+        "moving_avg_expenses_current_year": expense_year["moving_avg"],
+        "moving_avg_incomes_current_year": income_year["moving_avg"],
     }
+    return Response(result, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
-def get_account_transactions(request, id):
-    from itertools import chain
-
-    try:
-        transactions = Transaction.objects.filter(
-            Q(from_account=id) | Q(to_account=id)
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def account_transactions(request, account_id):
+    account = get_object_or_404(Account, id=account_id, user=request.user)
+    transactions = (
+        Transaction.objects.filter(user=request.user)
+        .filter(
+            Q(
+                transaction_type="income",
+                income_detail__to_cash_balance__account=account,
+            )
+            | Q(
+                transaction_type="expense",
+                expense_detail__from_cash_balance__account=account,
+            )
+            | Q(
+                transaction_type="transfer",
+                transfer_detail__from_cash_balance__account=account,
+            )
+            | Q(
+                transaction_type="transfer",
+                transfer_detail__to_cash_balance__account=account,
+            )
         )
-        serialized_transactions = TransactionSerializer(
-            transactions, many=True
-        ).data
-
-        serialized_transactions.sort(key=lambda x: x.get("date"), reverse=True)
-
-        return Response(serialized_transactions, status=status.HTTP_200_OK)
-    except Exception as e:
-        print(e)
-        return Response(
-            {"error": "Something went wrong"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        .distinct()
+        .select_related(
+            "income_detail__to_cash_balance__account",
+            "income_detail__category",
+            "expense_detail__from_cash_balance__account",
+            "expense_detail__category",
+            "transfer_detail__from_cash_balance__account",
+            "transfer_detail__to_cash_balance__account",
         )
+        .prefetch_related("tags")
+        .order_by("-date", "-id")
+    )
+
+    payload = []
+    for transaction in transactions:
+        row = {
+            "id": transaction.id,
+            "user": transaction.user_id,
+            "transaction_type": transaction.transaction_type,
+            "date": transaction.date,
+            "description": transaction.description,
+            "created_on": transaction.created_on,
+            "tags": [
+                {"id": tag.id, "name": tag.name, "created_on": tag.created_on}
+                for tag in transaction.tags.all()
+            ],
+            "amount": 0.0,
+            "category": None,
+            "from_account": None,
+            "to_account": None,
+        }
+
+        if transaction.transaction_type == "income":
+            detail = transaction.income_detail
+            row["amount"] = _round_2(detail.amount)
+            row["category"] = detail.category_id
+            row["to_account"] = detail.to_cash_balance.account_id
+        elif transaction.transaction_type == "expense":
+            detail = transaction.expense_detail
+            row["amount"] = _round_2(detail.amount)
+            row["category"] = detail.category_id
+            row["from_account"] = detail.from_cash_balance.account_id
+        elif transaction.transaction_type == "transfer":
+            detail = transaction.transfer_detail
+            row["from_account"] = detail.from_cash_balance.account_id
+            row["to_account"] = detail.to_cash_balance.account_id
+            if detail.to_cash_balance.account_id == account.id:
+                row["amount"] = _round_2(detail.amount * detail.fx_rate)
+            else:
+                row["amount"] = _round_2(detail.amount)
+
+        payload.append(row)
+
+    return Response(payload, status=status.HTTP_200_OK)

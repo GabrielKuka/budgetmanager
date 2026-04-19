@@ -33,12 +33,6 @@ const Transfers = () => {
 
   return (
     <div className={"transfers-wrapper"}>
-      <Sidebar
-        accounts={accounts}
-        refreshTransfers={global.updateTransfers}
-        refreshAccounts={global.updateAccounts}
-        getAccountCurrency={getAccountCurrency}
-      />
       {!global.transfers ? (
         <LoadingCard header="Loading Transfers..." />
       ) : global.transfers && !global.transfers?.length ? (
@@ -395,7 +389,7 @@ const TransfersList = ({
             onChange={filterTransfers}
           >
             <option value="-1">All</option>
-            {global.accounts?.map((a) => (
+            {accounts?.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
               </option>
@@ -426,7 +420,7 @@ const TransfersList = ({
             onChange={filterTransfers}
           >
             <option value="-1">All</option>
-            {global.accounts?.map((a) => (
+            {accounts?.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
               </option>

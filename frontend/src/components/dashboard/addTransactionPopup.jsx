@@ -1,143 +1,185 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import "./addTransactionPopup.scss";
 import { Formik, Form, Field } from "formik";
 import { useToast } from "../../context/ToastContext";
-import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 import { useGlobalContext } from "../../context/GlobalContext";
 import { validationSchemas } from "../../validationSchemas";
 import transactionService from "../../services/transactionService/transactionService";
 
-const AddTransactionPopup = ({
-  showPopup,
-  getAccountCurrency,
-  refreshAccounts,
-}) => {
+const TX_LABELS = {
+  "0": "income",
+  "1": "expense",
+  "2": "transfer",
+  "3": "buy",
+  "4": "sell",
+};
+
+const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
   const global = useGlobalContext();
-  const showConfirm = useConfirm();
   const showToast = useToast();
   const [addingTransaction, setAddingTransaction] = useState(false);
   const [tags, setTags] = useState([]);
   const [transactionType, setTransactionType] = useState("1");
-  const [validSchema, setValidSchema] = useState(
-    validationSchemas.expenseFormSchema
-  );
-
-  const [categories, setCategories] = useState(global.expenseCategories);
   const [customRate, setCustomRate] = useState("");
 
-  useEffect(() => {
-    switch (transactionType) {
-      case "0":
-        setCategories(global.incomeCategories);
-        setValidSchema(validationSchemas.incomeFormSchema);
-        break;
-      case "1":
-        setCategories(global.expenseCategories);
-        setValidSchema(validationSchemas.expenseFormSchema);
-        break;
-      case "2":
-        setValidSchema(validationSchemas.transferFormSchema);
-        break;
-      default:
-        break;
+  const cashBalanceOptions = useMemo(() => {
+    const options = [];
+    (global.activeAccounts || []).forEach((account) => {
+      (account.cash_balances || []).forEach((balance) => {
+        options.push({
+          id: balance.id,
+          accountId: account.id,
+          accountName: account.name,
+          currencyCode: balance.currency?.code || account.currency,
+          balance: balance.balance,
+        });
+      });
+    });
+    return options.sort((a, b) =>
+      `${a.accountName}-${a.currencyCode}`.localeCompare(
+        `${b.accountName}-${b.currencyCode}`
+      )
+    );
+  }, [global.activeAccounts]);
+
+  const accountOptions = useMemo(() => {
+    return (global.activeAccounts || [])
+      .map((account) => ({
+        id: account.id,
+        name: account.name,
+        balancesCount: (account.cash_balances || []).length,
+      }))
+      .filter((account) => account.balancesCount > 0)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [global.activeAccounts]);
+
+  const holdingOptions = useMemo(() => {
+    const options = [];
+    (global.activeAccounts || []).forEach((account) => {
+      (account.holdings || []).forEach((holding) => {
+        options.push({
+          id: holding.id,
+          accountId: account.id,
+          accountName: account.name,
+          securityTicker: holding.security?.ticker,
+          securityName: holding.security?.name,
+          quantity: holding.quantity,
+        });
+      });
+    });
+    return options.sort((a, b) =>
+      `${a.accountName}-${a.securityTicker}`.localeCompare(
+        `${b.accountName}-${b.securityTicker}`
+      )
+    );
+  }, [global.activeAccounts]);
+
+  const getBalanceCurrencyById = (id) => {
+    if (!id) {
+      return "";
     }
-  }, [transactionType]);
+    const balance = cashBalanceOptions.find((item) => item.id === Number(id));
+    return balance?.currencyCode || "";
+  };
+
+  const getBalancesByAccountId = (accountId) => {
+    if (!accountId) {
+      return [];
+    }
+    return cashBalanceOptions.filter(
+      (balance) => balance.accountId === Number(accountId)
+    );
+  };
+
+  const getBalanceLabel = (item) =>
+    `${item.currencyCode} (${helper.formatNumber(item.balance || 0, 2)})`;
 
   function addTag(e) {
     e.preventDefault();
     const input = document.getElementById("add_tag_textfield");
-    if (input.value === "") {
+    if (!input?.value) {
       return;
     }
-    if (!tags.includes(e.target.previousElementSibling.value)) {
-      setTags([...tags, e.target.previousElementSibling.value]);
+    if (!tags.includes(input.value)) {
+      setTags([...tags, input.value]);
       input.value = "";
       input.focus();
     }
   }
 
-  async function addTransaction(payload) {
-    let newPayload = null;
-    const keyMap = {
-      amount: transactionType === "2" ? "from_amount" : "amount",
+  async function submitTransaction(values) {
+    const txTypeNum = parseInt(transactionType, 10);
+    const payload = {
+      type: txTypeNum,
+      date: values.date,
+      description: values.description,
+      tags: tags.map((tag) => ({ name: tag })),
     };
-    switch (transactionType) {
-      case "0":
-        newPayload = Object.fromEntries(
-          Object.entries(payload).map(([key, value]) => [
-            keyMap[key] || key,
-            value,
-          ])
-        );
-        await transactionService.addIncome(newPayload);
-        await global.updateIncomes();
-        showToast("Income Added.");
-        break;
-      case "1":
-        newPayload = Object.fromEntries(
-          Object.entries(payload).map(([key, value]) => [
-            keyMap[key] || key,
-            value,
-          ])
-        );
-        await transactionService.addExpense(newPayload);
-        await global.updateExpenses();
-        showToast("Expense Added.");
-        break;
-      case "2":
-        newPayload = Object.fromEntries(
-          Object.entries(payload).map(([key, value]) => [
-            keyMap[key] || key,
-            value,
-          ])
-        );
-        const from_currency = getAccountCurrency(
-          parseInt(newPayload["from_account"])
-        );
-        const to_currency = getAccountCurrency(
-          parseInt(newPayload["to_account"])
-        );
-        if (from_currency !== to_currency) {
-          newPayload["to_amount"] = customRate * newPayload["from_amount"];
-        } else {
-          newPayload["to_amount"] = newPayload["from_amount"];
-        }
-        await transactionService.addTransfer(newPayload);
-        await global.updateTransfers();
-        showToast("Transfer Added.");
-        break;
-      default:
-        showToast("Wrong transaction type.");
-        break;
+
+    if (transactionType === "0") {
+      payload.amount = values.amount;
+      payload.to_cash_balance = parseInt(values.to_cash_balance, 10);
+      payload.category = parseInt(values.category, 10);
+    } else if (transactionType === "1") {
+      payload.amount = values.amount;
+      payload.from_cash_balance = parseInt(values.from_cash_balance, 10);
+      payload.category = parseInt(values.category, 10);
+    } else if (transactionType === "2") {
+      payload.from_amount = values.amount;
+      payload.from_cash_balance = parseInt(values.from_cash_balance, 10);
+      payload.to_cash_balance = parseInt(values.to_cash_balance, 10);
+      const fromCurrency = getBalanceCurrencyById(values.from_cash_balance);
+      const toCurrency = getBalanceCurrencyById(values.to_cash_balance);
+      if (fromCurrency && toCurrency && fromCurrency !== toCurrency) {
+        payload.to_amount = Number(customRate || 0) * Number(values.amount || 0);
+      } else {
+        payload.to_amount = values.amount;
+      }
+    } else if (transactionType === "3") {
+      payload.from_cash_balance = parseInt(values.from_cash_balance, 10);
+      payload.security = values.security;
+      payload.quantity = values.quantity;
+      payload.price_per_unit = values.price_per_unit;
+    } else if (transactionType === "4") {
+      payload.to_cash_balance = parseInt(values.to_cash_balance, 10);
+      payload.holding = parseInt(values.holding, 10);
+      payload.quantity = values.quantity;
+      payload.price_per_unit = values.price_per_unit;
     }
+
+    await transactionService.addTransaction(payload);
+    await global.updateTransactions();
+    await refreshAccounts();
+    showToast(`${TX_LABELS[transactionType]} added.`);
   }
 
   async function handleRate(fieldName, setFieldValue, selectedValue) {
     setFieldValue(fieldName, selectedValue);
 
-    const fromAccountValue = document.getElementById("from_account").value;
-    const toAccountValue = document.getElementById("to_account").value;
+    const fromBalance = fieldName === "from_cash_balance" ? selectedValue : null;
+    const toBalance = fieldName === "to_cash_balance" ? selectedValue : null;
 
-    const bothAccountsSet = fromAccountValue !== "" && toAccountValue !== "";
+    const fromSelected =
+      fromBalance || document.getElementById("from_cash_balance")?.value;
+    const toSelected =
+      toBalance || document.getElementById("to_cash_balance")?.value;
 
-    if (bothAccountsSet) {
-      // Check if currencies are different
-      const fromCurrency = getAccountCurrency(fromAccountValue);
-      const toCurrency = getAccountCurrency(toAccountValue);
-      const differentCurrencies = fromCurrency !== toCurrency;
-      if (differentCurrencies) {
-        const defaultRate = await currencyService.convert(
-          fromCurrency,
-          toCurrency,
-          1
-        );
-        setCustomRate(defaultRate);
-        return;
-      }
+    if (!fromSelected || !toSelected) {
+      setCustomRate("");
+      return;
     }
-    setCustomRate("");
+
+    const fromCurrency = getBalanceCurrencyById(fromSelected);
+    const toCurrency = getBalanceCurrencyById(toSelected);
+    if (!fromCurrency || !toCurrency || fromCurrency === toCurrency) {
+      setCustomRate("");
+      return;
+    }
+
+    const defaultRate = await currencyService.convert(fromCurrency, toCurrency, 1);
+    setCustomRate(defaultRate);
   }
 
   return (
@@ -154,157 +196,249 @@ const AddTransactionPopup = ({
           <Formik
             initialValues={{
               amount: "",
+              quantity: "",
+              price_per_unit: "",
+              security: "",
+              holding: "",
               description: "",
               date: new Date().toISOString().slice(0, 10),
               from_account: "",
               to_account: "",
+              from_cash_balance: "",
+              to_cash_balance: "",
               category: "",
               transaction_type: transactionType,
             }}
             validationSchema={validationSchemas.addTransactionSchema}
             validateOnBlur={false}
             validateOnChange={false}
-            onSubmit={(values, { setSubmitting, resetForm, validateForm }) => {
-              validateForm().then(async (errors) => {
-                setAddingTransaction(true);
-                values["type"] = parseInt(transactionType);
-                values["tags"] = tags?.map((tag) => ({
-                  name: tag,
-                }));
-                await addTransaction(values);
-                await refreshAccounts();
+            onSubmit={async (values, { setSubmitting, resetForm, validateForm }) => {
+              const errors = await validateForm();
+              if (Object.keys(errors || {}).length > 0) {
                 setSubmitting(false);
+                return;
+              }
+
+              setAddingTransaction(true);
+              try {
+                await submitTransaction(values);
                 setTags([]);
-                resetForm();
                 setCustomRate("");
-                setAddingTransaction(false);
+                resetForm();
                 showPopup(false);
-              });
+              } finally {
+                setAddingTransaction(false);
+                setSubmitting(false);
+              }
             }}
           >
-            {({ values, setFieldValue, errors, touched, resetForm }) => (
-              <Form className={"form"}>
-                <div id="transaction_type_div" role="group">
-                  <label className={"transaction_type_label"}>
-                    <Field
-                      type="radio"
-                      name="transaction_type"
-                      checked={values.transaction_type === "1"}
-                      value="1"
-                      onChange={(e) => {
-                        setFieldValue("transaction_type", e.target.value);
-                        setTransactionType(e.target.value);
-                      }}
-                    />
-                    Expense
-                  </label>
-                  <label className={"transaction_type_label"}>
-                    <Field
-                      type="radio"
-                      name="transaction_type"
-                      checked={values.transaction_type === "0"}
-                      value="0"
-                      onChange={(e) => {
-                        setFieldValue("transaction_type", e.target.value);
-                        setTransactionType(e.target.value);
-                      }}
-                    />
-                    Income
-                  </label>
-                  <label className={"transaction_type_label"}>
-                    <Field
-                      type="radio"
-                      name="transaction_type"
-                      checked={values.transaction_type === "2"}
-                      value="2"
-                      onChange={(e) => {
-                        setFieldValue("transaction_type", e.target.value);
-                        setTransactionType(e.target.value);
-                      }}
-                    />
-                    Transfer
-                  </label>
+            {({ values, setFieldValue, errors, touched, resetForm }) => {
+              const sourceBalances = getBalancesByAccountId(values.from_account);
+              const destinationBalances = getBalancesByAccountId(values.to_account);
+              const amountCurrencyCode =
+                transactionType === "0"
+                  ? getBalanceCurrencyById(values.to_cash_balance)
+                  : transactionType === "1" ||
+                      transactionType === "2" ||
+                      transactionType === "3"
+                    ? getBalanceCurrencyById(values.from_cash_balance)
+                    : "";
+              const amountCurrencySymbol = amountCurrencyCode
+                ? helper.getCurrency(amountCurrencyCode)
+                : "";
+              const amountPlaceholder = amountCurrencyCode
+                ? `Amount (${amountCurrencyCode})`
+                : "Amount";
+
+              return (
+                <Form className={"form"}>
+                <div id="transaction_type_div">
+                  <Field
+                    as="select"
+                    name="transaction_type"
+                    className="select_field"
+                    id="transaction_type_select"
+                    value={values.transaction_type}
+                    onChange={(e) => {
+                      setFieldValue("transaction_type", e.target.value);
+                      setTransactionType(e.target.value);
+                      setFieldValue("from_account", "");
+                      setFieldValue("to_account", "");
+                      setFieldValue("from_cash_balance", "");
+                      setFieldValue("to_cash_balance", "");
+                      setCustomRate("");
+                    }}
+                  >
+                    <option value="1">Expense</option>
+                    <option value="0">Income</option>
+                    <option value="2">Transfer</option>
+                    <option value="3">Buy</option>
+                    <option value="4">Sell</option>
+                  </Field>
                 </div>
-                <Field
-                  type="text"
-                  id="date"
-                  name="date"
-                  placeholder="Enter date"
-                />
-                {transactionType === "2" ? (
-                  <>
+
+                <Field type="text" id="date" name="date" placeholder="Enter date" />
+
+                {(transactionType === "1" ||
+                  transactionType === "2" ||
+                  transactionType === "3") && (
+                  <div className="cash_balance_row">
                     <Field
                       as="select"
                       name="from_account"
                       className="select_field"
                       id="from_account"
+                      onChange={(e) => {
+                        setFieldValue("from_account", e.target.value);
+                        setFieldValue("from_cash_balance", "");
+                        if (transactionType === "2") {
+                          setCustomRate("");
+                        }
+                      }}
+                    >
+                      <option value="" disabled hidden>
+                        Source account
+                      </option>
+                      {accountOptions.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </Field>
+                    <Field
+                      as="select"
+                      name="from_cash_balance"
+                      className="select_field"
+                      id="from_cash_balance"
+                      disabled={!values.from_account}
                       onChange={(e) =>
-                        handleRate(
-                          "from_account",
-                          setFieldValue,
-                          e.target.value
-                        )
+                        transactionType === "2"
+                          ? handleRate(
+                              "from_cash_balance",
+                              setFieldValue,
+                              e.target.value
+                            )
+                          : setFieldValue("from_cash_balance", e.target.value)
                       }
                     >
                       <option value="" disabled hidden>
-                        From account
+                        Source cash balance
                       </option>
-                      {global.activeAccounts
-                        ?.sort((a, b) => (a.name > b.name ? 1 : -1))
-                        .map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
-                            {helper.getCurrency(getAccountCurrency(a.id))}
-                          </option>
-                        ))}
+                      {sourceBalances.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {getBalanceLabel(item)}
+                        </option>
+                      ))}
                     </Field>
+                  </div>
+                )}
+
+                {(transactionType === "0" ||
+                  transactionType === "2" ||
+                  transactionType === "4") && (
+                  <div className="cash_balance_row">
                     <Field
                       as="select"
                       name="to_account"
                       className="select_field"
                       id="to_account"
+                      onChange={(e) => {
+                        setFieldValue("to_account", e.target.value);
+                        setFieldValue("to_cash_balance", "");
+                        if (transactionType === "2") {
+                          setCustomRate("");
+                        }
+                      }}
+                    >
+                      <option value="" disabled hidden>
+                        Destination account
+                      </option>
+                      {accountOptions.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </Field>
+                    <Field
+                      as="select"
+                      name="to_cash_balance"
+                      className="select_field"
+                      id="to_cash_balance"
+                      disabled={!values.to_account}
                       onChange={(e) =>
-                        handleRate("to_account", setFieldValue, e.target.value)
+                        transactionType === "2"
+                          ? handleRate("to_cash_balance", setFieldValue, e.target.value)
+                          : setFieldValue("to_cash_balance", e.target.value)
                       }
                     >
                       <option value="" disabled hidden>
-                        To account
+                        Destination cash balance
                       </option>
-                      {global.activeAccounts
-                        ?.sort((a, b) => (a.name > b.name ? 1 : -1))
-                        .map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
-                            {helper.getCurrency(getAccountCurrency(a.id))}
-                          </option>
-                        ))}
-                    </Field>
-                  </>
-                ) : (
-                  <Field
-                    as="select"
-                    name={`${transactionType === "0" ? "to" : "from"}_account`}
-                    className="select_field"
-                  >
-                    <option value="" disabled hidden>
-                      Select account
-                    </option>
-                    {global.activeAccounts
-                      ?.sort((a, b) => (a.name > b.name ? 1 : -1))
-                      ?.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
-                          {helper.getCurrency(getAccountCurrency(a.id))}
+                      {destinationBalances.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {getBalanceLabel(item)}
                         </option>
                       ))}
+                    </Field>
+                  </div>
+                )}
+
+                {(transactionType === "0" ||
+                  transactionType === "1" ||
+                  transactionType === "2") && (
+                  <div className="amount_row">
+                    <Field
+                      type="text"
+                      id="amount"
+                      name="amount"
+                      placeholder={amountPlaceholder}
+                    />
+                    <span className="amount_currency_chip">
+                      {amountCurrencySymbol || amountCurrencyCode || "-"}
+                    </span>
+                  </div>
+                )}
+
+                {(transactionType === "3" || transactionType === "4") && (
+                  <>
+                    <Field
+                      type="text"
+                      id="quantity"
+                      name="quantity"
+                      placeholder="Quantity"
+                    />
+                    <Field
+                      type="text"
+                      id="price_per_unit"
+                      name="price_per_unit"
+                      placeholder="Price per unit"
+                    />
+                  </>
+                )}
+
+                {transactionType === "3" && (
+                  <Field
+                    type="text"
+                    id="security"
+                    name="security"
+                    placeholder="Ticker or Security ID"
+                  />
+                )}
+
+                {transactionType === "4" && (
+                  <Field as="select" name="holding" className="select_field">
+                    <option value="" disabled hidden>
+                      Select holding
+                    </option>
+                    {holdingOptions.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.accountName} - {item.securityTicker} (
+                        {helper.formatNumber(item.quantity || 0, 4)})
+                      </option>
+                    ))}
                   </Field>
                 )}
-                <Field
-                  type="text"
-                  id="amount"
-                  name="amount"
-                  placeholder={`Enter amount`}
-                />
+
                 <div className={"tags_container"}>
                   <div className={"tags_container__input"}>
                     <input
@@ -323,14 +457,14 @@ const AddTransactionPopup = ({
                   </div>
                   {tags && (
                     <div className={"tags_container__shown-tags"}>
-                      {tags?.map((t) => (
+                      {tags.map((t) => (
                         <span className={"tag"} key={t}>
                           {t}
                           <button
                             type="button"
                             className={"remove-tag-button"}
                             onClick={() =>
-                              setTags(tags?.filter((tag) => tag !== t))
+                              setTags(tags.filter((currentTag) => currentTag !== t))
                             }
                           >
                             x
@@ -340,6 +474,7 @@ const AddTransactionPopup = ({
                     </div>
                   )}
                 </div>
+
                 <Field
                   as="textarea"
                   rows={3}
@@ -347,11 +482,11 @@ const AddTransactionPopup = ({
                   id="description"
                   placeholder="Enter a description"
                 />
-                {transactionType !== "2" && (
+
+                {(transactionType === "0" || transactionType === "1") && (
                   <Field as="select" name="category" className="select_field">
                     <option value="" disabled hidden>
-                      Choose an {transactionType === "0" && <>income</>}
-                      {transactionType === "1" && <>expense</>} category
+                      Choose category
                     </option>
                     {transactionType === "0" &&
                       global.incomeCategories?.map((c) => (
@@ -367,11 +502,10 @@ const AddTransactionPopup = ({
                       ))}
                   </Field>
                 )}
+
                 <div id="submit_wrapper">
                   <button type="submit" id={"submit-button"}>
-                    Add {transactionType === "0" && <>income</>}
-                    {transactionType === "1" && <>expense</>}
-                    {transactionType === "2" && <>transfer</>}
+                    Add {TX_LABELS[transactionType]}
                   </button>
                   <button
                     type="button"
@@ -388,14 +522,14 @@ const AddTransactionPopup = ({
                   <button
                     type="button"
                     id={"draft-button"}
-                    onClick={() => showToast("Not Implemented yet.")}
+                    onClick={() => showToast("Not implemented yet.")}
                   >
                     Save as Draft
                   </button>
-                  {customRate !== "" && (
+                  {transactionType === "2" && customRate !== "" && (
                     <div id="custom_rate_container">
                       <span>
-                        1 {getAccountCurrency(values["from_account"])} ={" "}
+                        1 {getBalanceCurrencyById(values.from_cash_balance)} ={" "}
                       </span>
                       <input
                         type="text"
@@ -403,16 +537,16 @@ const AddTransactionPopup = ({
                         id="custom_rate_field"
                         onChange={(e) => setCustomRate(e.target.value)}
                       />
-                      <span> {getAccountCurrency(values["to_account"])}</span>
-                      {values["amount"] !== "" && (
+                      <span> {getBalanceCurrencyById(values.to_cash_balance)}</span>
+                      {values.amount !== "" && (
                         <span id="conversion_result">
                           Total:{" "}
                           <b>
                             {helper.formatNumber(
-                              parseFloat(customRate) *
-                                parseFloat(values["amount"])
+                              parseFloat(customRate || 0) *
+                                parseFloat(values.amount || 0)
                             )}{" "}
-                            {getAccountCurrency(values["to_account"])}
+                            {getBalanceCurrencyById(values.to_cash_balance)}
                           </b>
                         </span>
                       )}
@@ -427,38 +561,36 @@ const AddTransactionPopup = ({
                     />
                   )}
                 </div>
-                {errors.date && touched.date ? (
-                  <span>{errors.date}</span>
+
+                {errors.date && touched.date ? <span>{errors.date}</span> : null}
+                {errors.from_cash_balance && touched.from_cash_balance ? (
+                  <span>{errors.from_cash_balance}</span>
                 ) : null}
-                {(transactionType === "0" || transactionType === "2") && (
-                  <>
-                    {errors.to_account && touched.to_account ? (
-                      <span>{errors.to_account}</span>
-                    ) : null}
-                  </>
-                )}
-                {(transactionType === "1" || transactionType === "2") && (
-                  <>
-                    {errors.from_account && touched.from_account ? (
-                      <span>{errors.from_account}</span>
-                    ) : null}
-                  </>
-                )}
-                {errors.amount && touched.amount ? (
-                  <span>{errors.amount}</span>
+                {errors.to_cash_balance && touched.to_cash_balance ? (
+                  <span>{errors.to_cash_balance}</span>
+                ) : null}
+                {errors.amount && touched.amount ? <span>{errors.amount}</span> : null}
+                {errors.quantity && touched.quantity ? (
+                  <span>{errors.quantity}</span>
+                ) : null}
+                {errors.price_per_unit && touched.price_per_unit ? (
+                  <span>{errors.price_per_unit}</span>
+                ) : null}
+                {errors.security && touched.security ? (
+                  <span>{errors.security}</span>
+                ) : null}
+                {errors.holding && touched.holding ? (
+                  <span>{errors.holding}</span>
                 ) : null}
                 {errors.description && touched.description ? (
                   <span>{errors.description}</span>
                 ) : null}
-                {transactionType !== "2" && (
-                  <>
-                    {errors.category && touched.category ? (
-                      <span>{errors.category}</span>
-                    ) : null}
-                  </>
-                )}
-              </Form>
-            )}
+                {errors.category && touched.category ? (
+                  <span>{errors.category}</span>
+                ) : null}
+                </Form>
+              );
+            }}
           </Formik>
         </div>
       </div>

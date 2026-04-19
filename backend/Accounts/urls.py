@@ -3,21 +3,34 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("create", views.create_account, name="createaccount"),
+    path("", views.account_collection, name="accounts"),
+    path("<int:account_id>", views.account_detail, name="account"),
+    path("<int:account_id>/stats", views.account_stats, name="account_stats"),
     path(
-        "soft_delete/<int:account_id>", views.soft_delete, name="soft_delete"
+        "<int:account_id>/transactions",
+        views.account_transactions,
+        name="account_transactions",
+    ),
+    # Legacy URLs kept for compatibility with existing frontend service calls.
+    path("all", views.account_collection, name="allaccounts"),
+    path("create", views.account_collection, name="createaccount"),
+    path("delete/<int:account_id>", views.account_detail, name="deleteaccount"),
+    path(
+        "soft_delete/<int:account_id>",
+        views.account_detail,
+        {"deleted": True},
+        name="soft_delete",
     ),
     path(
         "restore/<int:account_id>",
-        views.restore_account,
+        views.account_detail,
+        {"deleted": False},
         name="restore_account",
     ),
-    path("delete/<int:id>", views.delete_account, name="deleteaccount"),
     path(
-        "transactions/<int:id>",
-        views.get_account_transactions,
+        "transactions/<int:account_id>",
+        views.account_transactions,
         name="gettransactions",
     ),
-    path("stats/<int:id>", views.get_account_data, name="accountdata"),
-    path("all", views.get_all_accounts, name="allaccounts"),
+    path("stats/<int:account_id>", views.account_stats, name="accountdata"),
 ]

@@ -41,7 +41,7 @@ const LoggedInNavbar = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
-    const possibleLocations = ["dashboard", "accounts", "templates"];
+    const possibleLocations = ["dashboard", "accounts"];
     const currentLocation = location.pathname.split("/")[1];
 
     possibleLocations.forEach((id) => {
@@ -243,9 +243,6 @@ const LoggedInNavbar = () => {
       <button id="accounts" onClick={(e) => handlePage(e)}>
         Accounts
       </button>
-      <button id="templates" onClick={(e) => handlePage(e)}>
-        Templates
-      </button>
       <select
         id="global_currency"
         value={global.globalCurrency}
@@ -321,7 +318,9 @@ const SuggestionItem = ({
 }) => {
   const transactionType = suggestion["transaction_type"];
   const account =
-    transactionType === "expense" || transactionType === "transfer"
+    transactionType === "expense" ||
+    transactionType === "transfer" ||
+    transactionType === "buy"
       ? suggestion.from_account
       : suggestion.to_account;
   const currency = helper.getCurrency(getAccountCurrency(account));

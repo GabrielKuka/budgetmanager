@@ -12,16 +12,17 @@
 
 .add_transaction_wrapper {
   position: fixed;
-  left: 35%;
-  top: 10%;
-  height: 530px;
-  width: 430px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-height: 90vh;
+  width: min(560px, 92vw);
   background-color: white;
   z-index: 2001;
   box-shadow: 0px 7px 15px rgba(0, 0, 0, 0.5);
-
   border-top: 1px solid cadetblue;
-  border-radius: 3px;
+  border-radius: 6px;
+  overflow: hidden;
 
   .title-bar {
     border-bottom: 1px solid cadetblue;
@@ -66,15 +67,23 @@
   gap: 10px;
 
   .content {
-    margin: 10px 10px 10px 40px;
+    margin: 0;
     width: 100%;
+    padding: 16px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
 
     .form {
       @include flex(column, flex-start, flex-start);
       gap: 10px;
+      width: 100%;
+      max-width: 100%;
       input,
-      select {
-        width: 270px;
+      select,
+      textarea {
+        width: 100%;
+        box-sizing: border-box;
       }
 
       label {
@@ -88,21 +97,13 @@
         transition: padding-left 0.3s;
       }
       #transaction_type_div {
-        @include flex(row, flex-start, flex-start);
+        display: block;
+        width: 100%;
         padding-bottom: 15px;
         border-bottom: 1px solid cadetblue;
         margin-bottom: 10px;
-        gap: 20px;
-
-        .transaction_type_label {
-          width: 100px;
-          font-weight: normal;
-          background-color: white;
-          color: black;
-          padding: 0;
-          border: none;
-          border-radius: 0px;
-          @include flex(row, flex-start, flex-start);
+        #transaction_type_select {
+          width: 100%;
         }
       }
       span {
@@ -112,16 +113,40 @@
         margin-bottom: 0;
       }
       .select_field {
-        width: 344px;
-        height: 27px;
+        height: 32px;
+      }
+      .cash_balance_row {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 10px;
+      }
+      .amount_row {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+      }
+      .amount_currency_chip {
+        color: #2b5e61;
+        border: 1px solid cadetblue;
+        border-radius: 3px;
+        min-width: 42px;
+        height: 34px;
+        padding: 0 10px;
+        box-sizing: border-box;
+        @include flex(row, center, center);
+        font-weight: bold;
       }
       #amount,
-      #date {
-        width: 337px;
-        height: 20px;
+      #date,
+      #quantity,
+      #price_per_unit,
+      #security {
+        height: 34px;
       }
       #description {
-        width: 337px;
         min-height: 50px;
         resize: vertical;
         overflow: hidden;
@@ -142,12 +167,17 @@
             background-color: cadetblue;
             color: white;
             font-weight: bold;
+            white-space: nowrap;
+            flex: 0 0 auto;
           }
 
           #add_tag_textfield {
             border: 1px solid cadetblue;
             border-radius: 3px;
             transition: border 0.3s;
+            flex: 1 1 auto;
+            min-width: 0;
+            width: auto;
 
             &:hover {
               border-radius: 3px;
@@ -194,7 +224,7 @@
 
       #submit_wrapper {
         @include flex(row, flex-start, center, wrap);
-        max-width: 340px;
+        max-width: 100%;
         gap: 10px;
 
         #submit-button,
@@ -261,6 +291,18 @@
             background-color: white;
             color: cadetblue;
           }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 560px) {
+  .add_transaction_wrapper {
+    .content {
+      .form {
+        .cash_balance_row {
+          grid-template-columns: minmax(0, 1fr);
         }
       }
     }

@@ -7,7 +7,7 @@ async function getAccountStats(id) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
     headers: {
-      Authorization: token,
+      Authorization: `Token ${token}`,
     },
   };
   const response = await axios.get(`${ENDPOINT}/stats/${id}`, config);
@@ -23,7 +23,7 @@ async function getAccountTransactions(id) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
     headers: {
-      Authorization: token,
+      Authorization: `Token ${token}`,
     },
   };
   const response = await axios.get(`${ENDPOINT}/transactions/${id}`, config);
@@ -39,7 +39,7 @@ async function getAllUserAccounts() {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
     headers: {
-      Authorization: token,
+      Authorization: `Token ${token}`,
     },
   };
   const response = await axios.get(`${ENDPOINT}/all`, config);
@@ -55,7 +55,7 @@ async function addAccount(payload) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
     headers: {
-      Authorization: token,
+      Authorization: `Token ${token}`,
     },
   };
 
@@ -71,11 +71,12 @@ async function softDeleteAccount(payload) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
     headers: {
-      Authorization: token,
+      Authorization: `Token ${token}`,
     },
   };
   const response = await axios.put(
     `${ENDPOINT}/soft_delete/${payload}`,
+    {},
     config
   );
   if (response.status === 200) {
@@ -89,10 +90,10 @@ async function restoreAccount(payload) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
     headers: {
-      Authorization: token,
+      Authorization: `Token ${token}`,
     },
   };
-  const response = await axios.put(`${ENDPOINT}/restore/${payload}`, config);
+  const response = await axios.put(`${ENDPOINT}/restore/${payload}`, {}, config);
   if (response.status === 200) {
     return response.data;
   } else {
@@ -104,7 +105,7 @@ async function deleteAccount(payload) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
     headers: {
-      Authorization: token,
+      Authorization: `Token ${token}`,
     },
   };
 

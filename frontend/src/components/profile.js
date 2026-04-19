@@ -129,23 +129,99 @@ const Sidebar = (props) => {
   const navigate = useNavigate();
   const [totalWealth, setTotalWealth] = useState({ wealth: null, change: 0 });
 
+  function resolveTransactionCurrency(transaction) {
+    if (!transaction) {
+      return "Not Found";
+    }
+
+    const balanceId =
+      transaction.transaction_type === "income"
+        ? transaction.to_cash_balance
+        : transaction.from_cash_balance;
+
+    if (balanceId) {
+      for (const account of global.accounts || []) {
+        const matched = (account.cash_balances || []).find(
+          (balance) => balance.id === balanceId
+        );
+        if (matched) {
+          return matched.currency?.code || account.currency;
+        }
+      }
+    }
+
+    return getAccountCurrency(
+      transaction.transaction_type === "income"
+        ? transaction.to_account
+        : transaction.from_account
+    );
+  }
+
+  function resolveHoldingValue(holding) {
+    if (holding.market_value !== null && holding.market_value !== undefined) {
+      return parseFloat(holding.market_value || 0);
+    }
+    if (
+      holding.latest_price?.price !== null &&
+      holding.latest_price?.price !== undefined
+    ) {
+      return (
+        parseFloat(holding.quantity || 0) *
+        parseFloat(holding.latest_price.price || 0)
+      );
+    }
+    return (
+      parseFloat(holding.quantity || 0) * parseFloat(holding.average_cost || 0)
+    );
+  }
+
   useEffect(() => {
     async function getTotalWealth() {
-      let promises = global.activeAccounts?.map(async (a) => {
-        return await currencyService.convert(
-          a.currency,
-          global.globalCurrency,
-          a.amount
-        );
+      const cashConversions = [];
+      const holdingConversions = [];
+
+      (global.activeAccounts || []).forEach((account) => {
+        (account.cash_balances || []).forEach((balance) => {
+          const fromCurrency = balance.currency?.code || account.currency;
+          cashConversions.push(
+            currencyService
+              .convert(
+                fromCurrency,
+                global.globalCurrency,
+                parseFloat(balance.balance || 0)
+              )
+              .then((value) => parseFloat(value || 0))
+          );
+        });
+
+        (account.holdings || []).forEach((holding) => {
+          const fromCurrency =
+            holding.security?.currency?.code || account.currency;
+          holdingConversions.push(
+            currencyService
+              .convert(
+                fromCurrency,
+                global.globalCurrency,
+                resolveHoldingValue(holding)
+              )
+              .then((value) => parseFloat(value || 0))
+          );
+        });
       });
 
-      const results = await Promise.all(promises);
-      const total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
+      const [cashResults, holdingResults] = await Promise.all([
+        Promise.all(cashConversions),
+        Promise.all(holdingConversions),
+      ]);
+
+      const totalCash = cashResults.reduce((acc, curr) => acc + curr, 0);
+      const totalHoldings = holdingResults.reduce((acc, curr) => acc + curr, 0);
+      const total = totalCash + totalHoldings;
 
       setTotalWealth((prev) => ({ ...prev, wealth: total }));
     }
     getTotalWealth();
-  }, [global.globalCurrency]);
+  }, [global.globalCurrency, global.activeAccounts]);
 
   useEffect(() => {
     async function getPercentageChange() {
@@ -173,9 +249,7 @@ const Sidebar = (props) => {
       async function getSumOfTransactions(transactions) {
         let promises = transactions?.map(async (t) => {
           return await currencyService.convert(
-            getAccountCurrency(
-              t["transaction_type"] === "income" ? t.to_account : t.from_account
-            ),
+            resolveTransactionCurrency(t),
             global.globalCurrency,
             t.amount
           );

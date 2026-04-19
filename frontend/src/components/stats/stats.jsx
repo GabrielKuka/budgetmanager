@@ -42,6 +42,34 @@ const Stats = () => {
     return "Not Found";
   }
 
+  function getTransactionCurrency(transaction) {
+    if (!transaction) {
+      return "Not Found";
+    }
+
+    const balanceId =
+      transaction.transaction_type === "income"
+        ? transaction.to_cash_balance
+        : transaction.from_cash_balance;
+
+    if (balanceId) {
+      for (const account of global.accounts || []) {
+        const matched = (account.cash_balances || []).find(
+          (balance) => balance.id === balanceId
+        );
+        if (matched) {
+          return matched.currency?.code || account.currency;
+        }
+      }
+    }
+
+    const fallbackAccountId =
+      transaction.transaction_type === "income"
+        ? transaction.to_account
+        : transaction.from_account;
+    return getAccountCurrency(fallbackAccountId);
+  }
+
   return (
     <div className={"stats-wrapper"}>
       {global.incomes?.length > 0 &&
@@ -76,6 +104,7 @@ const Stats = () => {
             <div className={"chart-container"}>
               <IncomeVsExpenseChart
                 getAccountCurrency={getAccountCurrency}
+                getTransactionCurrency={getTransactionCurrency}
                 height={300}
                 width={480}
                 expenses={expenses}

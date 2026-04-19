@@ -16,7 +16,6 @@ ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -30,9 +29,9 @@ INSTALLED_APPS = [
     "Users",
     "Accounts",
     "Transactions",
-    "Templates",
     "Currency",
     "tags",
+    "tangible_assets",
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -85,13 +84,11 @@ WSGI_APPLICATION = "budgetmanager.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "../budgetdb/budgetmanagerdb_v2",
+        "NAME": "../budgetdb/budgetmanagerdb_v3",
     }
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {

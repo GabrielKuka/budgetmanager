@@ -169,6 +169,36 @@
       padding-bottom: 20px;
     }
 
+    .pie-chart-card {
+      border: 1px solid #dadada;
+      box-shadow: 1px 1px 10px #dadada;
+      border-radius: 3px;
+      width: 330px;
+      padding: 12px 0 8px;
+      transition: box-shadow 0.3s, border 0.3s;
+
+      .chart-title {
+        width: fit-content;
+        margin: 0 0 4px 14px;
+        background-color: cadetblue;
+        color: white;
+        border-radius: 2px;
+        padding: 5px;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 13px;
+      }
+
+      .pie-chart {
+        margin: 0 auto;
+      }
+
+      &:hover {
+        border: 1px solid cadetblue;
+        box-shadow: 1px 1px 5px cadetblue;
+      }
+    }
+
     .summary {
       box-shadow: 1px 1px 5px #dadada;
       border: 1px solid #dadada;

@@ -26,8 +26,6 @@ const Accounts = () => {
       <Sidebar
         accounts={accounts}
         refreshAccounts={global.updateAccounts}
-        accountTypeSelected={accountTypeSelected}
-        setAccountTypeSelected={setAccountTypeSelected}
       />
       {!accounts?.length ? (
         <NoDataCard
@@ -40,90 +38,96 @@ const Accounts = () => {
           accounts={accounts}
           refreshAccounts={global.updateAccounts}
           accountTypeSelected={accountTypeSelected}
+          setAccountTypeSelected={setAccountTypeSelected}
         />
       )}
     </div>
   );
 };
 
-const Sidebar = ({
-  accounts,
-  refreshAccounts,
-  accountTypeSelected,
-  setAccountTypeSelected,
-}) => {
+const Sidebar = ({ accounts, refreshAccounts }) => {
   const global = useGlobalContext();
   const [investments, setInvestments] = useState(0);
-  const [bankAssets, setBankAssets] = useState(0);
   const [cash, setCash] = useState(0);
-  const [networth, setNetworth] = useState(0);
+  const [totalAssets, setTotalAssets] = useState(0);
 
-  useEffect(() => {
-    if (investments || cash || bankAssets) {
-      const c = parseFloat(cash);
-      const b = parseFloat(bankAssets);
-      const i = parseFloat(investments);
-
-      let total = parseFloat(c + b + i).toFixed(2);
-      setNetworth(total);
+  function resolveHoldingValue(holding) {
+    if (holding.market_value !== null && holding.market_value !== undefined) {
+      return parseFloat(holding.market_value || 0);
     }
-  }, [investments, cash, bankAssets]);
+    if (
+      holding.latest_price?.price !== null &&
+      holding.latest_price?.price !== undefined
+    ) {
+      return (
+        parseFloat(holding.quantity || 0) *
+        parseFloat(holding.latest_price.price || 0)
+      );
+    }
+    return (
+      parseFloat(holding.quantity || 0) * parseFloat(holding.average_cost || 0)
+    );
+  }
 
   useEffect(() => {
     if (accounts == null) {
       return;
     }
-    async function convertInvestments() {
-      let promises = accounts?.map(async (a) => {
-        if (a.type == 1) {
-          return await currencyService.convert(
-            a.currency,
-            global.globalCurrency,
-            a.amount
+    let active = true;
+
+    async function computeSummary() {
+      const sourceAccounts = accounts || [];
+      const cashConversions = [];
+      const holdingConversions = [];
+
+      sourceAccounts.forEach((account) => {
+        (account.cash_balances || []).forEach((balance) => {
+          const fromCurrency = balance.currency?.code || account.currency;
+          cashConversions.push(
+            currencyService
+              .convert(
+                fromCurrency,
+                global.globalCurrency,
+                parseFloat(balance.balance || 0)
+              )
+              .then((value) => parseFloat(value || 0))
           );
-        }
-        return 0;
+        });
+
+        (account.holdings || []).forEach((holding) => {
+          const fromCurrency =
+            holding.security?.currency?.code || account.currency;
+          holdingConversions.push(
+            currencyService
+              .convert(
+                fromCurrency,
+                global.globalCurrency,
+                resolveHoldingValue(holding)
+              )
+              .then((value) => parseFloat(value || 0))
+          );
+        });
       });
 
-      let results = await Promise.all(promises);
-      let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
-      setInvestments(total);
-    }
-    async function convertCash() {
-      let promises = accounts?.map(async (a) => {
-        if (a.type == 2) {
-          return await currencyService.convert(
-            a.currency,
-            global.globalCurrency,
-            a.amount
-          );
-        }
-        return 0;
-      });
-      let results = await Promise.all(promises);
-      let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
-      setCash(total);
-    }
-    async function convertBankAssets() {
-      let promises = accounts?.map(async (a) => {
-        if (a.type == 0) {
-          return await currencyService.convert(
-            a.currency,
-            global.globalCurrency,
-            a.amount
-          );
-        }
-        return 0;
-      });
+      const [cashResults, holdingResults] = await Promise.all([
+        Promise.all(cashConversions),
+        Promise.all(holdingConversions),
+      ]);
 
-      let results = await Promise.all(promises);
-      let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
-      setBankAssets(total);
+      const cashTotal = cashResults.reduce((acc, curr) => acc + curr, 0);
+      const investmentsTotal = holdingResults.reduce((acc, curr) => acc + curr, 0);
+
+      if (active) {
+        setCash(cashTotal);
+        setInvestments(investmentsTotal);
+        setTotalAssets(cashTotal + investmentsTotal);
+      }
     }
 
-    convertInvestments();
-    convertCash();
-    convertBankAssets();
+    computeSummary();
+    return () => {
+      active = false;
+    };
   }, [accounts, global.globalCurrency]);
 
   return (
@@ -160,66 +164,24 @@ const Sidebar = ({
               style={{ marginRight: "10px" }}
             />
           }
-          <span>Hard cash: </span>
+          <span>Cash: </span>
           <small>
-            {helper.showOrMask(global.privacyMode, helper.formatNumber(cash))}
-            {helper.getCurrency(global.globalCurrency)}
-          </small>
-        </label>
-        <label>
-          {
-            <img
-              alt="account-type"
-              src={process.env.PUBLIC_URL + "/bank_icon.png"}
-              width="20"
-              height="17"
-              style={{ marginRight: "10px" }}
-            />
-          }
-          <span>Money in banks: </span>
-          <small>
-            {helper.showOrMask(
-              global.privacyMode,
-              helper.formatNumber(bankAssets)
-            )}{" "}
+            {helper.showOrMask(global.privacyMode, helper.formatNumber(cash))}{" "}
             {helper.getCurrency(global.globalCurrency)}
           </small>
         </label>
         <label>
           <span>
-            <b>TOTAL ASSETS:</b>{" "}
+            <b>Total:</b>{" "}
           </span>
           <b style={{ borderBottom: "2px solid #5F9EA0" }}>
             {helper.showOrMask(
               global.privacyMode,
-              helper.formatNumber(networth)
+              helper.formatNumber(totalAssets)
             )}{" "}
             {helper.getCurrency(global.globalCurrency)}
           </b>
         </label>
-      </div>
-      <div id="account-types-wrapper">
-        <div className={"card-label"}>More</div>
-        <div>
-          <input
-            type="radio"
-            id="active_accounts"
-            name="account-type"
-            checked={accountTypeSelected === "active"}
-            onChange={() => setAccountTypeSelected("active")}
-          />
-          <label htmlFor="active_accounts">Active Accounts</label>
-        </div>
-        <div>
-          <input
-            type="radio"
-            id="deleted_accounts"
-            name="account-type"
-            checked={accountTypeSelected === "deleted"}
-            onChange={() => setAccountTypeSelected("deleted")}
-          />
-          <label htmlFor="deleted_accounts">Deleted Accounts</label>
-        </div>
       </div>
     </div>
   );
@@ -234,25 +196,30 @@ const CreateAccount = ({ refreshAccounts }) => {
     <div className={"add-account"}>
       <Formik
         initialValues={{
-          amount: "",
           name: "",
-          currency: "",
           type: "",
+          cash_balances: [{ currency: "EUR", amount: "" }],
         }}
         validationSchema={validationSchemas.accountsFormSchema}
         validateOnChange={false}
         validateOnBlur={false}
-        onSubmit={(values, { setSubmitting, resetForm, validateForm }) => {
-          validateForm().then(async () => {
+        onSubmit={async (values, { setSubmitting, resetForm, validateForm }) => {
+          const errors = await validateForm();
+          if (Object.keys(errors || {}).length > 0) {
+            setSubmitting(false);
+            return;
+          }
+          try {
             await transactionService.addAccount(values);
             await refreshAccounts();
             showToast("Account Created", "success");
-            setSubmitting(false);
             resetForm();
-          });
+          } finally {
+            setSubmitting(false);
+          }
         }}
       >
-        {({ errors, touched }) => (
+        {({ values, errors, touched, setFieldValue }) => (
           <Form className={"form"}>
             <label onClick={() => document.getElementById("name").focus()}>
               Add an account
@@ -263,17 +230,77 @@ const CreateAccount = ({ refreshAccounts }) => {
               name="name"
               placeholder="Name of the account"
             />
-            <Field as="select" name="currency">
-              <option value="" disabled hidden>
-                Select currency
-              </option>
-              {currencies.map((type, index) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </Field>
-            <Field type="text" name="amount" placeholder="Amount" />
+            {values.cash_balances.map((row, index) => (
+              <div key={index} className="cash-balance-row">
+                <div className="cash-balance-inline-row">
+                  <Field
+                    as="select"
+                    name={`cash_balances[${index}].currency`}
+                    value={row.currency}
+                    className="cash-balance-currency"
+                  >
+                    <option value="" disabled hidden>
+                      CUR
+                    </option>
+                    {currencies.map((currencyCode) => (
+                      <option key={currencyCode} value={currencyCode}>
+                        {currencyCode}
+                      </option>
+                    ))}
+                  </Field>
+                  <Field
+                    type="text"
+                    name={`cash_balances[${index}].amount`}
+                    placeholder="Amount"
+                    value={row.amount}
+                    className="cash-balance-amount"
+                  />
+                  <div className="cash-balance-actions">
+                    {values.cash_balances.length > 1 && (
+                      <button
+                        type="button"
+                        title="Remove balance"
+                        aria-label="Remove balance"
+                        className="remove-balance-icon"
+                        onClick={() => {
+                          const nextRows = values.cash_balances.filter(
+                            (_, i) => i !== index
+                          );
+                          setFieldValue("cash_balances", nextRows);
+                        }}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {errors.cash_balances?.[index]?.currency &&
+                touched.cash_balances?.[index]?.currency ? (
+                  <span>{errors.cash_balances[index].currency}</span>
+                ) : null}
+                {errors.cash_balances?.[index]?.amount &&
+                touched.cash_balances?.[index]?.amount ? (
+                  <span>{errors.cash_balances[index].amount}</span>
+                ) : null}
+
+                {index === values.cash_balances.length - 1 && (
+                  <div className="cash-balance-actions">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextRows = [
+                          ...values.cash_balances,
+                          { currency: "EUR", amount: "" },
+                        ];
+                        setFieldValue("cash_balances", nextRows);
+                      }}
+                    >
+                      + Balance
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
             <Field as="select" name="type">
               <option value="" disabled hidden>
                 Select account type
@@ -293,8 +320,8 @@ const CreateAccount = ({ refreshAccounts }) => {
               <span>{errors.currency}</span>
             ) : null}
             {errors.type && touched.type ? <span>{errors.type}</span> : null}
-            {errors.amount && touched.amount ? (
-              <span>{errors.amount}</span>
+            {typeof errors.cash_balances === "string" ? (
+              <span>{errors.cash_balances}</span>
             ) : null}
           </Form>
         )}
@@ -303,124 +330,207 @@ const CreateAccount = ({ refreshAccounts }) => {
   );
 };
 
-const AccountsList = ({ accounts, refreshAccounts, accountTypeSelected }) => {
+const AccountsList = ({
+  accounts,
+  refreshAccounts,
+  accountTypeSelected,
+  setAccountTypeSelected,
+}) => {
   const global = useGlobalContext();
-  const [sortedBy, setSortedBy] = useState({});
-  const [showEmptyAccounts, setShowEmptyAccounts] = useState(false);
+  const [sortedBy, setSortedBy] = useState({ amount: "descending" });
   const [shownAccounts, setShownAccounts] = useState(accounts);
+  const [accountTotals, setAccountTotals] = useState({});
+  const [accountCashTotals, setAccountCashTotals] = useState({});
+  const [accountHoldingTotals, setAccountHoldingTotals] = useState({});
 
   useEffect(() => {
-    filterAccounts();
-  }, [showEmptyAccounts, accounts]);
+    let active = true;
 
-  async function sortShownAccounts(by) {
+    async function computeAccountTotals() {
+      const sourceAccounts = global.accounts || [];
+      const convertedTotals = await Promise.all(
+        sourceAccounts.map(async (account) => {
+          let cashTotal = 0;
+          let holdingsTotal = 0;
+
+          for (const balance of account.cash_balances || []) {
+            const balanceCurrency = balance.currency?.code || account.currency;
+            const converted = await currencyService.convert(
+              balanceCurrency,
+              global.globalCurrency,
+              parseFloat(balance.balance || 0)
+            );
+            cashTotal += parseFloat(converted || 0);
+          }
+
+          for (const holding of account.holdings || []) {
+            const holdingCurrency = holding.security?.currency?.code || account.currency;
+            let holdingValue = holding.market_value;
+
+            if (holdingValue === null || holdingValue === undefined) {
+              if (holding.latest_price?.price !== null && holding.latest_price?.price !== undefined) {
+                holdingValue =
+                  parseFloat(holding.quantity || 0) *
+                  parseFloat(holding.latest_price.price || 0);
+              } else {
+                holdingValue =
+                  parseFloat(holding.quantity || 0) *
+                  parseFloat(holding.average_cost || 0);
+              }
+            }
+
+            const converted = await currencyService.convert(
+              holdingCurrency,
+              global.globalCurrency,
+              parseFloat(holdingValue || 0)
+            );
+            holdingsTotal += parseFloat(converted || 0);
+          }
+
+          return [account.id, { cashTotal, holdingsTotal }];
+        })
+      );
+
+      if (active) {
+        const totalsByAccount = {};
+        const cashTotalsByAccount = {};
+        const holdingsTotalsByAccount = {};
+        convertedTotals.forEach(([accountId, values]) => {
+          totalsByAccount[accountId] = values.cashTotal + values.holdingsTotal;
+          cashTotalsByAccount[accountId] = values.cashTotal;
+          holdingsTotalsByAccount[accountId] = values.holdingsTotal;
+        });
+        setAccountTotals(totalsByAccount);
+        setAccountCashTotals(cashTotalsByAccount);
+        setAccountHoldingTotals(holdingsTotalsByAccount);
+      }
+    }
+
+    computeAccountTotals();
+    return () => {
+      active = false;
+    };
+  }, [global.accounts, global.globalCurrency]);
+
+  useEffect(() => {
+    const { by, order } = getSortConfig();
+    if (accountTypeSelected === "deleted") {
+      const deletedAccounts = (global.accounts || []).filter((a) => a.deleted);
+      setShownAccounts(sortAccounts(deletedAccounts, by, order));
+      return;
+    }
+    const activeAccounts = (accounts || []).filter((a) => !a.deleted);
+    setShownAccounts(sortAccounts(activeAccounts, by, order));
+  }, [accounts, accountTypeSelected, global.accounts, accountTotals, sortedBy]);
+
+  function getSortConfig() {
+    const [by, order] = Object.entries(sortedBy)[0] || [
+      "amount",
+      "descending",
+    ];
+    return { by, order };
+  }
+
+  function getSortValue(account, by) {
+    if (by === "date") {
+      return new Date(account.created_on).getTime();
+    }
+    if (by === "amount") {
+      return parseFloat(
+        accountTotals[account.id] !== undefined
+          ? accountTotals[account.id]
+          : account.amount || 0
+      );
+    }
+    if (by === "type") {
+      const accountTypes = ["Bank Account", "Investment Account", "Hard Cash"];
+      return accountTypes[account.type] || "";
+    }
+    return account[by] || "";
+  }
+
+  function sortAccounts(items, by, order) {
+    return [...(items || [])].sort((a, b) => {
+      const aValue = getSortValue(a, by);
+      const bValue = getSortValue(b, by);
+
+      if (typeof aValue === "string" || typeof bValue === "string") {
+        return order === "ascending"
+          ? String(aValue).localeCompare(String(bValue))
+          : String(bValue).localeCompare(String(aValue));
+      }
+
+      return order === "ascending" ? aValue - bValue : bValue - aValue;
+    });
+  }
+
+  function sortShownAccounts(by) {
     if (!by) {
       return;
     }
 
-    let sorted = null;
-
-    const sortKeyFunction = {
-      date: (acc) => new Date(acc.created_on),
-      amount: async (acc) => {
-        const convertedAmount = await currencyService.convert(
-          acc.currency,
-          global.globalCurrency,
-          acc.amount
-        );
-        return parseFloat(convertedAmount);
-      },
-    };
-    const transform = sortKeyFunction[by] || ((acc) => acc[by]);
-
-    const itemsWithTransformedValues = await Promise.all(
-      shownAccounts.map(async (acc) => ({
-        ...acc,
-        transformedValue:
-          by === "amount" ? await transform(acc) : transform(acc),
-      }))
-    );
-
-    if (by in sortedBy) {
-      const currentOrder = sortedBy[by];
-      // Perform synchronous sorting on the transformed values
-      sorted = itemsWithTransformedValues.sort((a, b) =>
-        currentOrder === "ascending"
-          ? b.transformedValue - a.transformedValue
-          : a.transformedValue - b.transformedValue
-      );
-      setSortedBy({
-        [by]: currentOrder === "ascending" ? "descending" : "ascending",
-      });
-    } else {
-      sorted = itemsWithTransformedValues.sort(
-        (a, b) => a.transformedValue - b.transformedValue
-      );
-      setSortedBy({ [by]: "ascending" });
-    }
-    setShownAccounts(sorted);
-  }
-
-  function filterAccounts() {
-    let filtered_accounts = accounts;
-    if (!showEmptyAccounts) {
-      filtered_accounts = accounts.filter((a) => a.amount != 0);
-    }
-
-    setShownAccounts(filtered_accounts);
-  }
-
-  function handleEmptyAccounts() {
-    setShowEmptyAccounts(!showEmptyAccounts);
+    const currentOrder = sortedBy[by];
+    const nextOrder = currentOrder === "ascending" ? "descending" : "ascending";
+    setSortedBy({ [by]: nextOrder });
+    setShownAccounts(sortAccounts(shownAccounts, by, nextOrder));
   }
 
   return (
     <div className={"accounts-wrapper__accounts-list"}>
-      {accountTypeSelected === "active" && (
-        <div className={"extra_filters"}>
-          <label className={"empty_accounts_checkbox"}>
-            <input
-              type="checkbox"
-              checked={showEmptyAccounts}
-              onChange={handleEmptyAccounts}
-            />
-            <span>Empty Accounts</span>
-          </label>
-        </div>
-      )}
+      <div className={"mobile-account-type-toggle"}>
+        <button
+          className={accountTypeSelected === "active" ? "active" : ""}
+          onClick={() => setAccountTypeSelected("active")}
+        >
+          Active
+        </button>
+        <button
+          className={accountTypeSelected === "deleted" ? "active" : ""}
+          onClick={() => setAccountTypeSelected("deleted")}
+        >
+          Deleted
+        </button>
+      </div>
       <div className={"header"}>
-        <label onClick={() => sortShownAccounts("date")}>Date</label>
-        <label>Name</label>
-        <label onClick={() => sortShownAccounts("amount")}>Amount</label>
-        <label onClick={() => sortShownAccounts("type")}>Type</label>
+        <label className="header-date" onClick={() => sortShownAccounts("date")}>
+          Date
+        </label>
+        <label className="header-name">Name</label>
+        <label className="header-amount" onClick={() => sortShownAccounts("amount")}>
+          Amount
+        </label>
+        <label className="header-type" onClick={() => sortShownAccounts("type")}>
+          Type
+        </label>
+        <span className="header-actions-spacer" aria-hidden="true"></span>
       </div>
       <div className={"accounts"}>
-        {accountTypeSelected === "deleted"
-          ? global.accounts
-              ?.filter((a) => a.deleted)
-              .map((account) => (
-                <AccountItem
-                  key={account.id}
-                  account={account}
-                  refreshAccounts={refreshAccounts}
-                />
-              ))
-          : shownAccounts?.length > 0 &&
-            shownAccounts.map((account) => (
-              <AccountItem
-                key={account.id}
-                account={account}
-                refreshAccounts={refreshAccounts}
-              />
-            ))}
+        {shownAccounts?.length > 0 &&
+          shownAccounts.map((account) => (
+            <AccountItem
+              key={account.id}
+              account={account}
+              refreshAccounts={refreshAccounts}
+              accountTotal={accountTotals[account.id]}
+              cashTotal={accountCashTotals[account.id]}
+              holdingsTotal={accountHoldingTotals[account.id]}
+            />
+          ))}
       </div>
     </div>
   );
 };
 
-const AccountItem = ({ account, refreshAccounts }) => {
+const AccountItem = ({
+  account,
+  refreshAccounts,
+  accountTotal,
+  cashTotal,
+  holdingsTotal,
+}) => {
   const global = useGlobalContext();
   const navigate = useNavigate();
+  const [expanded, setExpanded] = useState(false);
   const accountTypes = [
     { source: `${process.env.PUBLIC_URL}/bank_icon.png`, name: "Bank Account" },
     {
@@ -471,61 +581,183 @@ const AccountItem = ({ account, refreshAccounts }) => {
     });
   }
 
+  const resolvedTotal =
+    accountTotal !== undefined ? parseFloat(accountTotal) : parseFloat(account.amount || 0);
+  const resolvedCashTotal =
+    cashTotal !== undefined ? parseFloat(cashTotal) : parseFloat(0);
+  const resolvedHoldingsTotal =
+    holdingsTotal !== undefined ? parseFloat(holdingsTotal) : parseFloat(0);
+  const sortedCashBalances = [...(account.cash_balances || [])].sort(
+    (a, b) => parseFloat(b.balance || 0) - parseFloat(a.balance || 0)
+  );
+  const getHoldingAmount = (holding) =>
+    holding.cost_basis !== null && holding.cost_basis !== undefined
+      ? parseFloat(holding.cost_basis || 0)
+      : parseFloat(holding.quantity || 0) * parseFloat(holding.average_cost || 0);
+  const sortedHoldings = [...(account.holdings || [])].sort(
+    (a, b) => getHoldingAmount(b) - getHoldingAmount(a)
+  );
+
   return (
-    <div className="account-item">
-      <label id="date">
-        {new Date(account.created_on).toISOString().slice(0, 10)}
-      </label>
-      <label id="name" onClick={() => navigate(`/accounts/${account.id}`)}>
-        {account.name.toLowerCase().includes("Revolut".toLowerCase()) && (
-          <img
-            alt="revolut_icon"
-            width="15"
-            height="18"
-            src={process.env.PUBLIC_URL + "/revolut_icon.png"}
-          />
-        )}
-        {account.name.toLowerCase().includes("Wise".toLowerCase()) && (
-          <img
-            alt="wise_icon"
-            width="15"
-            height="18"
-            src={process.env.PUBLIC_URL + "/wise_icon.png"}
-          />
-        )}
-        {account.name}
-      </label>
-      <label
-        id="amount"
-        style={amountColor(helper.formatNumber(account.amount))}
-      >
-        {helper.showOrMask(
-          global.privacyMode,
-          helper.formatNumber(account.amount)
-        )}{" "}
-        {helper.getCurrency(account.currency)}
-      </label>
-      <label id="type">
-        {
-          <img
-            alt="account_type"
-            height="15"
-            width="20"
-            src={accountTypes[account.type]["source"]}
-          />
-        }
-        {accountTypes[account.type]["name"]}
-      </label>
-      <div id="actions-wrapper">
-        {account.deleted && (
-          <button id="restore_button" onClick={restoreAccount}>
-            ⟳
+    <div className="account-item-wrapper">
+      <div className="account-item">
+        <label id="date" className="account-cell" data-label="Date">
+          {new Date(account.created_on).toISOString().slice(0, 10)}
+        </label>
+        <label
+          id="name"
+          className="account-cell"
+          data-label="Name"
+          onClick={() => navigate(`/accounts/${account.id}`)}
+        >
+          {account.name.toLowerCase().includes("Revolut".toLowerCase()) && (
+            <img
+              alt="revolut_icon"
+              width="15"
+              height="18"
+              src={process.env.PUBLIC_URL + "/revolut_icon.png"}
+            />
+          )}
+          {account.name.toLowerCase().includes("Wise".toLowerCase()) && (
+            <img
+              alt="wise_icon"
+              width="15"
+              height="18"
+              src={process.env.PUBLIC_URL + "/wise_icon.png"}
+            />
+          )}
+          {account.name}
+        </label>
+        <label
+          id="amount"
+          className="account-cell"
+          data-label="Amount"
+          style={amountColor(helper.formatNumber(resolvedTotal))}
+        >
+          {helper.showOrMask(global.privacyMode, helper.formatNumber(resolvedTotal))}{" "}
+          {helper.getCurrency(global.globalCurrency)}
+        </label>
+        <label id="type" className="account-cell" data-label="Type">
+          {
+            <img
+              alt="account_type"
+              height="15"
+              width="20"
+              src={accountTypes[account.type]["source"]}
+            />
+          }
+          {accountTypes[account.type]["name"]}
+        </label>
+        <div id="actions-wrapper">
+          <button id="expand_button" onClick={() => setExpanded(!expanded)}>
+            {expanded ? "▾" : "▸"}
           </button>
-        )}
-        <button id="remove_button" onClick={deleteAccount}>
-          X
-        </button>
+          {account.deleted && (
+            <button id="restore_button" onClick={restoreAccount}>
+              ⟳
+            </button>
+          )}
+          <button id="remove_button" onClick={deleteAccount}>
+            X
+          </button>
+        </div>
       </div>
+      {expanded && (
+        <div className="account-item-details">
+          <div className="details-section">
+            <div className="details-title">Cash balances</div>
+            {sortedCashBalances.length > 0 ? (
+              <>
+                {sortedCashBalances.map((balance) => (
+                  <div
+                    className={`detail-row ${
+                      Math.abs(parseFloat(balance.balance || 0)) <= 0.000001
+                        ? "is-empty"
+                        : ""
+                    }`}
+                    key={balance.id}
+                  >
+                    <span>{balance.currency?.code}</span>
+                    <span>
+                      {helper.showOrMask(
+                        global.privacyMode,
+                        helper.formatNumber(balance.balance)
+                      )}{" "}
+                      {helper.getCurrency(balance.currency?.code)}
+                    </span>
+                  </div>
+                ))}
+                <div className="detail-divider"></div>
+                <div className="detail-row detail-total">
+                  <span className="detail-total-spacer">.</span>
+                  <span>
+                    {helper.showOrMask(
+                      global.privacyMode,
+                      helper.formatNumber(resolvedCashTotal)
+                    )}{" "}
+                    {helper.getCurrency(global.globalCurrency)}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="detail-row">No cash balances.</div>
+            )}
+          </div>
+          <div className="details-section">
+            <div className="details-title">Holdings</div>
+            {sortedHoldings.length > 0 ? (
+              <>
+                {sortedHoldings.map((holding) => (
+                  <div className="detail-row holding-detail-row" key={holding.id}>
+                    <span className="holding-label">
+                      <span className="holding-quantity">
+                        {helper.formatNumber(holding.quantity, 2)}
+                      </span>
+                      <span
+                        className="security-ticker-tooltip"
+                        data-tooltip={
+                          holding.security?.name ||
+                          holding.security?.description ||
+                          holding.security?.ticker ||
+                          "N/A"
+                        }
+                        title={
+                          holding.security?.name ||
+                          holding.security?.description ||
+                          holding.security?.ticker ||
+                          "N/A"
+                        }
+                      >
+                        {holding.security?.ticker || "N/A"}
+                      </span>
+                    </span>
+                    <span>
+                      {helper.showOrMask(
+                        global.privacyMode,
+                        helper.formatNumber(getHoldingAmount(holding))
+                      )}{" "}
+                      {helper.getCurrency(holding.security?.currency?.code)}
+                    </span>
+                  </div>
+                ))}
+                <div className="detail-divider"></div>
+                <div className="detail-row detail-total">
+                  <span className="detail-total-spacer">.</span>
+                  <span>
+                    {helper.showOrMask(
+                      global.privacyMode,
+                      helper.formatNumber(resolvedHoldingsTotal)
+                    )}{" "}
+                    {helper.getCurrency(global.globalCurrency)}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="detail-row">No holdings.</div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

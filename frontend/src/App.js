@@ -1,7 +1,6 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import Dashboard from "./components/dashboard/dashboard";
-import Template from "./components/templates/templates";
 import NotFound from "./components/notfound";
 import Accounts from "./components/accounts";
 import Profile from "./components/profile";
@@ -22,7 +21,6 @@ function App() {
           <Navbar />
           <Routes>
             <Route path="/dashboard/*" element={<Dashboard />} />
-            <Route path="/templates" element={<Template />} />
             <Route path="/" element={<Dashboard />} />
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/accounts/:id" element={<AccountPage />} />

@@ -6,6 +6,7 @@ import { Navigate } from "react-router-dom";
 import NotFound from "./notfound";
 import { helper } from "./helper";
 import accountService from "../services/transactionService/accountService";
+import currencyService from "../services/currencyService";
 
 const AccountPage = () => {
   const { id } = useParams();
@@ -72,6 +73,60 @@ const AccountPage = () => {
 
 const Sidebar = ({ account, accountType, stats, currentMonthStats }) => {
   const global = useGlobalContext();
+  const [cashTotalGlobal, setCashTotalGlobal] = useState(0);
+  const [holdingsTotalGlobal, setHoldingsTotalGlobal] = useState(0);
+  const [grandTotalGlobal, setGrandTotalGlobal] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    async function computeTotals() {
+      if (!account) {
+        return;
+      }
+
+      const cashConversions = (account.cash_balances || []).map((balance) => {
+        const fromCurrency = balance.currency?.code || account.currency;
+        return currencyService
+          .convert(
+            fromCurrency,
+            global.globalCurrency,
+            parseFloat(balance.balance || 0)
+          )
+          .then((value) => parseFloat(value || 0));
+      });
+
+      const holdingConversions = (account.holdings || []).map((holding) => {
+        const fromCurrency = holding.security?.currency?.code || account.currency;
+        const costBasis =
+          parseFloat(holding.quantity || 0) * parseFloat(holding.average_cost || 0);
+        return currencyService
+          .convert(fromCurrency, global.globalCurrency, costBasis)
+          .then((value) => parseFloat(value || 0));
+      });
+
+      const [cashRows, holdingRows] = await Promise.all([
+        Promise.all(cashConversions),
+        Promise.all(holdingConversions),
+      ]);
+
+      const cashTotal = cashRows.reduce((acc, value) => acc + value, 0);
+      const holdingsTotal = holdingRows.reduce((acc, value) => acc + value, 0);
+      const total = cashTotal + holdingsTotal;
+
+      if (active) {
+        setCashTotalGlobal(cashTotal);
+        setHoldingsTotalGlobal(holdingsTotal);
+        setGrandTotalGlobal(total);
+      }
+    }
+
+    computeTotals();
+    return () => {
+      active = false;
+    };
+  }, [account, global.globalCurrency]);
+
   return (
     <div className={"account-page-wrapper__sidebar"}>
       <div id="account_information">
@@ -79,26 +134,67 @@ const Sidebar = ({ account, accountType, stats, currentMonthStats }) => {
         <div className="grid-container">
           <div className="grid-row">
             <label>Name: </label>
-            <span id="account-name">{account.name}</span>
-          </div>
-          <div className="grid-row">
-            <label>Currency: </label>
-            <span>{account.currency}</span>
-          </div>
-          <div className="grid-row">
-            <label>Active: </label>
-            <span style={{ color: account.deleted ? "red" : "green" }}>
-              {account.deleted ? "No" : "Yes ✓"}
+            <span id="account-name">
+              {account.name}
+              <span
+                className={`account-status-indicator ${
+                  account.deleted ? "inactive" : "active"
+                }`}
+                aria-label={account.deleted ? "Inactive account" : "Active account"}
+                title={account.deleted ? "Inactive" : "Active"}
+              >
+                {account.deleted ? "✕" : "✓"}
+              </span>
             </span>
           </div>
-          <div className="grid-row">
-            <label>Balance: </label>
+          <div className="grid-row aggregate-row">
+            <label>Total Cash: </label>
             <span>
               {helper.showOrMask(
                 global.privacyMode,
-                helper.formatNumber(account.amount)
+                helper.formatNumber(cashTotalGlobal)
               )}{" "}
-              {helper.getCurrency(account.currency)}
+              {helper.getCurrency(global.globalCurrency)}
+            </span>
+          </div>
+          {(account.cash_balances || []).map((balance) => {
+            const code = balance.currency?.code || account.currency;
+            const symbol =
+              balance.currency?.symbol || helper.getCurrency(code);
+            return (
+              <div
+                className="grid-row cash-sub-row"
+                key={`cash-balance-${balance.id}`}
+              >
+                <label>{code}:</label>
+                <span>
+                  {helper.showOrMask(
+                    global.privacyMode,
+                    helper.formatNumber(balance.balance)
+                  )}{" "}
+                  {symbol}
+                </span>
+              </div>
+            );
+          })}
+          <div className="grid-row aggregate-row">
+            <label>Holdings: </label>
+            <span>
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(holdingsTotalGlobal)
+              )}{" "}
+              {helper.getCurrency(global.globalCurrency)}
+            </span>
+          </div>
+          <div className="grid-row grand-total-row">
+            <label>Total: </label>
+            <span>
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(grandTotalGlobal)
+              )}{" "}
+              {helper.getCurrency(global.globalCurrency)}
             </span>
           </div>
           <div className={"grid-row"}>

@@ -14,6 +14,7 @@ import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
 import { validationSchemas } from "../../validationSchemas";
 import BarChartToolTip from "../stats/barChartTooltip";
+import PercentExpensesPieChart from "../stats/percentExpensesPie";
 
 const Incomes = () => {
   const global = useGlobalContext();
@@ -145,13 +146,6 @@ const Sidebar = (props) => {
 
   return (
     <div className={"incomes-wrapper__sidebar"}>
-      <AddIncome
-        accounts={props.accounts}
-        categories={props.categories}
-        refreshIncomes={props.refreshIncomes}
-        refreshAccounts={props.refreshAccounts}
-        getAccountCurrency={props.getAccountCurrency}
-      />
       <div className={"summary"}>
         <b>
           {helper.showOrMask(
@@ -167,6 +161,18 @@ const Sidebar = (props) => {
         </small>
       </div>
       <Chart data={incomesPerCategory} />
+      <div className="pie-chart-card">
+        <div className="chart-title">By category</div>
+        <PercentExpensesPieChart
+          expenses={props.shownIncomes}
+          categories={props.categories}
+          getAccountCurrency={props.getAccountCurrency}
+          accountField="to_account"
+          width={330}
+          height={250}
+          outerRadius={112}
+        />
+      </div>
     </div>
   );
 };
@@ -480,7 +486,7 @@ const IncomesList = (props) => {
           )}
           <select id="account" defaultValue={"-1"} onChange={filterIncomes}>
             <option value="-1">All</option>
-            {global.accounts?.map((a) => (
+            {props.accounts?.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
               </option>

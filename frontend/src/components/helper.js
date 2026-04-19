@@ -109,6 +109,10 @@ export const helper = {
         return "red";
       case "transfer":
         return "cadetblue";
+      case "buy":
+        return "darkorange";
+      case "sell":
+        return "seagreen";
       default:
         return "";
     }

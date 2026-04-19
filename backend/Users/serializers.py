@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from Accounts.serialzers import AccountSerializer
+from Accounts.serializers import AccountSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):

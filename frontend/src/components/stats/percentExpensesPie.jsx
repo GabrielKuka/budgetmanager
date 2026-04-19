@@ -21,11 +21,13 @@ const COLORS = [
 const PercentExpensesPieChart = (props) => {
   const global = useGlobalContext();
   const [expensesPerCategory, setExpensesPerCategory] = useState(null);
+  const accountField = props.accountField || "from_account";
+
   async function getTotalExpenses() {
     let totalExpenses = 0;
-    for (const e of props.expenses) {
+    for (const e of props.expenses || []) {
       const convertedAmount = await currencyService.convert(
-        await props.getAccountCurrency(e.from_account),
+        props.getAccountCurrency(e[accountField]),
         global.globalCurrency,
         e.amount
       );
@@ -41,6 +43,10 @@ const PercentExpensesPieChart = (props) => {
     }
 
     const totalExpenses = await getTotalExpenses();
+    if (!totalExpenses) {
+      setExpensesPerCategory([]);
+      return;
+    }
 
     const data = [];
     for (const c of props.categories) {
@@ -48,19 +54,22 @@ const PercentExpensesPieChart = (props) => {
         ?.filter((e) => e.category == c.id)
         ?.map(async (e) => {
           return await currencyService.convert(
-            props.getAccountCurrency(e.from_account),
+            props.getAccountCurrency(e[accountField]),
             global.globalCurrency,
             e.amount
           );
         });
       const results = await Promise.all(promises);
       const total = results.reduce((t, curr) => (t += parseFloat(curr)), 0);
-      data.push({
-        name: c.category,
-        value:
-          parseFloat(parseFloat(total).toFixed(2) / parseFloat(totalExpenses)) *
-          100,
-      });
+      if (total > 0) {
+        data.push({
+          name: c.category,
+          value:
+            parseFloat(
+              parseFloat(total).toFixed(2) / parseFloat(totalExpenses)
+            ) * 100,
+        });
+      }
     }
 
     setExpensesPerCategory(data);
@@ -68,15 +77,24 @@ const PercentExpensesPieChart = (props) => {
 
   useEffect(() => {
     getExpensesPerCategory();
-  }, []);
+  }, [props.expenses, props.categories, global.globalCurrency]);
+
+  if (!expensesPerCategory?.length) {
+    return null;
+  }
 
   return (
-    <PieChart width={460} height={310} className={"chart"}>
+    <PieChart
+      width={props.width || 460}
+      height={props.height || 310}
+      className={`pie-chart chart ${props.className || ""}`}
+    >
       <Pie
         data={expensesPerCategory}
         dataKey="value"
         cx="50%"
         cy="50%"
+        outerRadius={props.outerRadius || 95}
         labelLine={false}
         label={renderCustomizedLabel}
       >
@@ -109,11 +127,11 @@ const renderCustomizedLabel = ({
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-  const adjustedValue = parseFloat(percent).toFixed(2);
+  const percentValue = percent * 100;
 
   return (
     <>
-      {parseFloat(percent).toFixed(2) * 100 > 1 && (
+      {percentValue >= 5 && (
         <text
           x={x}
           y={y}
@@ -122,9 +140,7 @@ const renderCustomizedLabel = ({
           dominantBaseline="middle"
           style={{ fontWeight: "bold" }}
         >
-          {`${adjustedValue * 100 >= 10 ? name : ""} ${parseFloat(
-            adjustedValue * 100
-          ).toFixed(2)}%`}
+          {`${percentValue.toFixed(2)}%`}
         </text>
       )}
     </>

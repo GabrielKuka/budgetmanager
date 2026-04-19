@@ -19,7 +19,6 @@ const TransactionPopup = ({
   const navigate = useNavigate();
   const transactionType = transaction.transaction_type;
 
-  let itemType = -1;
   let categories = [];
   if (transactionType === "income") {
     categories = global.incomeCategories;
@@ -75,6 +74,28 @@ const TransactionPopup = ({
         transaction.from_account
       )} to ${helper.getAccountName(global.accounts, transaction.to_account)}.`;
     }
+
+    if (transactionType === "buy") {
+      return `Bought ${helper.showOrMask(
+        global.privacyMode,
+        helper.formatNumber(transaction.quantity, 4)
+      )} units at ${helper.showOrMask(
+        global.privacyMode,
+        helper.formatNumber(transaction.price_per_unit)
+      )}.`;
+    }
+
+    if (transactionType === "sell") {
+      return `Sold ${helper.showOrMask(
+        global.privacyMode,
+        helper.formatNumber(transaction.quantity, 4)
+      )} units at ${helper.showOrMask(
+        global.privacyMode,
+        helper.formatNumber(transaction.price_per_unit)
+      )}.`;
+    }
+
+    return "";
   }
 
   function closePopup() {
@@ -169,6 +190,8 @@ const TransactionPopup = ({
               {transactionType == "expense" && "Paid on"}
               {transactionType == "income" && "Earned on"}
               {transactionType == "transfer" && "Transfered on"}{" "}
+              {transactionType == "buy" && "Bought on"}{" "}
+              {transactionType == "sell" && "Sold on"}{" "}
               {transaction.date}
             </span>
           </div>
@@ -244,6 +267,8 @@ const TransactionPopup = ({
                     getAccountCurrency(
                       transactionType === "income"
                         ? transaction.to_account
+                        : transactionType === "sell"
+                        ? transaction.to_account
                         : transaction.from_account
                     )
                   )}
@@ -257,6 +282,8 @@ const TransactionPopup = ({
                     navigate(
                       `/accounts/${
                         transactionType === "income"
+                          ? transaction.to_account
+                          : transactionType === "sell"
                           ? transaction.to_account
                           : transaction.from_account
                       }`
@@ -272,15 +299,50 @@ const TransactionPopup = ({
                     global.accounts,
                     transactionType === "income"
                       ? transaction.to_account
+                      : transactionType === "sell"
+                      ? transaction.to_account
                       : transaction.from_account
                   )}
                 </span>
               </div>
+              {(transactionType === "income" || transactionType === "expense") && (
+                <div>
+                  <label>Category: </label>
+                  <span>{helper.categoryIcon(transaction.category)}</span>
+                  <span> {getCategory(transaction.category)}</span>
+                </div>
+              )}
+            </>
+          )}
+          {(transactionType === "buy" || transactionType === "sell") && (
+            <>
               <div>
-                <label>Category: </label>
-                <span>{helper.categoryIcon(transaction.category)}</span>
-                <span> {getCategory(transaction.category)}</span>
+                <label>Security ID: </label>
+                <span> {transaction.security}</span>
               </div>
+              <div>
+                <label>Quantity: </label>
+                <span> {helper.formatNumber(transaction.quantity, 4)}</span>
+              </div>
+              <div>
+                <label>Price per unit: </label>
+                <span>
+                  {helper.formatNumber(transaction.price_per_unit)}{" "}
+                  {helper.getCurrency(
+                    getAccountCurrency(
+                      transactionType === "buy"
+                        ? transaction.from_account
+                        : transaction.to_account
+                    )
+                  )}
+                </span>
+              </div>
+              {transaction.holding && (
+                <div>
+                  <label>Holding ID: </label>
+                  <span> {transaction.holding}</span>
+                </div>
+              )}
             </>
           )}
           <div>
