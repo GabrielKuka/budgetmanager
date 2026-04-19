@@ -36,14 +36,18 @@ class Transaction(models.Model):
         on_delete=models.CASCADE,
         related_name="transactions",
     )
-    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
+    transaction_type = models.CharField(
+        max_length=10, choices=TRANSACTION_TYPES
+    )
     date = models.DateField()
     description = models.CharField(max_length=200, null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
     created_on = models.DateTimeField(auto_now_add=True)
 
     # Legacy flat fields kept for backward compatibility during staged migration.
-    amount = models.DecimalField(max_digits=19, decimal_places=4, null=True, blank=True)
+    amount = models.DecimalField(
+        max_digits=19, decimal_places=4, null=True, blank=True
+    )
     category = models.ForeignKey(
         TransactionCategory,
         on_delete=models.SET_NULL,

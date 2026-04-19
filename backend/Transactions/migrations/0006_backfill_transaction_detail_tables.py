@@ -100,8 +100,12 @@ def backfill_detail_tables(apps, schema_editor):
             account = Account.objects.filter(pk=txn.to_account_id).first()
             if not account:
                 continue
-            currency = _get_account_currency(account, Currency, fallback_currency)
-            cash_balance = _get_or_create_balance(CashBalance, account, currency)
+            currency = _get_account_currency(
+                account, Currency, fallback_currency
+            )
+            cash_balance = _get_or_create_balance(
+                CashBalance, account, currency
+            )
             category_id = None
             if txn.category_id:
                 category = txn.category
@@ -123,8 +127,12 @@ def backfill_detail_tables(apps, schema_editor):
             account = Account.objects.filter(pk=txn.from_account_id).first()
             if not account:
                 continue
-            currency = _get_account_currency(account, Currency, fallback_currency)
-            cash_balance = _get_or_create_balance(CashBalance, account, currency)
+            currency = _get_account_currency(
+                account, Currency, fallback_currency
+            )
+            cash_balance = _get_or_create_balance(
+                CashBalance, account, currency
+            )
             category_id = None
             if txn.category_id:
                 category = txn.category
@@ -143,7 +151,9 @@ def backfill_detail_tables(apps, schema_editor):
                 continue
             if not txn.from_account_id or not txn.to_account_id:
                 continue
-            from_account = Account.objects.filter(pk=txn.from_account_id).first()
+            from_account = Account.objects.filter(
+                pk=txn.from_account_id
+            ).first()
             to_account = Account.objects.filter(pk=txn.to_account_id).first()
             if not from_account or not to_account:
                 continue
@@ -151,9 +161,15 @@ def backfill_detail_tables(apps, schema_editor):
             from_currency = _get_account_currency(
                 from_account, Currency, fallback_currency
             )
-            to_currency = _get_account_currency(to_account, Currency, fallback_currency)
-            from_balance = _get_or_create_balance(CashBalance, from_account, from_currency)
-            to_balance = _get_or_create_balance(CashBalance, to_account, to_currency)
+            to_currency = _get_account_currency(
+                to_account, Currency, fallback_currency
+            )
+            from_balance = _get_or_create_balance(
+                CashBalance, from_account, from_currency
+            )
+            to_balance = _get_or_create_balance(
+                CashBalance, to_account, to_currency
+            )
 
             if from_balance.id == to_balance.id:
                 continue

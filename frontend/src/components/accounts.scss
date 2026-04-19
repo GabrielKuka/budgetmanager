@@ -197,14 +197,11 @@
         }
       }
     }
-
   }
 
   &__accounts-list {
-    --account-grid-template: minmax(110px, 0.9fr) minmax(220px, 1.8fr) minmax(
-        140px,
-        1.1fr
-      ) minmax(180px, 1.2fr) auto;
+    --account-grid-template: minmax(110px, 0.9fr) minmax(220px, 1.8fr)
+      minmax(140px, 1.1fr) minmax(180px, 1.2fr) auto;
     --account-grid-gap: 14px;
     --account-grid-padding-x: 22px;
     --account-header-amount-offset: -48px;
@@ -542,10 +539,8 @@
   .accounts-wrapper {
     &__accounts-list {
       max-width: min(960px, calc(100vw - 430px));
-      --account-grid-template: minmax(100px, 0.8fr) minmax(190px, 1.6fr) minmax(
-          125px,
-          1fr
-        ) minmax(160px, 1.1fr) auto;
+      --account-grid-template: minmax(100px, 0.8fr) minmax(190px, 1.6fr)
+        minmax(125px, 1fr) minmax(160px, 1.1fr) auto;
       --account-grid-gap: 12px;
       --account-grid-padding-x: 18px;
       --account-header-amount-offset: -38px;
@@ -566,10 +561,8 @@
 
     &__accounts-list {
       max-width: min(820px, calc(100vw - 366px));
-      --account-grid-template: minmax(92px, 0.8fr) minmax(170px, 1.5fr) minmax(
-          120px,
-          0.95fr
-        ) minmax(145px, 1.05fr) auto;
+      --account-grid-template: minmax(92px, 0.8fr) minmax(170px, 1.5fr)
+        minmax(120px, 0.95fr) minmax(145px, 1.05fr) auto;
       --account-grid-gap: 10px;
       --account-grid-padding-x: 14px;
       --account-header-amount-offset: -30px;

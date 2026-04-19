@@ -32,7 +32,8 @@ def seed_currencies_and_cash_balances(apps, schema_editor):
     for account in Account.objects.all():
         currency_code = getattr(account, "currency", None) or "EUR"
         currency = (
-            Currency.objects.filter(code=currency_code).first() or fallback_currency
+            Currency.objects.filter(code=currency_code).first()
+            or fallback_currency
         )
         amount = getattr(account, "amount", 0) or 0
         CashBalance.objects.get_or_create(
@@ -66,7 +67,10 @@ class Migration(migrations.Migration):
                 (
                     "currency_type",
                     models.CharField(
-                        choices=[("fiat", "Fiat"), ("crypto", "Cryptocurrency")],
+                        choices=[
+                            ("fiat", "Fiat"),
+                            ("crypto", "Cryptocurrency"),
+                        ],
                         default="fiat",
                         max_length=10,
                     ),
@@ -75,7 +79,10 @@ class Migration(migrations.Migration):
                     "exchange_rate_regime",
                     models.CharField(
                         blank=True,
-                        choices=[("floating", "Floating"), ("pegged", "Pegged")],
+                        choices=[
+                            ("floating", "Floating"),
+                            ("pegged", "Pegged"),
+                        ],
                         max_length=10,
                         null=True,
                     ),
@@ -174,7 +181,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "balance",
-                    models.DecimalField(decimal_places=8, default=0, max_digits=19),
+                    models.DecimalField(
+                        decimal_places=8, default=0, max_digits=19
+                    ),
                 ),
                 ("created_on", models.DateTimeField(auto_now_add=True)),
                 ("updated_on", models.DateTimeField(auto_now=True)),
@@ -213,11 +222,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "quantity",
-                    models.DecimalField(decimal_places=8, default=0, max_digits=19),
+                    models.DecimalField(
+                        decimal_places=8, default=0, max_digits=19
+                    ),
                 ),
                 (
                     "average_cost",
-                    models.DecimalField(decimal_places=8, default=0, max_digits=19),
+                    models.DecimalField(
+                        decimal_places=8, default=0, max_digits=19
+                    ),
                 ),
                 ("created_on", models.DateTimeField(auto_now_add=True)),
                 ("updated_on", models.DateTimeField(auto_now=True)),
@@ -255,7 +268,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("date", models.DateField()),
-                ("price", models.DecimalField(decimal_places=8, max_digits=19)),
+                (
+                    "price",
+                    models.DecimalField(decimal_places=8, max_digits=19),
+                ),
                 ("source", models.CharField(default="manual", max_length=100)),
                 ("created_on", models.DateTimeField(auto_now_add=True)),
                 (

@@ -52,7 +52,9 @@ class Command(BaseCommand):
         parser.add_argument("--backup-path", default=None)
 
     def handle(self, *args, **options):
-        user = User.objects.filter(email__iexact=options["user_email"].strip()).first()
+        user = User.objects.filter(
+            email__iexact=options["user_email"].strip()
+        ).first()
         if not user:
             raise CommandError(f"User not found: {options['user_email']!r}")
 
@@ -64,9 +66,13 @@ class Command(BaseCommand):
 
         account = Account.objects.filter(pk=ACCOUNT_ID, user=user).first()
         if not account:
-            raise CommandError(f"Trading212 account {ACCOUNT_ID} not found for user {user.email}.")
+            raise CommandError(
+                f"Trading212 account {ACCOUNT_ID} not found for user {user.email}."
+            )
 
-        eur_cash_balance = self._get_cash_balance(EUR_CASH_BALANCE_ID, account, "EUR")
+        eur_cash_balance = self._get_cash_balance(
+            EUR_CASH_BALANCE_ID, account, "EUR"
+        )
         self._get_cash_balance(USD_CASH_BALANCE_ID, account, "USD")
 
         planned_buys = self._parse_pie_csv(csv_path)
@@ -84,9 +90,17 @@ class Command(BaseCommand):
         )
 
         tag = Tag.objects.filter(name=IMPORT_TAG).first()
-        existing_tagged = Transaction.objects.filter(user=user, tags=tag).count() if tag else 0
-        securities_to_create, securities_to_reuse = self._security_plan(planned_buys)
-        total_debit = sum((buy.total_value for buy in planned_buys), Decimal("0"))
+        existing_tagged = (
+            Transaction.objects.filter(user=user, tags=tag).count()
+            if tag
+            else 0
+        )
+        securities_to_create, securities_to_reuse = self._security_plan(
+            planned_buys
+        )
+        total_debit = sum(
+            (buy.total_value for buy in planned_buys), Decimal("0")
+        )
 
         self.stdout.write(
             self.style.NOTICE(
@@ -97,22 +111,32 @@ class Command(BaseCommand):
         self.stdout.write(
             f"pie_rows={len(planned_buys) - 1}, csh2_rows=1, total_buys={len(planned_buys)}"
         )
-        self.stdout.write(f"pie_total_eur={self._q2(total_debit - planned_buys[-1].total_value)}")
-        self.stdout.write(f"csh2_total_eur={self._q2(planned_buys[-1].total_value)}")
+        self.stdout.write(
+            f"pie_total_eur={self._q2(total_debit - planned_buys[-1].total_value)}"
+        )
+        self.stdout.write(
+            f"csh2_total_eur={self._q2(planned_buys[-1].total_value)}"
+        )
         self.stdout.write(f"total_eur_debit={self._q2(total_debit)}")
-        self.stdout.write(f"projected_eur_balance={self._q2((eur_cash_balance.balance or Decimal('0')) - total_debit)}")
+        self.stdout.write(
+            f"projected_eur_balance={self._q2((eur_cash_balance.balance or Decimal('0')) - total_debit)}"
+        )
         self.stdout.write(
             f"securities_to_create={len(securities_to_create)}, "
             f"securities_to_reuse={len(securities_to_reuse)}, existing_tagged_rows={existing_tagged}"
         )
 
         if not options["apply"]:
-            self.stdout.write(self.style.SUCCESS("Dry-run complete. No data changed."))
+            self.stdout.write(
+                self.style.SUCCESS("Dry-run complete. No data changed.")
+            )
             return
 
         if options.get("backup_path"):
             backup_file = self._create_db_backup(options["backup_path"])
-            self.stdout.write(self.style.SUCCESS(f"Database backup created: {backup_file}"))
+            self.stdout.write(
+                self.style.SUCCESS(f"Database backup created: {backup_file}")
+            )
 
         with transaction.atomic():
             import_tag, _ = Tag.objects.get_or_create(name=IMPORT_TAG)
@@ -122,11 +146,17 @@ class Command(BaseCommand):
             inserted = Counter()
             for buy in planned_buys:
                 security = securities[buy.ticker]
-                self._create_buy(user, account, eur_cash_balance, security, buy, import_tag)
+                self._create_buy(
+                    user, account, eur_cash_balance, security, buy, import_tag
+                )
                 inserted["buy"] += 1
 
-            rebuilt = self._rebuild_holdings(user, account, securities.values())
-            self._assert_post_conditions(user, account, eur_cash_balance, planned_buys)
+            rebuilt = self._rebuild_holdings(
+                user, account, securities.values()
+            )
+            self._assert_post_conditions(
+                user, account, eur_cash_balance, planned_buys
+            )
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -161,28 +191,48 @@ class Command(BaseCommand):
                 )
 
         if len(buys) != 50:
-            raise CommandError(f"Expected 50 included pie rows, got {len(buys)}.")
+            raise CommandError(
+                f"Expected 50 included pie rows, got {len(buys)}."
+            )
         invested_total = sum((buy.total_value for buy in buys), Decimal("0"))
         if self._q2(invested_total) != Decimal("1499.21"):
-            raise CommandError(f"Unexpected pie invested total: {invested_total}")
+            raise CommandError(
+                f"Unexpected pie invested total: {invested_total}"
+            )
         return buys
 
     def _get_cash_balance(self, pk, account, expected_code):
-        cash_balance = CashBalance.objects.select_related("currency").filter(pk=pk, account=account).first()
+        cash_balance = (
+            CashBalance.objects.select_related("currency")
+            .filter(pk=pk, account=account)
+            .first()
+        )
         if not cash_balance or cash_balance.currency.code != expected_code:
-            raise CommandError(f"Expected cash balance {pk} to be {expected_code} on account {account.id}.")
+            raise CommandError(
+                f"Expected cash balance {pk} to be {expected_code} on account {account.id}."
+            )
         return cash_balance
 
     def _security_plan(self, planned_buys):
-        existing = set(Security.objects.filter(ticker__in=[buy.ticker for buy in planned_buys]).values_list("ticker", flat=True))
-        to_create = [buy.ticker for buy in planned_buys if buy.ticker not in existing]
-        to_reuse = [buy.ticker for buy in planned_buys if buy.ticker in existing]
+        existing = set(
+            Security.objects.filter(
+                ticker__in=[buy.ticker for buy in planned_buys]
+            ).values_list("ticker", flat=True)
+        )
+        to_create = [
+            buy.ticker for buy in planned_buys if buy.ticker not in existing
+        ]
+        to_reuse = [
+            buy.ticker for buy in planned_buys if buy.ticker in existing
+        ]
         return sorted(to_create), sorted(to_reuse)
 
     def _ensure_securities(self, planned_buys):
         currencies = {
             currency.code: currency
-            for currency in Currency.objects.filter(code__in={buy.currency_code for buy in planned_buys})
+            for currency in Currency.objects.filter(
+                code__in={buy.currency_code for buy in planned_buys}
+            )
         }
         securities = {}
         for buy in planned_buys:
@@ -202,7 +252,11 @@ class Command(BaseCommand):
         return securities
 
     def _delete_existing_import(self, user, tag):
-        queryset = Transaction.objects.filter(user=user, tags=tag).distinct().order_by("-id")
+        queryset = (
+            Transaction.objects.filter(user=user, tags=tag)
+            .distinct()
+            .order_by("-id")
+        )
         count = queryset.count()
         for txn in queryset:
             self._reverse_and_delete(txn)
@@ -245,18 +299,29 @@ class Command(BaseCommand):
             average_cost = Decimal("0")
             for detail in trades:
                 if detail.transaction.transaction_type == "buy":
-                    total_cost = quantity * average_cost + detail.quantity * detail.price_per_unit
+                    total_cost = (
+                        quantity * average_cost
+                        + detail.quantity * detail.price_per_unit
+                    )
                     quantity += detail.quantity
-                    average_cost = total_cost / quantity if quantity else Decimal("0")
+                    average_cost = (
+                        total_cost / quantity if quantity else Decimal("0")
+                    )
                 elif detail.transaction.transaction_type == "sell":
                     quantity -= detail.quantity
                     if quantity < 0:
-                        raise CommandError(f"Holding rebuild failed for {security.ticker}.")
+                        raise CommandError(
+                            f"Holding rebuild failed for {security.ticker}."
+                        )
 
-            holding, _ = Holding.objects.get_or_create(account=account, security=security)
+            holding, _ = Holding.objects.get_or_create(
+                account=account, security=security
+            )
             holding.quantity = self._q8(quantity)
             holding.average_cost = self._q8(average_cost)
-            holding.save(update_fields=["quantity", "average_cost", "updated_on"])
+            holding.save(
+                update_fields=["quantity", "average_cost", "updated_on"]
+            )
             SecurityTradeDetail.objects.filter(
                 transaction__user=user,
                 cash_balance__account=account,
@@ -266,17 +331,27 @@ class Command(BaseCommand):
 
         return {"updated": updated}
 
-    def _assert_post_conditions(self, user, account, cash_balance, planned_buys):
-        tagged_count = Transaction.objects.filter(user=user, tags__name=IMPORT_TAG).distinct().count()
+    def _assert_post_conditions(
+        self, user, account, cash_balance, planned_buys
+    ):
+        tagged_count = (
+            Transaction.objects.filter(user=user, tags__name=IMPORT_TAG)
+            .distinct()
+            .count()
+        )
         if tagged_count != len(planned_buys):
-            raise CommandError(f"Tagged transaction count mismatch: {tagged_count} != {len(planned_buys)}")
+            raise CommandError(
+                f"Tagged transaction count mismatch: {tagged_count} != {len(planned_buys)}"
+            )
 
         holding_count = Holding.objects.filter(
             account=account,
             security__ticker__in=[buy.ticker for buy in planned_buys],
         ).count()
         if holding_count != len(planned_buys):
-            raise CommandError(f"Holding count mismatch: {holding_count} != {len(planned_buys)}")
+            raise CommandError(
+                f"Holding count mismatch: {holding_count} != {len(planned_buys)}"
+            )
 
         fx_fee_count = Transaction.objects.filter(
             user=user,
@@ -285,11 +360,15 @@ class Command(BaseCommand):
             description__icontains="FX fee for Daily Dividend Pie investment",
         ).count()
         if fx_fee_count != 1:
-            raise CommandError(f"Expected one existing FX fee row, found {fx_fee_count}.")
+            raise CommandError(
+                f"Expected one existing FX fee row, found {fx_fee_count}."
+            )
 
         usd_balance = CashBalance.objects.get(pk=USD_CASH_BALANCE_ID)
         if self._q2(usd_balance.balance) != Decimal("5562.21"):
-            raise CommandError(f"USD cash balance changed unexpectedly: {usd_balance.balance}")
+            raise CommandError(
+                f"USD cash balance changed unexpectedly: {usd_balance.balance}"
+            )
 
         with connection.cursor() as cursor:
             cursor.execute("PRAGMA foreign_key_check")
@@ -298,16 +377,22 @@ class Command(BaseCommand):
             raise CommandError(f"Foreign key check failed: {fk_errors[:5]}")
 
     def _reverse_and_delete(self, txn):
-        if txn.transaction_type == "buy" and hasattr(txn, "security_trade_detail"):
+        if txn.transaction_type == "buy" and hasattr(
+            txn, "security_trade_detail"
+        ):
             detail = txn.security_trade_detail
             self._apply_cash_delta(detail.cash_balance, detail.total_value)
-        elif txn.transaction_type == "sell" and hasattr(txn, "security_trade_detail"):
+        elif txn.transaction_type == "sell" and hasattr(
+            txn, "security_trade_detail"
+        ):
             detail = txn.security_trade_detail
             self._apply_cash_delta(detail.cash_balance, -detail.total_value)
         txn.delete()
 
     def _apply_cash_delta(self, cash_balance, delta):
-        cash_balance = CashBalance.objects.select_for_update().get(pk=cash_balance.pk)
+        cash_balance = CashBalance.objects.select_for_update().get(
+            pk=cash_balance.pk
+        )
         cash_balance.balance = (cash_balance.balance or Decimal("0")) + delta
         cash_balance.save(update_fields=["balance", "updated_on"])
 
@@ -320,10 +405,18 @@ class Command(BaseCommand):
         destination_input = Path(str(backup_path))
         timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
         if destination_input.exists() and destination_input.is_dir():
-            destination = destination_input / f"{source_path.name}.trading212_import_{timestamp}"
-        elif not destination_input.exists() and (str(backup_path).endswith("/") or destination_input.suffix == ""):
+            destination = (
+                destination_input
+                / f"{source_path.name}.trading212_import_{timestamp}"
+            )
+        elif not destination_input.exists() and (
+            str(backup_path).endswith("/") or destination_input.suffix == ""
+        ):
             destination_input.mkdir(parents=True, exist_ok=True)
-            destination = destination_input / f"{source_path.name}.trading212_import_{timestamp}"
+            destination = (
+                destination_input
+                / f"{source_path.name}.trading212_import_{timestamp}"
+            )
         else:
             destination = destination_input
 
@@ -346,10 +439,14 @@ class Command(BaseCommand):
         return (value or "")[:200]
 
     def _q8(self, value):
-        return Decimal(value).quantize(Decimal("0.00000001"), rounding=ROUND_HALF_UP)
+        return Decimal(value).quantize(
+            Decimal("0.00000001"), rounding=ROUND_HALF_UP
+        )
 
     def _q4(self, value):
-        return Decimal(value).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+        return Decimal(value).quantize(
+            Decimal("0.0001"), rounding=ROUND_HALF_UP
+        )
 
     def _q2(self, value):
         return Decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)

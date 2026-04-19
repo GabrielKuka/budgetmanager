@@ -92,7 +92,9 @@ class TransactionsApiTests(TestCase):
     def test_auth_supports_both_token_header_formats(self):
         url = "/transactions/get_expenses"
 
-        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
+        self.client.credentials(
+            HTTP_AUTHORIZATION=self._auth_header(raw=False)
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
@@ -142,7 +144,9 @@ class TransactionsApiTests(TestCase):
             self.assertIn(key, row)
 
     def test_transfer_updates_balances_and_derives_fx_rate(self):
-        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
+        self.client.credentials(
+            HTTP_AUTHORIZATION=self._auth_header(raw=False)
+        )
         response = self.client.post(
             "/transactions/add",
             {
@@ -173,7 +177,9 @@ class TransactionsApiTests(TestCase):
             asset_class="equity",
             currency=self.usd,
         )
-        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
+        self.client.credentials(
+            HTTP_AUTHORIZATION=self._auth_header(raw=False)
+        )
 
         buy_response = self.client.post(
             "/transactions/add",
@@ -192,7 +198,9 @@ class TransactionsApiTests(TestCase):
         self.balance_usd.refresh_from_db()
         self.assertEqual(self.balance_usd.balance, Decimal("450"))
 
-        holding = Holding.objects.get(account=self.account_usd, security=security)
+        holding = Holding.objects.get(
+            account=self.account_usd, security=security
+        )
         self.assertEqual(holding.quantity, Decimal("10"))
         self.assertEqual(holding.average_cost, Decimal("5"))
 
@@ -216,7 +224,9 @@ class TransactionsApiTests(TestCase):
         self.assertEqual(self.balance_eur.balance, Decimal("1024"))
 
     def test_buy_by_ticker_auto_creates_security_when_missing(self):
-        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
+        self.client.credentials(
+            HTTP_AUTHORIZATION=self._auth_header(raw=False)
+        )
         response = self.client.post(
             "/transactions/add",
             {
@@ -235,11 +245,15 @@ class TransactionsApiTests(TestCase):
         self.assertEqual(security.name, "ORCL")
         self.assertEqual(security.currency_id, self.usd.id)
 
-        holding = Holding.objects.get(account=self.account_usd, security=security)
+        holding = Holding.objects.get(
+            account=self.account_usd, security=security
+        )
         self.assertEqual(holding.quantity, Decimal("2"))
 
     def test_delete_reverses_balance_changes(self):
-        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
+        self.client.credentials(
+            HTTP_AUTHORIZATION=self._auth_header(raw=False)
+        )
         add_response = self.client.post(
             "/transactions/add",
             {
@@ -266,8 +280,12 @@ class TransactionsApiTests(TestCase):
         self.balance_eur.refresh_from_db()
         self.assertEqual(self.balance_eur.balance, Decimal("1000"))
 
-    def test_validations_wrong_category_cross_user_ambiguous_and_oversell(self):
-        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
+    def test_validations_wrong_category_cross_user_ambiguous_and_oversell(
+        self,
+    ):
+        self.client.credentials(
+            HTTP_AUTHORIZATION=self._auth_header(raw=False)
+        )
 
         # Wrong category type for income.
         response = self.client.post(

@@ -49,7 +49,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--user-email", required=True)
-        parser.add_argument("--csv-path", default="../budgetdb/transactions.csv")
+        parser.add_argument(
+            "--csv-path", default="../budgetdb/transactions.csv"
+        )
         parser.add_argument("--ibkr-account-code", default="U***61755")
         parser.add_argument("--ibkr-account-id", type=int, default=8)
         parser.add_argument("--usd-cash-balance-id", type=int, default=5)
@@ -60,7 +62,9 @@ class Command(BaseCommand):
         parser.add_argument("--backup-path", default=None)
 
     def handle(self, *args, **options):
-        user = User.objects.filter(email__iexact=options["user_email"].strip()).first()
+        user = User.objects.filter(
+            email__iexact=options["user_email"].strip()
+        ).first()
         if not user:
             raise CommandError(f"User not found: {options['user_email']!r}")
 
@@ -70,12 +74,20 @@ class Command(BaseCommand):
         if not csv_path.exists():
             raise CommandError(f"CSV file not found: {csv_path}")
 
-        account = Account.objects.filter(id=options["ibkr_account_id"], user=user).first()
+        account = Account.objects.filter(
+            id=options["ibkr_account_id"], user=user
+        ).first()
         if not account:
-            raise CommandError(f"IBKR account not found for user: {options['ibkr_account_id']}")
+            raise CommandError(
+                f"IBKR account not found for user: {options['ibkr_account_id']}"
+            )
 
-        cb_usd = self._get_cash_balance(options["usd_cash_balance_id"], account, "USD")
-        cb_eur = self._get_cash_balance(options["eur_cash_balance_id"], account, "EUR")
+        cb_usd = self._get_cash_balance(
+            options["usd_cash_balance_id"], account, "USD"
+        )
+        cb_eur = self._get_cash_balance(
+            options["eur_cash_balance_id"], account, "EUR"
+        )
         cash_by_code = {"USD": cb_usd, "EUR": cb_eur}
         target_cash = {
             "USD": self._d(options["target_usd_cash"]),
@@ -83,7 +95,9 @@ class Command(BaseCommand):
         }
 
         rows = self._parse_rows(csv_path, options["ibkr_account_code"].strip())
-        trades = [row for row in rows if row["transaction type"] in ("Buy", "Sell")]
+        trades = [
+            row for row in rows if row["transaction type"] in ("Buy", "Sell")
+        ]
         parsed_trades = self._parse_trades(trades, cash_by_code)
         type_counts = Counter(row["transaction type"] for row in rows)
 
@@ -96,7 +110,9 @@ class Command(BaseCommand):
         self.stdout.write(
             "parsed rows="
             f"{len(rows)} | "
-            + ", ".join(f"{key}={type_counts[key]}" for key in sorted(type_counts))
+            + ", ".join(
+                f"{key}={type_counts[key]}" for key in sorted(type_counts)
+            )
         )
         self.stdout.write(
             f"buy/sell parsed={len(parsed_trades)} "
@@ -107,18 +123,24 @@ class Command(BaseCommand):
         self._print_plan(plan)
 
         if not options["apply"]:
-            self.stdout.write(self.style.SUCCESS("Dry-run complete. No data changed."))
+            self.stdout.write(
+                self.style.SUCCESS("Dry-run complete. No data changed.")
+            )
             return
 
         if options.get("backup_path"):
             backup_file = self._create_db_backup(options["backup_path"])
-            self.stdout.write(self.style.SUCCESS(f"Database backup created: {backup_file}"))
+            self.stdout.write(
+                self.style.SUCCESS(f"Database backup created: {backup_file}")
+            )
 
         with transaction.atomic():
             sync_tag, _ = Tag.objects.get_or_create(name=SYNC_TAG)
             old_tag = Tag.objects.filter(name=OLD_IMPORT_TAG).first()
 
-            deleted_tagged = self._delete_tagged_imports(user, [tag for tag in (sync_tag, old_tag) if tag])
+            deleted_tagged = self._delete_tagged_imports(
+                user, [tag for tag in (sync_tag, old_tag) if tag]
+            )
             deleted_manual = self._delete_manual_ibkr_income_expenses(
                 user,
                 account,
@@ -134,23 +156,35 @@ class Command(BaseCommand):
             for row in rows:
                 row_type = row["transaction type"]
                 if row_type == "Forex Trade Component":
-                    self._create_forex_transfer(user, account, row, cash_by_code, sync_tag)
+                    self._create_forex_transfer(
+                        user, account, row, cash_by_code, sync_tag
+                    )
                     inserted["forex"] += 1
                 elif row_type in ("Dividend", "Credit Interest"):
-                    self._create_statement_income(user, account, row, cash_by_code, sync_tag)
+                    self._create_statement_income(
+                        user, account, row, cash_by_code, sync_tag
+                    )
                     inserted["income"] += 1
                 elif row_type in ("Foreign Tax Withholding", "Debit Interest"):
-                    self._create_statement_expense(user, account, row, cash_by_code, sync_tag)
+                    self._create_statement_expense(
+                        user, account, row, cash_by_code, sync_tag
+                    )
                     inserted["expense"] += 1
                 elif row_type in ("Deposit", "Withdrawal"):
                     if not self._has_matching_transfer(user, account, row):
-                        self._create_cash_adjustment(user, account, row, cash_by_code, sync_tag)
+                        self._create_cash_adjustment(
+                            user, account, row, cash_by_code, sync_tag
+                        )
                         inserted["cash_adjustment"] += 1
 
             rebuilt = self._rebuild_holdings(user, account, parsed_trades)
-            reconciled = self._reconcile_to_targets(user, account, cash_by_code, target_cash, sync_tag, rows)
+            reconciled = self._reconcile_to_targets(
+                user, account, cash_by_code, target_cash, sync_tag, rows
+            )
 
-            self._assert_post_conditions(user, account, cash_by_code, target_cash)
+            self._assert_post_conditions(
+                user, account, cash_by_code, target_cash
+            )
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -161,12 +195,18 @@ class Command(BaseCommand):
         )
 
     def _get_cash_balance(self, pk, account, expected_code):
-        cash_balance = CashBalance.objects.select_related("currency", "account").filter(
-            pk=pk,
-            account=account,
-        ).first()
+        cash_balance = (
+            CashBalance.objects.select_related("currency", "account")
+            .filter(
+                pk=pk,
+                account=account,
+            )
+            .first()
+        )
         if not cash_balance or cash_balance.currency.code != expected_code:
-            raise CommandError(f"Expected cash balance {pk} to be {expected_code} on account {account.id}.")
+            raise CommandError(
+                f"Expected cash balance {pk} to be {expected_code} on account {account.id}."
+            )
         return cash_balance
 
     def _parse_rows(self, csv_path, account_code):
@@ -175,14 +215,28 @@ class Command(BaseCommand):
         with csv_path.open("r", encoding="utf-8-sig", newline="") as fh:
             reader = csv.reader(fh)
             for raw in reader:
-                if len(raw) >= 2 and raw[0] == "Transaction History" and raw[1] == "Header":
+                if (
+                    len(raw) >= 2
+                    and raw[0] == "Transaction History"
+                    and raw[1] == "Header"
+                ):
                     headers = [column.strip() for column in raw[2:]]
                     continue
-                if len(raw) >= 2 and raw[0] == "Transaction History" and raw[1] == "Data":
+                if (
+                    len(raw) >= 2
+                    and raw[0] == "Transaction History"
+                    and raw[1] == "Data"
+                ):
                     if not headers:
-                        raise CommandError("CSV Transaction History header not found.")
+                        raise CommandError(
+                            "CSV Transaction History header not found."
+                        )
                     row = {
-                        headers[idx].strip().lower(): raw[idx + 2].strip() if idx + 2 < len(raw) else ""
+                        headers[idx]
+                        .strip()
+                        .lower(): (
+                            raw[idx + 2].strip() if idx + 2 < len(raw) else ""
+                        )
                         for idx in range(len(headers))
                     }
                     if row.get("account") == account_code:
@@ -190,13 +244,21 @@ class Command(BaseCommand):
 
         if not rows:
             raise CommandError("No matching IBKR rows found in CSV.")
-        rows.sort(key=lambda row: (row["date"], row["transaction type"], row.get("symbol", "")))
+        rows.sort(
+            key=lambda row: (
+                row["date"],
+                row["transaction type"],
+                row.get("symbol", ""),
+            )
+        )
         return rows
 
     def _parse_trades(self, rows, cash_by_code):
         parsed = []
         for row in rows:
-            symbol = SYMBOL_NORMALIZATION.get(row["symbol"].upper(), row["symbol"].upper())
+            symbol = SYMBOL_NORMALIZATION.get(
+                row["symbol"].upper(), row["symbol"].upper()
+            )
             security = Security.objects.filter(ticker=symbol).first()
             if not security:
                 raise CommandError(f"Missing security for ticker {symbol}.")
@@ -205,7 +267,9 @@ class Command(BaseCommand):
             price_currency = row["price currency"].upper()
             cash_balance = cash_by_code.get(price_currency)
             if not cash_balance:
-                raise CommandError(f"Unsupported trade currency {price_currency} in row {row}.")
+                raise CommandError(
+                    f"Unsupported trade currency {price_currency} in row {row}."
+                )
 
             total = self._trade_total(row, quantity)
             parsed.append(
@@ -221,7 +285,9 @@ class Command(BaseCommand):
                     total_value=total,
                 )
             )
-        parsed.sort(key=lambda trade: (trade.date, trade.symbol, trade.tx_type))
+        parsed.sort(
+            key=lambda trade: (trade.date, trade.symbol, trade.tx_type)
+        )
         return parsed
 
     def _build_plan(self, user, account, rows):
@@ -232,15 +298,27 @@ class Command(BaseCommand):
             "tagged_rows": Transaction.objects.filter(
                 user=user,
                 tags__name__in=[SYNC_TAG, OLD_IMPORT_TAG],
-            ).distinct().count(),
+            )
+            .distinct()
+            .count(),
             "manual_income_expense_rows": self._manual_ibkr_income_expense_qs(
                 user,
                 account,
                 min(date_values),
                 max(date_values),
             ).count(),
-            "matched_cash_rows": sum(1 for row in rows if row["transaction type"] in ("Deposit", "Withdrawal") and self._has_matching_transfer(user, account, row)),
-            "unmatched_cash_rows": sum(1 for row in rows if row["transaction type"] in ("Deposit", "Withdrawal") and not self._has_matching_transfer(user, account, row)),
+            "matched_cash_rows": sum(
+                1
+                for row in rows
+                if row["transaction type"] in ("Deposit", "Withdrawal")
+                and self._has_matching_transfer(user, account, row)
+            ),
+            "unmatched_cash_rows": sum(
+                1
+                for row in rows
+                if row["transaction type"] in ("Deposit", "Withdrawal")
+                and not self._has_matching_transfer(user, account, row)
+            ),
         }
 
     def _print_plan(self, plan):
@@ -254,28 +332,42 @@ class Command(BaseCommand):
         )
 
     def _delete_tagged_imports(self, user, tags):
-        queryset = Transaction.objects.filter(user=user, tags__in=tags).distinct().order_by("-id")
+        queryset = (
+            Transaction.objects.filter(user=user, tags__in=tags)
+            .distinct()
+            .order_by("-id")
+        )
         count = queryset.count()
         for txn in queryset:
             self._reverse_and_delete(txn)
         return count
 
-    def _manual_ibkr_income_expense_qs(self, user, account, date_min, date_max):
+    def _manual_ibkr_income_expense_qs(
+        self, user, account, date_min, date_max
+    ):
         return (
-            Transaction.objects.filter(user=user, date__gte=date_min, date__lte=date_max)
+            Transaction.objects.filter(
+                user=user, date__gte=date_min, date__lte=date_max
+            )
             .filter(
                 transaction_type__in=["income", "expense"],
             )
             .filter(
                 income_detail__to_cash_balance__account=account,
             )
-            | Transaction.objects.filter(user=user, date__gte=date_min, date__lte=date_max)
+            | Transaction.objects.filter(
+                user=user, date__gte=date_min, date__lte=date_max
+            )
             .filter(transaction_type__in=["income", "expense"])
             .filter(expense_detail__from_cash_balance__account=account)
         ).distinct()
 
-    def _delete_manual_ibkr_income_expenses(self, user, account, date_min, date_max):
-        queryset = self._manual_ibkr_income_expense_qs(user, account, date_min, date_max).order_by("-id")
+    def _delete_manual_ibkr_income_expenses(
+        self, user, account, date_min, date_max
+    ):
+        queryset = self._manual_ibkr_income_expense_qs(
+            user, account, date_min, date_max
+        ).order_by("-id")
         count = queryset.count()
         for txn in queryset:
             self._reverse_and_delete(txn)
@@ -299,8 +391,12 @@ class Command(BaseCommand):
             quantity=self._q8(trade.quantity),
             price_per_unit=self._q8(trade.price_per_unit),
         )
-        cash_balance = CashBalance.objects.select_for_update().get(pk=trade.cash_balance_id)
-        delta = -trade.total_value if trade.tx_type == "buy" else trade.total_value
+        cash_balance = CashBalance.objects.select_for_update().get(
+            pk=trade.cash_balance_id
+        )
+        delta = (
+            -trade.total_value if trade.tx_type == "buy" else trade.total_value
+        )
         self._apply_cash_delta(cash_balance, delta)
 
     def _create_forex_transfer(self, user, account, row, cash_by_code, tag):
@@ -352,7 +448,11 @@ class Command(BaseCommand):
 
     def _create_statement_income(self, user, account, row, cash_by_code, tag):
         cash_balance = self._cash_balance_for_statement_row(row, cash_by_code)
-        category_name = "Dividends" if row["transaction type"] == "Dividend" else "Interests"
+        category_name = (
+            "Dividends"
+            if row["transaction type"] == "Dividend"
+            else "Interests"
+        )
         self._create_income(
             user=user,
             account=account,
@@ -411,7 +511,9 @@ class Command(BaseCommand):
             date=row_date,
         )
         if row["transaction type"] == "Deposit":
-            return queryset.filter(transfer_detail__to_cash_balance__account=account).exists()
+            return queryset.filter(
+                transfer_detail__to_cash_balance__account=account
+            ).exists()
         if row["transaction type"] == "Withdrawal":
             # One existing withdrawal is dated one day after the statement row.
             return Transaction.objects.filter(
@@ -423,7 +525,17 @@ class Command(BaseCommand):
             ).exists()
         return False
 
-    def _create_income(self, user, account, cash_balance, amount, date, description, tag, category):
+    def _create_income(
+        self,
+        user,
+        account,
+        cash_balance,
+        amount,
+        date,
+        description,
+        tag,
+        category,
+    ):
         txn = Transaction.objects.create(
             user=user,
             transaction_type="income",
@@ -444,7 +556,17 @@ class Command(BaseCommand):
         self._apply_cash_delta(cash_balance, amount)
         return txn
 
-    def _create_expense(self, user, account, cash_balance, amount, date, description, tag, category):
+    def _create_expense(
+        self,
+        user,
+        account,
+        cash_balance,
+        amount,
+        date,
+        description,
+        tag,
+        category,
+    ):
         txn = Transaction.objects.create(
             user=user,
             transaction_type="expense",
@@ -484,24 +606,34 @@ class Command(BaseCommand):
             avg = Decimal("0")
             for detail in trades:
                 if detail.transaction.transaction_type == "buy":
-                    total_cost = qty * avg + detail.quantity * detail.price_per_unit
+                    total_cost = (
+                        qty * avg + detail.quantity * detail.price_per_unit
+                    )
                     qty += detail.quantity
                     avg = total_cost / qty if qty else Decimal("0")
                 elif detail.transaction.transaction_type == "sell":
                     qty -= detail.quantity
                     if qty < Decimal("-0.00000001"):
-                        raise CommandError(f"Sell quantity exceeds holding for {symbol}.")
+                        raise CommandError(
+                            f"Sell quantity exceeds holding for {symbol}."
+                        )
                     if abs(qty) <= Decimal("0.00000001"):
                         qty = Decimal("0")
                         avg = Decimal("0")
 
-            holding = Holding.objects.filter(account=account, security=security).first()
+            holding = Holding.objects.filter(
+                account=account, security=security
+            ).first()
             if qty > 0:
                 if not holding:
-                    holding = Holding.objects.create(account=account, security=security)
+                    holding = Holding.objects.create(
+                        account=account, security=security
+                    )
                 holding.quantity = self._q8(qty)
                 holding.average_cost = self._q8(avg)
-                holding.save(update_fields=["quantity", "average_cost", "updated_on"])
+                holding.save(
+                    update_fields=["quantity", "average_cost", "updated_on"]
+                )
                 SecurityTradeDetail.objects.filter(
                     transaction__user=user,
                     cash_balance__account=account,
@@ -519,11 +651,15 @@ class Command(BaseCommand):
                     removed += 1
         return {"updated": updated, "removed": removed}
 
-    def _reconcile_to_targets(self, user, account, cash_by_code, target_cash, tag, rows):
+    def _reconcile_to_targets(
+        self, user, account, cash_by_code, target_cash, tag, rows
+    ):
         count = 0
         max_date = max(self._date(row) for row in rows)
         for code, target in target_cash.items():
-            cash_balance = CashBalance.objects.select_for_update().get(pk=cash_by_code[code].pk)
+            cash_balance = CashBalance.objects.select_for_update().get(
+                pk=cash_by_code[code].pk
+            )
             current = cash_balance.balance or Decimal("0")
             delta = target - current
             if abs(delta) <= Decimal("0.0001"):
@@ -557,27 +693,41 @@ class Command(BaseCommand):
         if txn.transaction_type == "income" and hasattr(txn, "income_detail"):
             detail = txn.income_detail
             self._apply_cash_delta(detail.to_cash_balance, -detail.amount)
-        elif txn.transaction_type == "expense" and hasattr(txn, "expense_detail"):
+        elif txn.transaction_type == "expense" and hasattr(
+            txn, "expense_detail"
+        ):
             detail = txn.expense_detail
             self._apply_cash_delta(detail.from_cash_balance, detail.amount)
-        elif txn.transaction_type == "transfer" and hasattr(txn, "transfer_detail"):
+        elif txn.transaction_type == "transfer" and hasattr(
+            txn, "transfer_detail"
+        ):
             detail = txn.transfer_detail
             self._apply_cash_delta(detail.from_cash_balance, detail.amount)
-            self._apply_cash_delta(detail.to_cash_balance, -(detail.amount * detail.fx_rate))
-        elif txn.transaction_type == "buy" and hasattr(txn, "security_trade_detail"):
+            self._apply_cash_delta(
+                detail.to_cash_balance, -(detail.amount * detail.fx_rate)
+            )
+        elif txn.transaction_type == "buy" and hasattr(
+            txn, "security_trade_detail"
+        ):
             detail = txn.security_trade_detail
             self._apply_cash_delta(detail.cash_balance, detail.total_value)
-        elif txn.transaction_type == "sell" and hasattr(txn, "security_trade_detail"):
+        elif txn.transaction_type == "sell" and hasattr(
+            txn, "security_trade_detail"
+        ):
             detail = txn.security_trade_detail
             self._apply_cash_delta(detail.cash_balance, -detail.total_value)
         txn.delete()
 
-    def _assert_post_conditions(self, user, account, cash_by_code, target_cash):
+    def _assert_post_conditions(
+        self, user, account, cash_by_code, target_cash
+    ):
         for code, target in target_cash.items():
             cash_by_code[code].refresh_from_db(fields=["balance"])
             actual = cash_by_code[code].balance or Decimal("0")
             if self._q2(actual) != self._q2(target):
-                raise CommandError(f"{code} cash mismatch: {self._q2(actual)} != {self._q2(target)}")
+                raise CommandError(
+                    f"{code} cash mismatch: {self._q2(actual)} != {self._q2(target)}"
+                )
 
         expected = {
             "CSH2": (Decimal("231.4975"), Decimal("25013.81")),
@@ -589,18 +739,30 @@ class Command(BaseCommand):
             "XNAS": (Decimal("1.571"), Decimal("81.25")),
         }
         for ticker, (quantity, cost_basis) in expected.items():
-            holding = Holding.objects.filter(account=account, security__ticker=ticker).first()
+            holding = Holding.objects.filter(
+                account=account, security__ticker=ticker
+            ).first()
             if not holding:
                 raise CommandError(f"Missing expected holding {ticker}.")
             if self._q4(holding.quantity) != self._q4(quantity):
-                raise CommandError(f"{ticker} quantity mismatch: {holding.quantity} != {quantity}")
-            if self._q2(holding.quantity * holding.average_cost) != self._q2(cost_basis):
+                raise CommandError(
+                    f"{ticker} quantity mismatch: {holding.quantity} != {quantity}"
+                )
+            if self._q2(holding.quantity * holding.average_cost) != self._q2(
+                cost_basis
+            ):
                 raise CommandError(f"{ticker} cost basis mismatch.")
 
         for ticker in ("VTI", "SGOV"):
-            holding = Holding.objects.filter(account=account, security__ticker=ticker).first()
-            if holding and abs(holding.quantity or Decimal("0")) > Decimal("0.00000001"):
-                raise CommandError(f"{ticker} should be fully sold, found {holding.quantity}.")
+            holding = Holding.objects.filter(
+                account=account, security__ticker=ticker
+            ).first()
+            if holding and abs(holding.quantity or Decimal("0")) > Decimal(
+                "0.00000001"
+            ):
+                raise CommandError(
+                    f"{ticker} should be fully sold, found {holding.quantity}."
+                )
 
         with connection.cursor() as cursor:
             cursor.execute("PRAGMA foreign_key_check")
@@ -619,15 +781,23 @@ class Command(BaseCommand):
         commission = self._d(row.get("commission")) or Decimal("0")
         notional = abs(quantity * price)
         fx_eur_per_usd = abs(gross) / notional
-        commission_usd = abs(commission) / fx_eur_per_usd if commission else Decimal("0")
+        commission_usd = (
+            abs(commission) / fx_eur_per_usd if commission else Decimal("0")
+        )
         if row["transaction type"] == "Buy":
             return notional + commission_usd
         return notional - commission_usd
 
     def _cash_balance_for_statement_row(self, row, cash_by_code):
         if row["symbol"] and row["symbol"] != "-":
-            symbol = SYMBOL_NORMALIZATION.get(row["symbol"].upper(), row["symbol"].upper())
-            security = Security.objects.filter(ticker=symbol).select_related("currency").first()
+            symbol = SYMBOL_NORMALIZATION.get(
+                row["symbol"].upper(), row["symbol"].upper()
+            )
+            security = (
+                Security.objects.filter(ticker=symbol)
+                .select_related("currency")
+                .first()
+            )
             if security and security.currency.code in cash_by_code:
                 return cash_by_code[security.currency.code]
         if "EUR" in row["description"]:
@@ -644,7 +814,9 @@ class Command(BaseCommand):
         return cash_by_code["USD"]
 
     def _apply_cash_delta(self, cash_balance, delta):
-        cash_balance = CashBalance.objects.select_for_update().get(pk=cash_balance.pk)
+        cash_balance = CashBalance.objects.select_for_update().get(
+            pk=cash_balance.pk
+        )
         cash_balance.balance = (cash_balance.balance or Decimal("0")) + delta
         cash_balance.save(update_fields=["balance", "updated_on"])
 
@@ -668,10 +840,16 @@ class Command(BaseCommand):
         destination = destination_input
         timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
         if destination_input.exists() and destination_input.is_dir():
-            destination = destination_input / f"{source_path.name}.ibkr_sync_{timestamp}"
-        elif not destination_input.exists() and (str(backup_path).endswith("/") or destination_input.suffix == ""):
+            destination = (
+                destination_input / f"{source_path.name}.ibkr_sync_{timestamp}"
+            )
+        elif not destination_input.exists() and (
+            str(backup_path).endswith("/") or destination_input.suffix == ""
+        ):
             destination_input.mkdir(parents=True, exist_ok=True)
-            destination = destination_input / f"{source_path.name}.ibkr_sync_{timestamp}"
+            destination = (
+                destination_input / f"{source_path.name}.ibkr_sync_{timestamp}"
+            )
 
         destination.parent.mkdir(parents=True, exist_ok=True)
         if "sqlite3" in connection.settings_dict.get("ENGINE", ""):
@@ -697,10 +875,14 @@ class Command(BaseCommand):
         return (value or "")[:200]
 
     def _q8(self, value):
-        return Decimal(value).quantize(Decimal("0.00000001"), rounding=ROUND_HALF_UP)
+        return Decimal(value).quantize(
+            Decimal("0.00000001"), rounding=ROUND_HALF_UP
+        )
 
     def _q4(self, value):
-        return Decimal(value).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+        return Decimal(value).quantize(
+            Decimal("0.0001"), rounding=ROUND_HALF_UP
+        )
 
     def _q2(self, value):
         return Decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)

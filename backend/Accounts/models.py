@@ -147,7 +147,9 @@ class Security(models.Model):
         default="equity",
     )
     name = models.CharField(max_length=100)
-    ticker = models.CharField(max_length=10, unique=True)  # Prevent silent duplicates
+    ticker = models.CharField(
+        max_length=10, unique=True
+    )  # Prevent silent duplicates
     currency = models.ForeignKey(
         Currency,
         on_delete=models.PROTECT,  # Never silently delete a referenced currency
@@ -192,7 +194,9 @@ class Holding(models.Model):
         related_name="holdings",
     )
     quantity = models.DecimalField(max_digits=19, decimal_places=8, default=0)
-    average_cost = models.DecimalField(max_digits=19, decimal_places=8, default=0)
+    average_cost = models.DecimalField(
+        max_digits=19, decimal_places=8, default=0
+    )
 
     # cost_basis is dropped as a stored field — it is always quantity × average_cost.
     # Storing it separately risks the two values drifting out of sync.

@@ -88,7 +88,11 @@ class TransferDetailAdmin(admin.ModelAdmin):
     )
     list_filter = ("from_cash_balance__currency", "to_cash_balance__currency")
     search_fields = ("transaction__id", "transaction__description")
-    autocomplete_fields = ("transaction", "from_cash_balance", "to_cash_balance")
+    autocomplete_fields = (
+        "transaction",
+        "from_cash_balance",
+        "to_cash_balance",
+    )
 
 
 @admin.register(SecurityTradeDetail)
@@ -108,4 +112,9 @@ class SecurityTradeDetailAdmin(admin.ModelAdmin):
         "security__ticker",
         "security__name",
     )
-    autocomplete_fields = ("transaction", "security", "holding", "cash_balance")
+    autocomplete_fields = (
+        "transaction",
+        "security",
+        "holding",
+        "cash_balance",
+    )

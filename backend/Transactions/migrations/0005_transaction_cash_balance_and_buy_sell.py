@@ -82,7 +82,9 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="transaction",
-            index=models.Index(fields=["user", "date"], name="txn_user_date_idx"),
+            index=models.Index(
+                fields=["user", "date"], name="txn_user_date_idx"
+            ),
         ),
         migrations.AddIndex(
             model_name="transaction",
@@ -103,7 +105,10 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("amount", models.DecimalField(decimal_places=4, max_digits=19)),
+                (
+                    "amount",
+                    models.DecimalField(decimal_places=4, max_digits=19),
+                ),
                 (
                     "category",
                     models.ForeignKey(
@@ -151,7 +156,10 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("amount", models.DecimalField(decimal_places=4, max_digits=19)),
+                (
+                    "amount",
+                    models.DecimalField(decimal_places=4, max_digits=19),
+                ),
                 (
                     "category",
                     models.ForeignKey(
@@ -199,7 +207,10 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("amount", models.DecimalField(decimal_places=4, max_digits=19)),
+                (
+                    "amount",
+                    models.DecimalField(decimal_places=4, max_digits=19),
+                ),
                 (
                     "fx_rate",
                     models.DecimalField(
@@ -262,7 +273,10 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("quantity", models.DecimalField(decimal_places=8, max_digits=19)),
+                (
+                    "quantity",
+                    models.DecimalField(decimal_places=8, max_digits=19),
+                ),
                 (
                     "price_per_unit",
                     models.DecimalField(decimal_places=8, max_digits=19),

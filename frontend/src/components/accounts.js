@@ -23,10 +23,7 @@ const Accounts = () => {
 
   return (
     <div className={"accounts-wrapper"}>
-      <Sidebar
-        accounts={accounts}
-        refreshAccounts={global.updateAccounts}
-      />
+      <Sidebar accounts={accounts} refreshAccounts={global.updateAccounts} />
       {!accounts?.length ? (
         <NoDataCard
           header={"No accounts found."}
@@ -115,7 +112,10 @@ const Sidebar = ({ accounts, refreshAccounts }) => {
       ]);
 
       const cashTotal = cashResults.reduce((acc, curr) => acc + curr, 0);
-      const investmentsTotal = holdingResults.reduce((acc, curr) => acc + curr, 0);
+      const investmentsTotal = holdingResults.reduce(
+        (acc, curr) => acc + curr,
+        0
+      );
 
       if (active) {
         setCash(cashTotal);
@@ -203,7 +203,10 @@ const CreateAccount = ({ refreshAccounts }) => {
         validationSchema={validationSchemas.accountsFormSchema}
         validateOnChange={false}
         validateOnBlur={false}
-        onSubmit={async (values, { setSubmitting, resetForm, validateForm }) => {
+        onSubmit={async (
+          values,
+          { setSubmitting, resetForm, validateForm }
+        ) => {
           const errors = await validateForm();
           if (Object.keys(errors || {}).length > 0) {
             setSubmitting(false);
@@ -364,11 +367,15 @@ const AccountsList = ({
           }
 
           for (const holding of account.holdings || []) {
-            const holdingCurrency = holding.security?.currency?.code || account.currency;
+            const holdingCurrency =
+              holding.security?.currency?.code || account.currency;
             let holdingValue = holding.market_value;
 
             if (holdingValue === null || holdingValue === undefined) {
-              if (holding.latest_price?.price !== null && holding.latest_price?.price !== undefined) {
+              if (
+                holding.latest_price?.price !== null &&
+                holding.latest_price?.price !== undefined
+              ) {
                 holdingValue =
                   parseFloat(holding.quantity || 0) *
                   parseFloat(holding.latest_price.price || 0);
@@ -424,10 +431,7 @@ const AccountsList = ({
   }, [accounts, accountTypeSelected, global.accounts, accountTotals, sortedBy]);
 
   function getSortConfig() {
-    const [by, order] = Object.entries(sortedBy)[0] || [
-      "amount",
-      "descending",
-    ];
+    const [by, order] = Object.entries(sortedBy)[0] || ["amount", "descending"];
     return { by, order };
   }
 
@@ -492,14 +496,23 @@ const AccountsList = ({
         </button>
       </div>
       <div className={"header"}>
-        <label className="header-date" onClick={() => sortShownAccounts("date")}>
+        <label
+          className="header-date"
+          onClick={() => sortShownAccounts("date")}
+        >
           Date
         </label>
         <label className="header-name">Name</label>
-        <label className="header-amount" onClick={() => sortShownAccounts("amount")}>
+        <label
+          className="header-amount"
+          onClick={() => sortShownAccounts("amount")}
+        >
           Amount
         </label>
-        <label className="header-type" onClick={() => sortShownAccounts("type")}>
+        <label
+          className="header-type"
+          onClick={() => sortShownAccounts("type")}
+        >
           Type
         </label>
         <span className="header-actions-spacer" aria-hidden="true"></span>
@@ -582,7 +595,9 @@ const AccountItem = ({
   }
 
   const resolvedTotal =
-    accountTotal !== undefined ? parseFloat(accountTotal) : parseFloat(account.amount || 0);
+    accountTotal !== undefined
+      ? parseFloat(accountTotal)
+      : parseFloat(account.amount || 0);
   const resolvedCashTotal =
     cashTotal !== undefined ? parseFloat(cashTotal) : parseFloat(0);
   const resolvedHoldingsTotal =
@@ -593,7 +608,8 @@ const AccountItem = ({
   const getHoldingAmount = (holding) =>
     holding.cost_basis !== null && holding.cost_basis !== undefined
       ? parseFloat(holding.cost_basis || 0)
-      : parseFloat(holding.quantity || 0) * parseFloat(holding.average_cost || 0);
+      : parseFloat(holding.quantity || 0) *
+        parseFloat(holding.average_cost || 0);
   const sortedHoldings = [...(account.holdings || [])].sort(
     (a, b) => getHoldingAmount(b) - getHoldingAmount(a)
   );
@@ -634,7 +650,10 @@ const AccountItem = ({
           data-label="Amount"
           style={amountColor(helper.formatNumber(resolvedTotal))}
         >
-          {helper.showOrMask(global.privacyMode, helper.formatNumber(resolvedTotal))}{" "}
+          {helper.showOrMask(
+            global.privacyMode,
+            helper.formatNumber(resolvedTotal)
+          )}{" "}
           {helper.getCurrency(global.globalCurrency)}
         </label>
         <label id="type" className="account-cell" data-label="Type">
@@ -708,7 +727,10 @@ const AccountItem = ({
             {sortedHoldings.length > 0 ? (
               <>
                 {sortedHoldings.map((holding) => (
-                  <div className="detail-row holding-detail-row" key={holding.id}>
+                  <div
+                    className="detail-row holding-detail-row"
+                    key={holding.id}
+                  >
                     <span className="holding-label">
                       <span className="holding-quantity">
                         {helper.formatNumber(holding.quantity, 2)}

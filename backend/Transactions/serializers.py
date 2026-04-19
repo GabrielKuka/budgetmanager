@@ -184,7 +184,9 @@ class TransactionWriteSerializer(serializers.Serializer):
     transaction_type = serializers.CharField(required=False, allow_blank=True)
     type = serializers.CharField(required=False, allow_blank=True)
     date = serializers.DateField(required=True)
-    description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    description = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
     tags = serializers.ListField(required=False, allow_empty=True)
 
     amount = serializers.DecimalField(
@@ -233,7 +235,9 @@ class TransactionWriteSerializer(serializers.Serializer):
     def _user(self):
         user = self.context.get("user")
         if user is None:
-            raise serializers.ValidationError("Serializer context must include user.")
+            raise serializers.ValidationError(
+                "Serializer context must include user."
+            )
         return user
 
     def _normalize_type(self, attrs):
@@ -300,13 +304,19 @@ class TransactionWriteSerializer(serializers.Serializer):
         balance_id = attrs.get(balance_field)
 
         if balance_id not in (None, ""):
-            cash_balance = CashBalance.objects.select_related("account", "currency").filter(
-                pk=int(balance_id),
-                account__user=user,
-            ).first()
+            cash_balance = (
+                CashBalance.objects.select_related("account", "currency")
+                .filter(
+                    pk=int(balance_id),
+                    account__user=user,
+                )
+                .first()
+            )
             if not cash_balance:
                 raise serializers.ValidationError(
-                    {balance_field: f"Cash balance {balance_id!r} not found for user."}
+                    {
+                        balance_field: f"Cash balance {balance_id!r} not found for user."
+                    }
                 )
             return cash_balance
 
@@ -321,12 +331,14 @@ class TransactionWriteSerializer(serializers.Serializer):
             )
 
         account = self._resolve_account(int(account_id), account_field)
-        account_balances = CashBalance.objects.select_related("currency").filter(
-            account=account
-        )
+        account_balances = CashBalance.objects.select_related(
+            "currency"
+        ).filter(account=account)
         count = account_balances.count()
 
-        currency = self._resolve_currency(attrs.get(currency_field), currency_field)
+        currency = self._resolve_currency(
+            attrs.get(currency_field), currency_field
+        )
         if currency:
             cash_balance = account_balances.filter(currency=currency).first()
             if cash_balance:
@@ -375,7 +387,9 @@ class TransactionWriteSerializer(serializers.Serializer):
                 resolved.append(tag)
                 continue
 
-            if isinstance(item, int) or (isinstance(item, str) and item.isdigit()):
+            if isinstance(item, int) or (
+                isinstance(item, str) and item.isdigit()
+            ):
                 tag = Tag.objects.filter(pk=int(item)).first()
                 if not tag:
                     raise serializers.ValidationError(
@@ -404,7 +418,9 @@ class TransactionWriteSerializer(serializers.Serializer):
         if category_id in (None, ""):
             return None
 
-        category = TransactionCategory.objects.filter(pk=int(category_id)).first()
+        category = TransactionCategory.objects.filter(
+            pk=int(category_id)
+        ).first()
         if not category:
             raise serializers.ValidationError(
                 {"category": f"Category {category_id!r} does not exist."}
@@ -419,25 +435,35 @@ class TransactionWriteSerializer(serializers.Serializer):
         if expected is not None and category.category_type != expected:
             type_name = "income" if expected == 0 else "expense"
             raise serializers.ValidationError(
-                {"category": f"Category {category.id} is not a {type_name} category."}
+                {
+                    "category": f"Category {category.id} is not a {type_name} category."
+                }
             )
         return category
 
     def _require_positive(self, value, field_name):
         if value in (None, ""):
-            raise serializers.ValidationError({field_name: "This field is required."})
+            raise serializers.ValidationError(
+                {field_name: "This field is required."}
+            )
         if Decimal(value) <= 0:
-            raise serializers.ValidationError({field_name: "Must be greater than zero."})
+            raise serializers.ValidationError(
+                {field_name: "Must be greater than zero."}
+            )
         return Decimal(value)
 
     def _resolve_holding(self, holding_id):
         if holding_id in (None, ""):
             return None
         user = self._user()
-        holding = Holding.objects.select_related("account", "security").filter(
-            pk=int(holding_id),
-            account__user=user,
-        ).first()
+        holding = (
+            Holding.objects.select_related("account", "security")
+            .filter(
+                pk=int(holding_id),
+                account__user=user,
+            )
+            .first()
+        )
         if not holding:
             raise serializers.ValidationError(
                 {"holding": f"Holding {holding_id!r} not found for user."}
@@ -494,7 +520,9 @@ class TransactionWriteSerializer(serializers.Serializer):
             "description": attrs.get("description") or "",
             "date": attrs["date"],
             "resolved_tags": self._resolve_tags(attrs.get("tags", [])),
-            "resolved_category": self._resolve_category(tx_type, attrs.get("category")),
+            "resolved_category": self._resolve_category(
+                tx_type, attrs.get("category")
+            ),
         }
 
         if tx_type == "income":
@@ -502,11 +530,13 @@ class TransactionWriteSerializer(serializers.Serializer):
                 attrs.get("amount"),
                 "amount",
             )
-            normalized["resolved_to_cash_balance"] = self._resolve_cash_balance(
-                attrs,
-                balance_field="to_cash_balance",
-                account_field="to_account",
-                currency_field="currency",
+            normalized["resolved_to_cash_balance"] = (
+                self._resolve_cash_balance(
+                    attrs,
+                    balance_field="to_cash_balance",
+                    account_field="to_account",
+                    currency_field="currency",
+                )
             )
 
         elif tx_type == "expense":
@@ -514,11 +544,13 @@ class TransactionWriteSerializer(serializers.Serializer):
                 attrs.get("amount"),
                 "amount",
             )
-            normalized["resolved_from_cash_balance"] = self._resolve_cash_balance(
-                attrs,
-                balance_field="from_cash_balance",
-                account_field="from_account",
-                currency_field="currency",
+            normalized["resolved_from_cash_balance"] = (
+                self._resolve_cash_balance(
+                    attrs,
+                    balance_field="from_cash_balance",
+                    account_field="from_account",
+                    currency_field="currency",
+                )
             )
 
         elif tx_type == "transfer":
@@ -527,17 +559,21 @@ class TransactionWriteSerializer(serializers.Serializer):
                 from_amount,
                 "from_amount",
             )
-            normalized["resolved_from_cash_balance"] = self._resolve_cash_balance(
-                attrs,
-                balance_field="from_cash_balance",
-                account_field="from_account",
-                currency_field="from_currency",
+            normalized["resolved_from_cash_balance"] = (
+                self._resolve_cash_balance(
+                    attrs,
+                    balance_field="from_cash_balance",
+                    account_field="from_account",
+                    currency_field="from_currency",
+                )
             )
-            normalized["resolved_to_cash_balance"] = self._resolve_cash_balance(
-                attrs,
-                balance_field="to_cash_balance",
-                account_field="to_account",
-                currency_field="to_currency",
+            normalized["resolved_to_cash_balance"] = (
+                self._resolve_cash_balance(
+                    attrs,
+                    balance_field="to_cash_balance",
+                    account_field="to_account",
+                    currency_field="to_currency",
+                )
             )
 
             if (
@@ -545,7 +581,9 @@ class TransactionWriteSerializer(serializers.Serializer):
                 == normalized["resolved_to_cash_balance"].id
             ):
                 raise serializers.ValidationError(
-                    {"to_cash_balance": "Transfer source and destination cannot be the same."}
+                    {
+                        "to_cash_balance": "Transfer source and destination cannot be the same."
+                    }
                 )
 
             fx_rate = attrs.get("fx_rate")
@@ -558,25 +596,35 @@ class TransactionWriteSerializer(serializers.Serializer):
                     fx_rate = Decimal("1")
             fx_rate = Decimal(str(fx_rate))
             if fx_rate <= 0:
-                raise serializers.ValidationError({"fx_rate": "Must be greater than zero."})
+                raise serializers.ValidationError(
+                    {"fx_rate": "Must be greater than zero."}
+                )
             normalized["resolved_fx_rate"] = fx_rate
 
         elif tx_type == "buy":
-            normalized["resolved_from_cash_balance"] = self._resolve_cash_balance(
-                attrs,
-                balance_field="from_cash_balance",
-                account_field="from_account",
-                currency_field="from_currency",
+            normalized["resolved_from_cash_balance"] = (
+                self._resolve_cash_balance(
+                    attrs,
+                    balance_field="from_cash_balance",
+                    account_field="from_account",
+                    currency_field="from_currency",
+                )
             )
             security = self._resolve_security(
                 attrs.get("security"),
-                default_currency=normalized["resolved_from_cash_balance"].currency,
+                default_currency=normalized[
+                    "resolved_from_cash_balance"
+                ].currency,
                 create_if_missing=True,
             )
             if not security:
-                raise serializers.ValidationError({"security": "This field is required."})
+                raise serializers.ValidationError(
+                    {"security": "This field is required."}
+                )
 
-            quantity = self._require_positive(attrs.get("quantity"), "quantity")
+            quantity = self._require_positive(
+                attrs.get("quantity"), "quantity"
+            )
             amount = attrs.get("amount")
             ppu = attrs.get("price_per_unit")
             if ppu in (None, "") and amount in (None, ""):
@@ -599,7 +647,9 @@ class TransactionWriteSerializer(serializers.Serializer):
             holding = self._resolve_holding(attrs.get("holding"))
             if holding and holding.security_id != security.id:
                 raise serializers.ValidationError(
-                    {"holding": "Holding security does not match provided security."}
+                    {
+                        "holding": "Holding security does not match provided security."
+                    }
                 )
 
             normalized["resolved_security"] = security
@@ -610,15 +660,21 @@ class TransactionWriteSerializer(serializers.Serializer):
         elif tx_type == "sell":
             holding = self._resolve_holding(attrs.get("holding"))
             if not holding:
-                raise serializers.ValidationError({"holding": "This field is required."})
+                raise serializers.ValidationError(
+                    {"holding": "This field is required."}
+                )
 
-            normalized["resolved_to_cash_balance"] = self._resolve_cash_balance(
-                attrs,
-                balance_field="to_cash_balance",
-                account_field="to_account",
-                currency_field="to_currency",
+            normalized["resolved_to_cash_balance"] = (
+                self._resolve_cash_balance(
+                    attrs,
+                    balance_field="to_cash_balance",
+                    account_field="to_account",
+                    currency_field="to_currency",
+                )
             )
-            quantity = self._require_positive(attrs.get("quantity"), "quantity")
+            quantity = self._require_positive(
+                attrs.get("quantity"), "quantity"
+            )
             if quantity > holding.quantity:
                 raise serializers.ValidationError(
                     {

@@ -93,7 +93,11 @@ async function restoreAccount(payload) {
       Authorization: `Token ${token}`,
     },
   };
-  const response = await axios.put(`${ENDPOINT}/restore/${payload}`, {}, config);
+  const response = await axios.put(
+    `${ENDPOINT}/restore/${payload}`,
+    {},
+    config
+  );
   if (response.status === 200) {
     return response.data;
   } else {

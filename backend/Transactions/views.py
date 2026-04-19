@@ -6,7 +6,10 @@ import requests
 from django.db import transaction as db_transaction
 from django.db.models import F, Q
 from rest_framework import exceptions, status
-from rest_framework.authentication import TokenAuthentication, get_authorization_header
+from rest_framework.authentication import (
+    TokenAuthentication,
+    get_authorization_header,
+)
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
@@ -101,7 +104,9 @@ def _parse_date_range(request):
     return from_date, to_date
 
 
-def _transaction_queryset(user, transaction_type=None, from_date=None, to_date=None):
+def _transaction_queryset(
+    user, transaction_type=None, from_date=None, to_date=None
+):
     queryset = (
         Transaction.objects.filter(user=user)
         .select_related(
@@ -136,16 +141,24 @@ def _transaction_queryset(user, transaction_type=None, from_date=None, to_date=N
 
 def _group_transactions_by_type(rows):
     return {
-        "incomes": [row for row in rows if row["transaction_type"] == "income"],
-        "expenses": [row for row in rows if row["transaction_type"] == "expense"],
-        "transfers": [row for row in rows if row["transaction_type"] == "transfer"],
+        "incomes": [
+            row for row in rows if row["transaction_type"] == "income"
+        ],
+        "expenses": [
+            row for row in rows if row["transaction_type"] == "expense"
+        ],
+        "transfers": [
+            row for row in rows if row["transaction_type"] == "transfer"
+        ],
         "buys": [row for row in rows if row["transaction_type"] == "buy"],
         "sells": [row for row in rows if row["transaction_type"] == "sell"],
     }
 
 
 def _apply_cash_delta(cash_balance, delta):
-    CashBalance.objects.filter(pk=cash_balance.pk).update(balance=F("balance") + delta)
+    CashBalance.objects.filter(pk=cash_balance.pk).update(
+        balance=F("balance") + delta
+    )
     cash_balance.refresh_from_db(fields=["balance"])
 
 
@@ -196,7 +209,9 @@ def _update_holding_for_sell(holding, quantity):
     old_qty = _to_decimal(holding.quantity)
     new_qty = old_qty - quantity
     if new_qty < 0:
-        raise ValueError(f"Cannot sell {quantity}; holding has only {old_qty}.")
+        raise ValueError(
+            f"Cannot sell {quantity}; holding has only {old_qty}."
+        )
     holding.quantity = new_qty
     holding.save(update_fields=["quantity", "updated_on"])
 
@@ -228,7 +243,9 @@ def _delete_transaction_and_reverse(txn):
             total = detail.total_value
             _apply_cash_delta(detail.cash_balance, total)
             if detail.holding_id:
-                holding = Holding.objects.select_for_update().get(pk=detail.holding_id)
+                holding = Holding.objects.select_for_update().get(
+                    pk=detail.holding_id
+                )
                 _update_holding_for_buy_reversal(
                     holding,
                     detail.quantity,
@@ -240,7 +257,9 @@ def _delete_transaction_and_reverse(txn):
             total = detail.total_value
             _apply_cash_delta(detail.cash_balance, -total)
             if detail.holding_id:
-                holding = Holding.objects.select_for_update().get(pk=detail.holding_id)
+                holding = Holding.objects.select_for_update().get(
+                    pk=detail.holding_id
+                )
                 _update_holding_for_sell_reversal(holding, detail.quantity)
 
         txn.delete()
@@ -371,11 +390,16 @@ def add_transaction(request):
 
                 provided_holding = data.get("resolved_holding")
                 if provided_holding:
-                    if provided_holding.account_id != from_cash_balance.account_id:
+                    if (
+                        provided_holding.account_id
+                        != from_cash_balance.account_id
+                    ):
                         raise ValueError(
                             "Provided holding account does not match source cash balance account."
                         )
-                    holding = Holding.objects.select_for_update().get(pk=provided_holding.pk)
+                    holding = Holding.objects.select_for_update().get(
+                        pk=provided_holding.pk
+                    )
                 else:
                     holding = (
                         Holding.objects.select_for_update()
@@ -461,7 +485,9 @@ def add_transaction(request):
         )
 
     except ValueError as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 @api_view(["POST"])
@@ -490,7 +516,9 @@ def delete_transaction(request):
         )
 
     _delete_transaction_and_reverse(txn)
-    return Response({"message": "Transaction deleted."}, status=status.HTTP_200_OK)
+    return Response(
+        {"message": "Transaction deleted."}, status=status.HTTP_200_OK
+    )
 
 
 @api_view(["DELETE"])
@@ -523,7 +551,9 @@ def get_transactions(request):
     try:
         from_date, to_date = _parse_date_range(request)
     except ValueError as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     queryset = _transaction_queryset(
         request.user,
@@ -532,7 +562,9 @@ def get_transactions(request):
         to_date=to_date,
     )
     rows = TransactionReadSerializer(queryset, many=True).data
-    return Response(_group_transactions_by_type(rows), status=status.HTTP_200_OK)
+    return Response(
+        _group_transactions_by_type(rows), status=status.HTTP_200_OK
+    )
 
 
 @api_view(["GET"])
@@ -542,8 +574,12 @@ def get_expenses(request):
     try:
         from_date, to_date = _parse_date_range(request)
     except ValueError as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-    queryset = _transaction_queryset(request.user, "expense", from_date, to_date)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
+    queryset = _transaction_queryset(
+        request.user, "expense", from_date, to_date
+    )
     return Response(TransactionReadSerializer(queryset, many=True).data)
 
 
@@ -554,8 +590,12 @@ def get_incomes(request):
     try:
         from_date, to_date = _parse_date_range(request)
     except ValueError as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-    queryset = _transaction_queryset(request.user, "income", from_date, to_date)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
+    queryset = _transaction_queryset(
+        request.user, "income", from_date, to_date
+    )
     return Response(TransactionReadSerializer(queryset, many=True).data)
 
 
@@ -566,8 +606,12 @@ def get_transfers(request):
     try:
         from_date, to_date = _parse_date_range(request)
     except ValueError as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-    queryset = _transaction_queryset(request.user, "transfer", from_date, to_date)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
+    queryset = _transaction_queryset(
+        request.user, "transfer", from_date, to_date
+    )
     return Response(TransactionReadSerializer(queryset, many=True).data)
 
 
@@ -577,7 +621,9 @@ def get_transfers(request):
 def get_all_transactions(request):
     queryset = _transaction_queryset(request.user)
     rows = TransactionReadSerializer(queryset, many=True).data
-    return Response(_group_transactions_by_type(rows), status=status.HTTP_200_OK)
+    return Response(
+        _group_transactions_by_type(rows), status=status.HTTP_200_OK
+    )
 
 
 @api_view(["GET"])
@@ -606,13 +652,17 @@ def get_all_transfers(request):
 
 @api_view(["GET"])
 def get_income_categories(request):
-    queryset = TransactionCategory.objects.filter(category_type=0).order_by("category")
+    queryset = TransactionCategory.objects.filter(category_type=0).order_by(
+        "category"
+    )
     return Response(TransactionCategorySerializer(queryset, many=True).data)
 
 
 @api_view(["GET"])
 def get_expense_categories(request):
-    queryset = TransactionCategory.objects.filter(category_type=1).order_by("category")
+    queryset = TransactionCategory.objects.filter(category_type=1).order_by(
+        "category"
+    )
     return Response(TransactionCategorySerializer(queryset, many=True).data)
 
 
@@ -640,7 +690,9 @@ def search(request):
         .distinct()
     )
     rows = TransactionReadSerializer(transactions, many=True).data
-    return Response(_group_transactions_by_type(rows), status=status.HTTP_200_OK)
+    return Response(
+        _group_transactions_by_type(rows), status=status.HTTP_200_OK
+    )
 
 
 @api_view(["GET"])
@@ -663,7 +715,9 @@ def get_food_stats(request):
             "description",
             "tags__name",
             amount=F("expense_detail__amount"),
-            currency_code=F("expense_detail__from_cash_balance__currency__code"),
+            currency_code=F(
+                "expense_detail__from_cash_balance__currency__code"
+            ),
         )
         .order_by("-date", "-id")
     )
@@ -735,7 +789,9 @@ def _transaction_currency_code(txn):
         return txn.expense_detail.from_cash_balance.currency.code
     if txn.transaction_type == "transfer" and hasattr(txn, "transfer_detail"):
         return txn.transfer_detail.from_cash_balance.currency.code
-    if txn.transaction_type in ("buy", "sell") and hasattr(txn, "security_trade_detail"):
+    if txn.transaction_type in ("buy", "sell") and hasattr(
+        txn, "security_trade_detail"
+    ):
         return txn.security_trade_detail.cash_balance.currency.code
     return "EUR"
 
@@ -756,14 +812,18 @@ def get_wealth_stats(request):
     currency = request.GET.get("currency", "EUR")
     rates = convert_currency(currency, ["EUR", "USD", "BGN", "GBP", "ALL"])
 
-    balances = CashBalance.objects.filter(account__user=user).select_related("currency")
+    balances = CashBalance.objects.filter(account__user=user).select_related(
+        "currency"
+    )
     current_total_wealth = sum(
         float(balance.balance) / rates.get(balance.currency.code, 1)
         for balance in balances
     )
 
     transactions = (
-        Transaction.objects.filter(user=user, transaction_type__in=("income", "expense"))
+        Transaction.objects.filter(
+            user=user, transaction_type__in=("income", "expense")
+        )
         .select_related(
             "income_detail__to_cash_balance__currency",
             "expense_detail__from_cash_balance__currency",

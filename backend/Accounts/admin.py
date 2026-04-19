@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import Account, CashBalance, Currency, Holding, Security, SecurityPrice
+from .models import (
+    Account,
+    CashBalance,
+    Currency,
+    Holding,
+    Security,
+    SecurityPrice,
+)
 
 
 class CashBalanceInline(admin.TabularInline):
@@ -100,7 +107,11 @@ class HoldingAdmin(admin.ModelAdmin):
         "cost_basis",
         "updated_on",
     )
-    list_filter = ("security__asset_class", "security__structure", "created_on")
+    list_filter = (
+        "security__asset_class",
+        "security__structure",
+        "created_on",
+    )
     search_fields = (
         "account__name",
         "account__user__email",

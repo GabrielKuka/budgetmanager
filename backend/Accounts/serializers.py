@@ -1,6 +1,13 @@
 from rest_framework import serializers
 
-from .models import Account, CashBalance, Currency, Holding, Security, SecurityPrice
+from .models import (
+    Account,
+    CashBalance,
+    Currency,
+    Holding,
+    Security,
+    SecurityPrice,
+)
 
 
 class CurrencySerializer(serializers.ModelSerializer):
@@ -189,7 +196,11 @@ class AccountSerializer(serializers.ModelSerializer):
         if not balances:
             return None
         eur_balance = next(
-            (balance for balance in balances if balance.currency.code == "EUR"),
+            (
+                balance
+                for balance in balances
+                if balance.currency.code == "EUR"
+            ),
             None,
         )
         return eur_balance or balances[0]

@@ -14,7 +14,9 @@ urlpatterns = [
     # Legacy URLs kept for compatibility with existing frontend service calls.
     path("all", views.account_collection, name="allaccounts"),
     path("create", views.account_collection, name="createaccount"),
-    path("delete/<int:account_id>", views.account_detail, name="deleteaccount"),
+    path(
+        "delete/<int:account_id>", views.account_detail, name="deleteaccount"
+    ),
     path(
         "soft_delete/<int:account_id>",
         views.account_detail,

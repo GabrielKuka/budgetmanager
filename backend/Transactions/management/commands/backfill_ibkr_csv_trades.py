@@ -12,7 +12,12 @@ from django.db.models import Count
 from django.utils import timezone
 
 from Accounts.models import Account, CashBalance, Holding, Security
-from Transactions.models import ExpenseDetail, IncomeDetail, SecurityTradeDetail, Transaction
+from Transactions.models import (
+    ExpenseDetail,
+    IncomeDetail,
+    SecurityTradeDetail,
+    Transaction,
+)
 from Users.models import User
 from tags.models import Tag
 
@@ -123,12 +128,16 @@ class Command(BaseCommand):
                 f"IBKR account id={ibkr_account_id} not found for user {user.email}."
             )
 
-        cb_usd = CashBalance.objects.select_related("currency", "account").filter(
-            id=usd_cb_id, account=account
-        ).first()
-        cb_eur = CashBalance.objects.select_related("currency", "account").filter(
-            id=eur_cb_id, account=account
-        ).first()
+        cb_usd = (
+            CashBalance.objects.select_related("currency", "account")
+            .filter(id=usd_cb_id, account=account)
+            .first()
+        )
+        cb_eur = (
+            CashBalance.objects.select_related("currency", "account")
+            .filter(id=eur_cb_id, account=account)
+            .first()
+        )
         if not cb_usd or cb_usd.currency.code != "USD":
             raise CommandError(
                 f"USD cash balance mismatch: id={usd_cb_id} must be USD on account {account.id}."
@@ -154,7 +163,11 @@ class Command(BaseCommand):
                 f"preserve_cash_balances={preserve_cash_balances}"
             )
         )
-        self.stdout.write(self.style.NOTICE(f"csv={csv_path} account_code={ibkr_account_code}"))
+        self.stdout.write(
+            self.style.NOTICE(
+                f"csv={csv_path} account_code={ibkr_account_code}"
+            )
+        )
         self.stdout.write(
             f"parsed trades={len(parsed_trades)} symbols={', '.join(imported_symbols)}"
         )
@@ -173,12 +186,16 @@ class Command(BaseCommand):
         )
 
         if not apply_changes:
-            self.stdout.write(self.style.SUCCESS("Dry-run complete. No data changed."))
+            self.stdout.write(
+                self.style.SUCCESS("Dry-run complete. No data changed.")
+            )
             return
 
         if backup_path:
             backup_file = self._create_db_backup(backup_path)
-            self.stdout.write(self.style.SUCCESS(f"Database backup created: {backup_file}"))
+            self.stdout.write(
+                self.style.SUCCESS(f"Database backup created: {backup_file}")
+            )
 
         with transaction.atomic():
             import_tag, _ = Tag.objects.get_or_create(name=IBKR_IMPORT_TAG)
@@ -204,7 +221,9 @@ class Command(BaseCommand):
                     )
                 )
 
-            deleted_manual = self._delete_manual_vti_income(user=user, account=account)
+            deleted_manual = self._delete_manual_vti_income(
+                user=user, account=account
+            )
             self.stdout.write(
                 self.style.NOTICE(
                     f"deleted manual VTI income tx rows={deleted_manual['transaction_rows']} "
@@ -300,17 +319,29 @@ class Command(BaseCommand):
             for raw in reader:
                 if not raw:
                     continue
-                if len(raw) >= 2 and raw[0] == "Transaction History" and raw[1] == "Header":
+                if (
+                    len(raw) >= 2
+                    and raw[0] == "Transaction History"
+                    and raw[1] == "Header"
+                ):
                     headers = [col.strip() for col in raw[2:]]
                     continue
-                if not (len(raw) >= 2 and raw[0] == "Transaction History" and raw[1] == "Data"):
+                if not (
+                    len(raw) >= 2
+                    and raw[0] == "Transaction History"
+                    and raw[1] == "Data"
+                ):
                     continue
                 if not headers:
-                    raise CommandError("Could not locate Transaction History header in CSV.")
+                    raise CommandError(
+                        "Could not locate Transaction History header in CSV."
+                    )
 
                 payload = {}
                 for idx, name in enumerate(headers):
-                    payload[name.strip().lower()] = (raw[idx + 2].strip() if idx + 2 < len(raw) else "")
+                    payload[name.strip().lower()] = (
+                        raw[idx + 2].strip() if idx + 2 < len(raw) else ""
+                    )
 
                 if payload.get("account") != ibkr_account_code:
                     continue
@@ -326,11 +357,15 @@ class Command(BaseCommand):
 
                 security = Security.objects.filter(ticker=symbol).first()
                 if not security:
-                    raise CommandError(f"Security not found for ticker from CSV: {symbol}")
+                    raise CommandError(
+                        f"Security not found for ticker from CSV: {symbol}"
+                    )
 
                 quantity_raw = self._d(payload.get("quantity"))
                 if quantity_raw is None or quantity_raw == 0:
-                    raise CommandError(f"Invalid quantity in CSV for {symbol}: {payload.get('quantity')!r}")
+                    raise CommandError(
+                        f"Invalid quantity in CSV for {symbol}: {payload.get('quantity')!r}"
+                    )
                 quantity = abs(quantity_raw)
 
                 price_currency = payload.get("price currency", "").upper()
@@ -338,7 +373,9 @@ class Command(BaseCommand):
                     raise CommandError(
                         f"Unsupported price currency for {symbol} at {payload.get('date')}: {price_currency!r}"
                     )
-                cash_balance_id = cb_usd_id if price_currency == "USD" else cb_eur_id
+                cash_balance_id = (
+                    cb_usd_id if price_currency == "USD" else cb_eur_id
+                )
 
                 trade_total = self._compute_trade_total(
                     tx_type=tx_type_raw.lower(),
@@ -352,12 +389,18 @@ class Command(BaseCommand):
                 )
 
                 if quantity <= 0:
-                    raise CommandError(f"Non-positive quantity after normalization for {symbol}")
+                    raise CommandError(
+                        f"Non-positive quantity after normalization for {symbol}"
+                    )
                 if trade_total <= 0:
-                    raise CommandError(f"Non-positive trade total for {symbol} on {payload.get('date')}")
+                    raise CommandError(
+                        f"Non-positive trade total for {symbol} on {payload.get('date')}"
+                    )
 
                 price_per_unit = trade_total / quantity
-                trade_date = datetime.strptime(payload["date"], "%Y-%m-%d").date()
+                trade_date = datetime.strptime(
+                    payload["date"], "%Y-%m-%d"
+                ).date()
 
                 rows.append(
                     ParsedTrade(
@@ -374,7 +417,9 @@ class Command(BaseCommand):
                 )
 
         if not rows:
-            raise CommandError("No Buy/Sell rows matched the provided filters.")
+            raise CommandError(
+                "No Buy/Sell rows matched the provided filters."
+            )
 
         rows.sort(key=lambda r: (r.date, r.symbol, r.tx_type))
         return rows
@@ -417,7 +462,9 @@ class Command(BaseCommand):
         if tx_type == "sell":
             value = notional_usd - commission_usd
             if value <= 0:
-                raise CommandError(f"USD sell produced non-positive proceeds: {row}")
+                raise CommandError(
+                    f"USD sell produced non-positive proceeds: {row}"
+                )
             return value
         raise CommandError(f"Unsupported tx_type: {tx_type}")
 
@@ -456,7 +503,9 @@ class Command(BaseCommand):
                 tx_rows += 1
 
         with connection.cursor() as cursor:
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Transactions_income'")
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='Transactions_income'"
+            )
             has_legacy_income = cursor.fetchone() is not None
             if has_legacy_income:
                 ids_to_delete = [713]
@@ -492,31 +541,51 @@ class Command(BaseCommand):
     def _reverse_and_delete_transaction(self, txn):
         if txn.transaction_type == "income" and hasattr(txn, "income_detail"):
             detail = txn.income_detail
-            cb = CashBalance.objects.select_for_update().get(pk=detail.to_cash_balance_id)
+            cb = CashBalance.objects.select_for_update().get(
+                pk=detail.to_cash_balance_id
+            )
             cb.balance = (cb.balance or Decimal("0")) - detail.amount
             cb.save(update_fields=["balance", "updated_on"])
-        elif txn.transaction_type == "expense" and hasattr(txn, "expense_detail"):
+        elif txn.transaction_type == "expense" and hasattr(
+            txn, "expense_detail"
+        ):
             detail = txn.expense_detail
-            cb = CashBalance.objects.select_for_update().get(pk=detail.from_cash_balance_id)
+            cb = CashBalance.objects.select_for_update().get(
+                pk=detail.from_cash_balance_id
+            )
             cb.balance = (cb.balance or Decimal("0")) + detail.amount
             cb.save(update_fields=["balance", "updated_on"])
-        elif txn.transaction_type == "transfer" and hasattr(txn, "transfer_detail"):
+        elif txn.transaction_type == "transfer" and hasattr(
+            txn, "transfer_detail"
+        ):
             detail = txn.transfer_detail
-            src = CashBalance.objects.select_for_update().get(pk=detail.from_cash_balance_id)
-            dst = CashBalance.objects.select_for_update().get(pk=detail.to_cash_balance_id)
+            src = CashBalance.objects.select_for_update().get(
+                pk=detail.from_cash_balance_id
+            )
+            dst = CashBalance.objects.select_for_update().get(
+                pk=detail.to_cash_balance_id
+            )
             credited = detail.amount * detail.fx_rate
             src.balance = (src.balance or Decimal("0")) + detail.amount
             dst.balance = (dst.balance or Decimal("0")) - credited
             src.save(update_fields=["balance", "updated_on"])
             dst.save(update_fields=["balance", "updated_on"])
-        elif txn.transaction_type == "buy" and hasattr(txn, "security_trade_detail"):
+        elif txn.transaction_type == "buy" and hasattr(
+            txn, "security_trade_detail"
+        ):
             detail = txn.security_trade_detail
-            cb = CashBalance.objects.select_for_update().get(pk=detail.cash_balance_id)
+            cb = CashBalance.objects.select_for_update().get(
+                pk=detail.cash_balance_id
+            )
             cb.balance = (cb.balance or Decimal("0")) + detail.total_value
             cb.save(update_fields=["balance", "updated_on"])
-        elif txn.transaction_type == "sell" and hasattr(txn, "security_trade_detail"):
+        elif txn.transaction_type == "sell" and hasattr(
+            txn, "security_trade_detail"
+        ):
             detail = txn.security_trade_detail
-            cb = CashBalance.objects.select_for_update().get(pk=detail.cash_balance_id)
+            cb = CashBalance.objects.select_for_update().get(
+                pk=detail.cash_balance_id
+            )
             cb.balance = (cb.balance or Decimal("0")) - detail.total_value
             cb.save(update_fields=["balance", "updated_on"])
 
@@ -535,7 +604,9 @@ class Command(BaseCommand):
         for ticker in symbols:
             security = by_ticker.get(ticker)
             if not security:
-                raise CommandError(f"Security missing while rebuilding holdings: {ticker}")
+                raise CommandError(
+                    f"Security missing while rebuilding holdings: {ticker}"
+                )
 
             trades = (
                 SecurityTradeDetail.objects.filter(
@@ -555,7 +626,11 @@ class Command(BaseCommand):
                     old_total = qty * avg
                     buy_total = trade.quantity * trade.price_per_unit
                     qty = qty + trade.quantity
-                    avg = (old_total + buy_total) / qty if qty > 0 else Decimal("0")
+                    avg = (
+                        (old_total + buy_total) / qty
+                        if qty > 0
+                        else Decimal("0")
+                    )
                 elif t_type == "sell":
                     if qty < trade.quantity:
                         # CSV period may start after the initial buys (pre-period inventory).
@@ -567,12 +642,20 @@ class Command(BaseCommand):
                     if qty == 0:
                         avg = Decimal("0")
 
-            existing = Holding.objects.filter(account=account, security=security).first()
+            existing = Holding.objects.filter(
+                account=account, security=security
+            ).first()
             if qty > 0:
                 if existing:
                     existing.quantity = self._q8(qty)
                     existing.average_cost = self._q8(avg)
-                    existing.save(update_fields=["quantity", "average_cost", "updated_on"])
+                    existing.save(
+                        update_fields=[
+                            "quantity",
+                            "average_cost",
+                            "updated_on",
+                        ]
+                    )
                     holding = existing
                 else:
                     holding = Holding.objects.create(
@@ -599,7 +682,9 @@ class Command(BaseCommand):
 
         return {"updated": updated, "removed": removed}
 
-    def _reconcile_cash(self, user, account, cb_usd, cb_eur, pre_usd, pre_eur, import_tag):
+    def _reconcile_cash(
+        self, user, account, cb_usd, cb_eur, pre_usd, pre_eur, import_tag
+    ):
         created = 0
         for cb, target in ((cb_usd, pre_usd), (cb_eur, pre_eur)):
             current = cb.balance or Decimal("0")
@@ -671,7 +756,9 @@ class Command(BaseCommand):
                 "quantity": row.quantity,
                 "average_cost": row.average_cost,
             }
-            for row in Holding.objects.filter(account=account).select_related("security")
+            for row in Holding.objects.filter(account=account).select_related(
+                "security"
+            )
         }
         return {
             "cash": {
@@ -706,13 +793,21 @@ class Command(BaseCommand):
 
         # Manual row must be gone.
         if Transaction.objects.filter(id=629, user=user).exists():
-            raise CommandError("Old manual income transaction id=629 still exists.")
+            raise CommandError(
+                "Old manual income transaction id=629 still exists."
+            )
         with connection.cursor() as cursor:
-            cursor.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='Transactions_income'")
+            cursor.execute(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='Transactions_income'"
+            )
             if int(cursor.fetchone()[0]) > 0:
-                cursor.execute("SELECT COUNT(*) FROM Transactions_income WHERE id = 713")
+                cursor.execute(
+                    "SELECT COUNT(*) FROM Transactions_income WHERE id = 713"
+                )
                 if int(cursor.fetchone()[0]) != 0:
-                    raise CommandError("Legacy Transactions_income row id=713 still exists.")
+                    raise CommandError(
+                        "Legacy Transactions_income row id=713 still exists."
+                    )
 
         # Exactly two VTI sells on 2024-05-20 from import set.
         vti_sells = SecurityTradeDetail.objects.filter(
@@ -723,7 +818,9 @@ class Command(BaseCommand):
             transaction__description__startswith=IBKR_IMPORT_PREFIX,
         ).count()
         if vti_sells != 2:
-            raise CommandError(f"Expected 2 imported VTI sells on 2024-05-20, found {vti_sells}.")
+            raise CommandError(
+                f"Expected 2 imported VTI sells on 2024-05-20, found {vti_sells}."
+            )
 
         if not preserve_cash_balances:
             recon_rows = Transaction.objects.filter(
@@ -773,13 +870,21 @@ class Command(BaseCommand):
             "XNAS": (Decimal("1.571"), Decimal("81.25"), "EUR"),
         }
         for ticker, (exp_qty, exp_cost_basis, _) in expected.items():
-            holding = Holding.objects.filter(account=account, security__ticker=ticker).first()
+            holding = Holding.objects.filter(
+                account=account, security__ticker=ticker
+            ).first()
             if not holding:
-                raise CommandError(f"Holding missing for expected symbol {ticker}.")
+                raise CommandError(
+                    f"Holding missing for expected symbol {ticker}."
+                )
             qty = holding.quantity or Decimal("0")
-            cost_basis = (holding.quantity or Decimal("0")) * (holding.average_cost or Decimal("0"))
+            cost_basis = (holding.quantity or Decimal("0")) * (
+                holding.average_cost or Decimal("0")
+            )
             if self._q4(qty) != self._q4(exp_qty):
-                raise CommandError(f"{ticker} quantity mismatch: {qty} != {exp_qty}")
+                raise CommandError(
+                    f"{ticker} quantity mismatch: {qty} != {exp_qty}"
+                )
             if self._q2(cost_basis) != self._q2(exp_cost_basis):
                 raise CommandError(
                     f"{ticker} cost basis mismatch: {self._q2(cost_basis)} != {self._q2(exp_cost_basis)}"
@@ -787,16 +892,24 @@ class Command(BaseCommand):
 
         # Ensure CSV symbols exist as holdings or fully sold-out.
         holding_tickers = set(
-            Holding.objects.filter(account=account).values_list("security__ticker", flat=True)
+            Holding.objects.filter(account=account).values_list(
+                "security__ticker", flat=True
+            )
         )
         imported_set = set(imported_symbols)
-        if not imported_set.issuperset(holding_tickers.intersection(imported_set)):
-            raise CommandError("Imported symbols / holding symbols invariant failed.")
+        if not imported_set.issuperset(
+            holding_tickers.intersection(imported_set)
+        ):
+            raise CommandError(
+                "Imported symbols / holding symbols invariant failed."
+            )
 
     def _create_db_backup(self, backup_path):
         db_name = connection.settings_dict.get("NAME")
         if not db_name:
-            raise CommandError("Could not determine DB path from Django settings.")
+            raise CommandError(
+                "Could not determine DB path from Django settings."
+            )
 
         source_path = Path(str(db_name))
         if not source_path.is_absolute():
@@ -808,12 +921,21 @@ class Command(BaseCommand):
 
         if destination_input.exists():
             if destination_input.is_dir():
-                destination = destination_input / f"{source_path.name}.backup_{timestamp}"
+                destination = (
+                    destination_input
+                    / f"{source_path.name}.backup_{timestamp}"
+                )
         else:
-            is_directory_like = str(backup_path).endswith("/") or destination_input.suffix == ""
+            is_directory_like = (
+                str(backup_path).endswith("/")
+                or destination_input.suffix == ""
+            )
             if is_directory_like:
                 destination_input.mkdir(parents=True, exist_ok=True)
-                destination = destination_input / f"{source_path.name}.backup_{timestamp}"
+                destination = (
+                    destination_input
+                    / f"{source_path.name}.backup_{timestamp}"
+                )
 
         destination.parent.mkdir(parents=True, exist_ok=True)
 
@@ -843,10 +965,14 @@ class Command(BaseCommand):
         return Decimal(raw)
 
     def _q8(self, value):
-        return Decimal(value).quantize(Decimal("0.00000001"), rounding=ROUND_HALF_UP)
+        return Decimal(value).quantize(
+            Decimal("0.00000001"), rounding=ROUND_HALF_UP
+        )
 
     def _q4(self, value):
-        return Decimal(value).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+        return Decimal(value).quantize(
+            Decimal("0.0001"), rounding=ROUND_HALF_UP
+        )
 
     def _q2(self, value):
         return Decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)

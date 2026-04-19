@@ -9,7 +9,13 @@ from django.db.models import Count, Sum
 from django.utils import timezone
 
 from Accounts.models import Account, CashBalance, Holding
-from Transactions.models import ExpenseDetail, IncomeDetail, SecurityTradeDetail, Transaction, TransferDetail
+from Transactions.models import (
+    ExpenseDetail,
+    IncomeDetail,
+    SecurityTradeDetail,
+    Transaction,
+    TransferDetail,
+)
 from Users.models import User
 
 
@@ -116,15 +122,21 @@ class Command(BaseCommand):
         self._print_snapshot("Pre-check", pre_snapshot)
 
         if not apply_changes:
-            self.stdout.write(self.style.SUCCESS("Dry-run complete. No data changed."))
+            self.stdout.write(
+                self.style.SUCCESS("Dry-run complete. No data changed.")
+            )
             return
 
         if backup_path:
             backup_file = self._create_db_backup(backup_path)
-            self.stdout.write(self.style.SUCCESS(f"Database backup created: {backup_file}"))
+            self.stdout.write(
+                self.style.SUCCESS(f"Database backup created: {backup_file}")
+            )
 
         with transaction.atomic():
-            source_to_target, preserved_source_balances = self._execute_merge(user)
+            source_to_target, preserved_source_balances = self._execute_merge(
+                user
+            )
             self._recompute_transaction_account_pointers(user)
             self._rewrite_legacy_table_account_ids(user, source_to_target)
             self._normalize_account_legacy_fields(user)
@@ -139,7 +151,9 @@ class Command(BaseCommand):
             )
 
         self._print_snapshot("Post-check", post_snapshot)
-        self.stdout.write(self.style.SUCCESS("Account merge migration applied successfully."))
+        self.stdout.write(
+            self.style.SUCCESS("Account merge migration applied successfully.")
+        )
 
     def _print_plan(self):
         self.stdout.write(self.style.NOTICE("Merge groups:"))
@@ -156,7 +170,9 @@ class Command(BaseCommand):
         for row in MERGE_PLAN:
             target_id = row["target_id"]
             if target_id in seen_ids:
-                raise CommandError(f"Duplicate account id in merge plan: {target_id}")
+                raise CommandError(
+                    f"Duplicate account id in merge plan: {target_id}"
+                )
             seen_ids.add(target_id)
 
             target = Account.objects.filter(pk=target_id, user=user).first()
@@ -167,16 +183,22 @@ class Command(BaseCommand):
 
             for source_id in row["source_ids"]:
                 if source_id in seen_ids:
-                    raise CommandError(f"Duplicate account id in merge plan: {source_id}")
+                    raise CommandError(
+                        f"Duplicate account id in merge plan: {source_id}"
+                    )
                 seen_ids.add(source_id)
 
-                source = Account.objects.filter(pk=source_id, user=user).first()
+                source = Account.objects.filter(
+                    pk=source_id, user=user
+                ).first()
                 if not source:
                     raise CommandError(
                         f"Source account {source_id} ({row['group']}) not found for user {user.email}."
                     )
                 if source_id == target_id:
-                    raise CommandError(f"Invalid plan: source {source_id} equals target {target_id}.")
+                    raise CommandError(
+                        f"Invalid plan: source {source_id} equals target {target_id}."
+                    )
 
     def _collect_snapshot(self, user):
         table_names = set(connection.introspection.table_names())
@@ -229,12 +251,9 @@ class Command(BaseCommand):
         target_currency_sets = {}
         for row in MERGE_PLAN:
             scoped_ids = [row["target_id"], *row["source_ids"]]
-            total = (
-                CashBalance.objects.filter(account__user=user, account_id__in=scoped_ids)
-                .aggregate(total=Sum("balance"))
-                .get("total")
-                or Decimal("0")
-            )
+            total = CashBalance.objects.filter(
+                account__user=user, account_id__in=scoped_ids
+            ).aggregate(total=Sum("balance")).get("total") or Decimal("0")
             group_totals[row["group"]] = str(total)
 
             target_currency_sets[row["target_id"]] = set(
@@ -254,7 +273,10 @@ class Command(BaseCommand):
         ):
             if table in table_names:
                 with connection.cursor() as cursor:
-                    cursor.execute(f"SELECT COUNT(*) FROM {table} WHERE user_id = %s", [user.id])
+                    cursor.execute(
+                        f"SELECT COUNT(*) FROM {table} WHERE user_id = %s",
+                        [user.id],
+                    )
                     legacy_row_counts[table] = int(cursor.fetchone()[0])
             else:
                 legacy_row_counts[table] = None
@@ -287,26 +309,34 @@ class Command(BaseCommand):
         )
         self.stdout.write(
             "  Missing details: "
-            + ", ".join(f"{k}={v}" for k, v in snapshot["missing_detail"].items())
+            + ", ".join(
+                f"{k}={v}" for k, v in snapshot["missing_detail"].items()
+            )
         )
-        self.stdout.write(f"  Duplicate (account,currency) cash-balance pairs: {snapshot['duplicate_pairs']}")
+        self.stdout.write(
+            f"  Duplicate (account,currency) cash-balance pairs: {snapshot['duplicate_pairs']}"
+        )
         self.stdout.write(
             "  Legacy rows: "
             + ", ".join(
-                f"{table}={count}" for table, count in snapshot["legacy_row_counts"].items()
+                f"{table}={count}"
+                for table, count in snapshot["legacy_row_counts"].items()
             )
         )
         self.stdout.write(
             "  Group balance totals: "
             + ", ".join(
-                f"{group}={total}" for group, total in snapshot["group_totals"].items()
+                f"{group}={total}"
+                for group, total in snapshot["group_totals"].items()
             )
         )
 
     def _create_db_backup(self, backup_path):
         db_name = connection.settings_dict.get("NAME")
         if not db_name:
-            raise CommandError("Could not determine default DB name from Django connection settings.")
+            raise CommandError(
+                "Could not determine default DB name from Django connection settings."
+            )
 
         source_path = Path(str(db_name))
         if not source_path.is_absolute():
@@ -318,12 +348,21 @@ class Command(BaseCommand):
 
         if destination_input.exists():
             if destination_input.is_dir():
-                destination = destination_input / f"{source_path.name}.backup_{timestamp}"
+                destination = (
+                    destination_input
+                    / f"{source_path.name}.backup_{timestamp}"
+                )
         else:
-            is_directory_like = str(backup_path).endswith("/") or destination_input.suffix == ""
+            is_directory_like = (
+                str(backup_path).endswith("/")
+                or destination_input.suffix == ""
+            )
             if is_directory_like:
                 destination_input.mkdir(parents=True, exist_ok=True)
-                destination = destination_input / f"{source_path.name}.backup_{timestamp}"
+                destination = (
+                    destination_input
+                    / f"{source_path.name}.backup_{timestamp}"
+                )
 
         destination.parent.mkdir(parents=True, exist_ok=True)
 
@@ -335,7 +374,9 @@ class Command(BaseCommand):
                 connection.connection.backup(backup_conn)
         else:
             if not source_path.exists():
-                raise CommandError(f"DB file not found for backup: {source_path}")
+                raise CommandError(
+                    f"DB file not found for backup: {source_path}"
+                )
             copy2(source_path, destination)
 
         return destination
@@ -344,7 +385,9 @@ class Command(BaseCommand):
         source_to_target = {}
         preserved_source_balances = {}
         for row in MERGE_PLAN:
-            target = Account.objects.select_for_update().get(pk=row["target_id"], user=user)
+            target = Account.objects.select_for_update().get(
+                pk=row["target_id"], user=user
+            )
             changed_target_fields = []
             if target.name != row["target_name"]:
                 target.name = row["target_name"]
@@ -353,10 +396,14 @@ class Command(BaseCommand):
                 target.deleted = False
                 changed_target_fields.append("deleted")
             if changed_target_fields:
-                target.save(update_fields=[*changed_target_fields, "updated_on"])
+                target.save(
+                    update_fields=[*changed_target_fields, "updated_on"]
+                )
 
             for source_id in row["source_ids"]:
-                source = Account.objects.select_for_update().get(pk=source_id, user=user)
+                source = Account.objects.select_for_update().get(
+                    pk=source_id, user=user
+                )
                 source_to_target[source.id] = target.id
 
                 preserved = self._move_cash_balances(source, target)
@@ -406,25 +453,25 @@ class Command(BaseCommand):
                 preserved_source_balances.append(source_balance.id)
                 continue
 
-            IncomeDetail.objects.filter(to_cash_balance_id=source_balance.id).update(
-                to_cash_balance_id=target_balance.id
-            )
-            ExpenseDetail.objects.filter(from_cash_balance_id=source_balance.id).update(
-                from_cash_balance_id=target_balance.id
-            )
-            TransferDetail.objects.filter(from_cash_balance_id=source_balance.id).update(
-                from_cash_balance_id=target_balance.id
-            )
-            TransferDetail.objects.filter(to_cash_balance_id=source_balance.id).update(
-                to_cash_balance_id=target_balance.id
-            )
-            SecurityTradeDetail.objects.filter(cash_balance_id=source_balance.id).update(
-                cash_balance_id=target_balance.id
-            )
+            IncomeDetail.objects.filter(
+                to_cash_balance_id=source_balance.id
+            ).update(to_cash_balance_id=target_balance.id)
+            ExpenseDetail.objects.filter(
+                from_cash_balance_id=source_balance.id
+            ).update(from_cash_balance_id=target_balance.id)
+            TransferDetail.objects.filter(
+                from_cash_balance_id=source_balance.id
+            ).update(from_cash_balance_id=target_balance.id)
+            TransferDetail.objects.filter(
+                to_cash_balance_id=source_balance.id
+            ).update(to_cash_balance_id=target_balance.id)
+            SecurityTradeDetail.objects.filter(
+                cash_balance_id=source_balance.id
+            ).update(cash_balance_id=target_balance.id)
 
-            target_balance.balance = (target_balance.balance or Decimal("0")) + (
-                source_balance.balance or Decimal("0")
-            )
+            target_balance.balance = (
+                target_balance.balance or Decimal("0")
+            ) + (source_balance.balance or Decimal("0"))
             target_balance.save(update_fields=["balance", "updated_on"])
             source_balance.delete()
 
@@ -448,9 +495,9 @@ class Command(BaseCommand):
                 source_holding.save(update_fields=["account", "updated_on"])
                 continue
 
-            SecurityTradeDetail.objects.filter(holding_id=source_holding.id).update(
-                holding_id=target_holding.id
-            )
+            SecurityTradeDetail.objects.filter(
+                holding_id=source_holding.id
+            ).update(holding_id=target_holding.id)
 
             source_qty = source_holding.quantity or Decimal("0")
             source_avg = source_holding.average_cost or Decimal("0")
@@ -459,13 +506,17 @@ class Command(BaseCommand):
 
             merged_qty = source_qty + target_qty
             if merged_qty > 0:
-                merged_avg = ((source_qty * source_avg) + (target_qty * target_avg)) / merged_qty
+                merged_avg = (
+                    (source_qty * source_avg) + (target_qty * target_avg)
+                ) / merged_qty
             else:
                 merged_avg = Decimal("0")
 
             target_holding.quantity = merged_qty
             target_holding.average_cost = merged_avg
-            target_holding.save(update_fields=["quantity", "average_cost", "updated_on"])
+            target_holding.save(
+                update_fields=["quantity", "average_cost", "updated_on"]
+            )
             source_holding.delete()
 
     def _mark_source_as_merged(self, source, target_name):
@@ -567,7 +618,9 @@ class Command(BaseCommand):
         source_ids = sorted(source_to_target.keys())
         source_placeholders = ", ".join(["%s"] * len(source_ids))
         case_sql = self._build_case_sql("account_id", source_to_target)
-        case_from_sql = self._build_case_sql("from_account_id", source_to_target)
+        case_from_sql = self._build_case_sql(
+            "from_account_id", source_to_target
+        )
         case_to_sql = self._build_case_sql("to_account_id", source_to_target)
 
         case_params = self._case_params(source_to_target)
@@ -585,7 +638,13 @@ class Command(BaseCommand):
                           OR to_account_id IN ({source_placeholders})
                       );
                     """,
-                    [*case_params, *case_params, user.id, *source_ids, *source_ids],
+                    [
+                        *case_params,
+                        *case_params,
+                        user.id,
+                        *source_ids,
+                        *source_ids,
+                    ],
                 )
 
             if "Transactions_income" in table_names:
@@ -622,7 +681,13 @@ class Command(BaseCommand):
                           OR to_account_id IN ({source_placeholders})
                       );
                     """,
-                    [*case_params, *case_params, user.id, *source_ids, *source_ids],
+                    [
+                        *case_params,
+                        *case_params,
+                        user.id,
+                        *source_ids,
+                        *source_ids,
+                    ],
                 )
 
     def _build_case_sql(self, column_name, source_to_target):
@@ -636,11 +701,18 @@ class Command(BaseCommand):
         return params
 
     def _normalize_account_legacy_fields(self, user):
-        accounts = Account.objects.filter(user=user).prefetch_related("cash_balances__currency")
+        accounts = Account.objects.filter(user=user).prefetch_related(
+            "cash_balances__currency"
+        )
         for account in accounts:
-            balances = sorted(account.cash_balances.all(), key=lambda row: row.id)
+            balances = sorted(
+                account.cash_balances.all(), key=lambda row: row.id
+            )
             if balances:
-                eur = next((row for row in balances if row.currency.code == "EUR"), None)
+                eur = next(
+                    (row for row in balances if row.currency.code == "EUR"),
+                    None,
+                )
                 primary = eur or balances[0]
                 target_amount = float(primary.balance or Decimal("0"))
                 target_currency = primary.currency.code
@@ -659,7 +731,9 @@ class Command(BaseCommand):
             if changed_fields:
                 account.save(update_fields=[*changed_fields, "updated_on"])
 
-    def _assert_invariants(self, pre, post, source_to_target, preserved_source_balances, user):
+    def _assert_invariants(
+        self, pre, post, source_to_target, preserved_source_balances, user
+    ):
         if pre["txn_total"] != post["txn_total"]:
             raise CommandError(
                 f"Transaction total changed: {pre['txn_total']} -> {post['txn_total']}"
@@ -698,10 +772,15 @@ class Command(BaseCommand):
                 f"Found duplicate (account,currency) cash-balance pairs after merge: {post['duplicate_pairs']}"
             )
 
-        for target_id, expected_currencies in EXPECTED_TARGET_CURRENCIES.items():
+        for (
+            target_id,
+            expected_currencies,
+        ) in EXPECTED_TARGET_CURRENCIES.items():
             current = post["target_currency_sets"].get(target_id, set())
             if current != expected_currencies:
-                target = Account.objects.filter(pk=target_id, user=user).first()
+                target = Account.objects.filter(
+                    pk=target_id, user=user
+                ).first()
                 raise CommandError(
                     f"Target account {target_id} ({target.name if target else 'unknown'}) "
                     f"currencies mismatch: expected {sorted(expected_currencies)}, got {sorted(current)}"
@@ -710,12 +789,20 @@ class Command(BaseCommand):
         for source_id, target_id in source_to_target.items():
             source = Account.objects.filter(pk=source_id, user=user).first()
             if not source:
-                raise CommandError(f"Source account disappeared unexpectedly: {source_id}")
+                raise CommandError(
+                    f"Source account disappeared unexpectedly: {source_id}"
+                )
             if not source.deleted:
-                raise CommandError(f"Source account is not soft-deleted after merge: {source_id}")
-            source_balance_qs = CashBalance.objects.filter(account_id=source_id)
+                raise CommandError(
+                    f"Source account is not soft-deleted after merge: {source_id}"
+                )
+            source_balance_qs = CashBalance.objects.filter(
+                account_id=source_id
+            )
             source_balance_count = source_balance_qs.count()
-            source_holding_count = Holding.objects.filter(account_id=source_id).count()
+            source_holding_count = Holding.objects.filter(
+                account_id=source_id
+            ).count()
             preserved_ids = set(preserved_source_balances.get(source_id, []))
 
             if source_holding_count != 0:
@@ -725,14 +812,18 @@ class Command(BaseCommand):
                 )
 
             if source_balance_count != 0:
-                current_ids = set(source_balance_qs.values_list("id", flat=True))
+                current_ids = set(
+                    source_balance_qs.values_list("id", flat=True)
+                )
                 if current_ids != preserved_ids:
                     raise CommandError(
                         f"Source account {source_id} has unexpected remaining cash balances. "
                         f"expected={sorted(preserved_ids)}, got={sorted(current_ids)}"
                     )
 
-                non_zero_preserved = source_balance_qs.exclude(balance=Decimal("0")).count()
+                non_zero_preserved = source_balance_qs.exclude(
+                    balance=Decimal("0")
+                ).count()
                 if non_zero_preserved:
                     raise CommandError(
                         f"Source account {source_id} has non-zero preserved cash balances, "
@@ -744,4 +835,6 @@ class Command(BaseCommand):
                 )
 
             if target_id == source_id:
-                raise CommandError(f"Invalid mapping where source equals target: {source_id}")
+                raise CommandError(
+                    f"Invalid mapping where source equals target: {source_id}"
+                )

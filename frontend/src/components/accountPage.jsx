@@ -97,9 +97,11 @@ const Sidebar = ({ account, accountType, stats, currentMonthStats }) => {
       });
 
       const holdingConversions = (account.holdings || []).map((holding) => {
-        const fromCurrency = holding.security?.currency?.code || account.currency;
+        const fromCurrency =
+          holding.security?.currency?.code || account.currency;
         const costBasis =
-          parseFloat(holding.quantity || 0) * parseFloat(holding.average_cost || 0);
+          parseFloat(holding.quantity || 0) *
+          parseFloat(holding.average_cost || 0);
         return currencyService
           .convert(fromCurrency, global.globalCurrency, costBasis)
           .then((value) => parseFloat(value || 0));
@@ -140,7 +142,9 @@ const Sidebar = ({ account, accountType, stats, currentMonthStats }) => {
                 className={`account-status-indicator ${
                   account.deleted ? "inactive" : "active"
                 }`}
-                aria-label={account.deleted ? "Inactive account" : "Active account"}
+                aria-label={
+                  account.deleted ? "Inactive account" : "Active account"
+                }
                 title={account.deleted ? "Inactive" : "Active"}
               >
                 {account.deleted ? "✕" : "✓"}
@@ -159,8 +163,7 @@ const Sidebar = ({ account, accountType, stats, currentMonthStats }) => {
           </div>
           {(account.cash_balances || []).map((balance) => {
             const code = balance.currency?.code || account.currency;
-            const symbol =
-              balance.currency?.symbol || helper.getCurrency(code);
+            const symbol = balance.currency?.symbol || helper.getCurrency(code);
             return (
               <div
                 className="grid-row cash-sub-row"

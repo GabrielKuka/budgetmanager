@@ -191,8 +191,7 @@ const TransactionPopup = ({
               {transactionType == "income" && "Earned on"}
               {transactionType == "transfer" && "Transfered on"}{" "}
               {transactionType == "buy" && "Bought on"}{" "}
-              {transactionType == "sell" && "Sold on"}{" "}
-              {transaction.date}
+              {transactionType == "sell" && "Sold on"} {transaction.date}
             </span>
           </div>
           <button className={"close-popup"} onClick={closePopup}>
@@ -305,7 +304,8 @@ const TransactionPopup = ({
                   )}
                 </span>
               </div>
-              {(transactionType === "income" || transactionType === "expense") && (
+              {(transactionType === "income" ||
+                transactionType === "expense") && (
                 <div>
                   <label>Category: </label>
                   <span>{helper.categoryIcon(transaction.category)}</span>
