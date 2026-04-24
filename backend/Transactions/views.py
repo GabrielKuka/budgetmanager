@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 import requests
@@ -695,93 +695,6 @@ def search(request):
     )
 
 
-@api_view(["GET"])
-@authentication_classes([FlexibleTokenAuthentication])
-@permission_classes([IsAuthenticated])
-def get_food_stats(request):
-    user = request.user
-    currency = request.GET.get("currency", "EUR")
-    rates = convert_currency(currency, ["EUR", "USD", "BGN", "GBP", "ALL"])
-
-    food_transactions = (
-        Transaction.objects.filter(
-            user=user,
-            transaction_type="expense",
-            expense_detail__category__category__iexact="Food",
-        )
-        .values(
-            "id",
-            "date",
-            "description",
-            "tags__name",
-            amount=F("expense_detail__amount"),
-            currency_code=F(
-                "expense_detail__from_cash_balance__currency__code"
-            ),
-        )
-        .order_by("-date", "-id")
-    )
-
-    aggregated = defaultdict(lambda: {"tags": []})
-    for row in food_transactions:
-        transaction_id = row["id"]
-        code = row["currency_code"] or "EUR"
-        if "id" not in aggregated[transaction_id]:
-            aggregated[transaction_id].update(
-                {
-                    "id": row["id"],
-                    "date": row["date"],
-                    "amount": float(row["amount"]) / rates.get(code, 1),
-                    "description": row["description"],
-                }
-            )
-        if row["tags__name"]:
-            aggregated[transaction_id]["tags"].append(row["tags__name"])
-
-    grouped_by_month = defaultdict(
-        lambda: {
-            "transactions": [],
-            "total_amount": 0,
-            "kaufland_sum": 0,
-            "billa_sum": 0,
-            "lidl_sum": 0,
-        }
-    )
-    for item in aggregated.values():
-        year_month = item["date"].strftime("%Y-%m")
-        description = (item["description"] or "").lower()
-        grouped_by_month[year_month]["transactions"].append(item)
-        grouped_by_month[year_month]["total_amount"] += item["amount"]
-        if "kaufland" in description:
-            grouped_by_month[year_month]["kaufland_sum"] += item["amount"]
-        if "lidl" in description:
-            grouped_by_month[year_month]["lidl_sum"] += item["amount"]
-        if "billa" in description:
-            grouped_by_month[year_month]["billa_sum"] += item["amount"]
-
-    response = []
-    for year_month, data in grouped_by_month.items():
-        response.append(
-            {
-                "year_month": year_month,
-                "total_amount": round(data["total_amount"], 2),
-                "kaufland": round(data["kaufland_sum"], 2),
-                "lidl": round(data["lidl_sum"], 2),
-                "billa": round(data["billa_sum"], 2),
-                "others": round(
-                    data["total_amount"]
-                    - data["kaufland_sum"]
-                    - data["lidl_sum"]
-                    - data["billa_sum"],
-                    2,
-                ),
-                "transactions": data["transactions"],
-            }
-        )
-
-    return Response({"data": response}, status=status.HTTP_200_OK)
-
-
 def _transaction_currency_code(txn):
     if txn.transaction_type == "income" and hasattr(txn, "income_detail"):
         return txn.income_detail.to_cash_balance.currency.code
@@ -804,6 +717,12 @@ def _cash_impact_amount(txn):
     return Decimal("0")
 
 
+def _holding_value(holding):
+    latest_price = holding.security.prices.first()
+    price = latest_price.price if latest_price else holding.average_cost
+    return _to_decimal(holding.quantity) * _to_decimal(price)
+
+
 @api_view(["GET"])
 @authentication_classes([FlexibleTokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -820,9 +739,22 @@ def get_wealth_stats(request):
         for balance in balances
     )
 
+    holdings = (
+        Holding.objects.filter(account__user=user)
+        .select_related("security__currency")
+        .prefetch_related("security__prices")
+    )
+    current_total_wealth += sum(
+        float(_holding_value(holding))
+        / rates.get(holding.security.currency.code, 1)
+        for holding in holdings
+    )
+
     transactions = (
         Transaction.objects.filter(
-            user=user, transaction_type__in=("income", "expense")
+            user=user,
+            transaction_type__in=("income", "expense"),
+            date__gte=date(2023, 1, 1),
         )
         .select_related(
             "income_detail__to_cash_balance__currency",
@@ -849,7 +781,7 @@ def get_wealth_stats(request):
             {
                 "date": year_month,
                 "net_difference": round(net, 2),
-                "monthly_wealth": round(rolling_wealth, 2),
+                "monthly_wealth": round(max(rolling_wealth, 0), 2),
             }
         )
         rolling_wealth -= net

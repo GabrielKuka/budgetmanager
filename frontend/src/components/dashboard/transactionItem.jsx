@@ -123,11 +123,14 @@ const TransactionItem = (props) => {
   }
 
   function getCategory(id) {
+    if (id == null) {
+      return "Uncategorized";
+    }
     const result = categories?.filter((c) => c.id === id);
     if (result?.length === 1) {
       return result[0]?.category;
     }
-    return "Not found.";
+    return "Uncategorized";
   }
 
   return (

@@ -22,27 +22,7 @@ async function getWealthStats(currency) {
   }
 }
 
-async function getFoodStats(currency) {
-  const token = JSON.parse(localStorage.getItem("authToken"));
-  const config = {
-    params: {
-      currency: currency,
-    },
-    headers: {
-      Authorization: token,
-    },
-  };
-  const response = await axios.get(`${ENDPOINT}/get_food_stats`, config);
-
-  if (response.status === 200) {
-    return response.data;
-  } else {
-    return "no data";
-  }
-}
-
 const statService = {
-  getFoodStats,
   getWealthStats,
 };
 

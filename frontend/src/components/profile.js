@@ -508,11 +508,14 @@ const ExpenseItem = ({
 }) => {
   const global = useGlobalContext();
   function getExpenseCategory(id) {
+    if (id == null) {
+      return "Uncategorized";
+    }
     const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
       return category[0].category;
     }
-    return "Not found.";
+    return "Uncategorized";
   }
 
   function getAccountCurrency(id) {
@@ -582,11 +585,14 @@ const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
   const global = useGlobalContext();
 
   function getIncomeCategory(id) {
+    if (id == null) {
+      return "Uncategorized";
+    }
     const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
       return category[0].category;
     }
-    return "Not found.";
+    return "Uncategorized";
   }
   function getAccountCurrency(id) {
     const account = global.accounts.filter((a) => a.id === id);

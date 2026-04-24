@@ -1,4 +1,6 @@
 from decimal import Decimal
+from unittest.mock import patch
+from datetime import date
 
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
@@ -6,7 +8,9 @@ from rest_framework.test import APIClient
 from Accounts.models import Account, CashBalance, Currency, Security
 from Transactions.models import Holding, Transaction, TransactionCategory
 from Users.models import User
-from django.test import TestCase
+from django.db import connection
+from django.db.migrations.executor import MigrationExecutor
+from django.test import TestCase, TransactionTestCase
 
 
 class TransactionsApiTests(TestCase):
@@ -280,6 +284,121 @@ class TransactionsApiTests(TestCase):
         self.balance_eur.refresh_from_db()
         self.assertEqual(self.balance_eur.balance, Decimal("1000"))
 
+    @patch(
+        "Transactions.views.convert_currency",
+        return_value={"EUR": 1, "USD": 1, "BGN": 1, "GBP": 1, "ALL": 1},
+    )
+    def test_wealth_stats_exclude_transactions_before_2023(self, _):
+        self.client.credentials(
+            HTTP_AUTHORIZATION=self._auth_header(raw=False)
+        )
+
+        for payload in (
+            {
+                "type": 0,
+                "date": "2022-12-15",
+                "amount": "500",
+                "to_account": self.account_eur.id,
+                "category": self.income_category.id,
+            },
+            {
+                "type": 0,
+                "date": "2023-01-15",
+                "amount": "100",
+                "to_account": self.account_eur.id,
+                "category": self.income_category.id,
+            },
+            {
+                "type": 1,
+                "date": "2023-02-15",
+                "amount": "20",
+                "from_account": self.account_eur.id,
+                "category": self.expense_category.id,
+            },
+        ):
+            response = self.client.post(
+                "/transactions/add",
+                payload,
+                format="json",
+            )
+            self.assertEqual(response.status_code, 201)
+
+        response = self.client.get(
+            "/transactions/get_wealth_stats", {"currency": "EUR"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data["monthly_differences"],
+            [
+                {
+                    "date": "2023-01",
+                    "net_difference": 100.0,
+                    "monthly_wealth": 2100.0,
+                },
+                {
+                    "date": "2023-02",
+                    "net_difference": -20.0,
+                    "monthly_wealth": 2080.0,
+                },
+            ],
+        )
+
+    @patch(
+        "Transactions.views.convert_currency",
+        return_value={"EUR": 1, "USD": 1, "BGN": 1, "GBP": 1, "ALL": 1},
+    )
+    def test_wealth_stats_include_holdings_in_current_total(self, _):
+        self.client.credentials(
+            HTTP_AUTHORIZATION=self._auth_header(raw=False)
+        )
+        security = Security.objects.create(
+            name="Test ETF",
+            ticker="TETF",
+            structure="etf",
+            asset_class="equity",
+            currency=self.eur,
+        )
+        Holding.objects.create(
+            account=self.account_eur,
+            security=security,
+            quantity=Decimal("2"),
+            average_cost=Decimal("100"),
+        )
+
+        response = self.client.post(
+            "/transactions/add",
+            {
+                "type": 0,
+                "date": "2023-01-15",
+                "amount": "100",
+                "to_account": self.account_eur.id,
+                "category": self.income_category.id,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 201)
+
+        response = self.client.get(
+            "/transactions/get_wealth_stats", {"currency": "EUR"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data["monthly_differences"][0]["monthly_wealth"],
+            1800.0,
+        )
+
+    def test_food_stats_endpoint_is_removed(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION=self._auth_header(raw=False)
+        )
+
+        response = self.client.get(
+            "/transactions/get_food_stats", {"currency": "EUR"}
+        )
+
+        self.assertEqual(response.status_code, 404)
+
     def test_validations_wrong_category_cross_user_ambiguous_and_oversell(
         self,
     ):
@@ -363,3 +482,145 @@ class TransactionsApiTests(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 400)
+
+
+class SmokeCategoryMigrationTests(TransactionTestCase):
+    reset_sequences = True
+
+    migrate_from = [("Transactions", "0007_remove_templates_feature_tables")]
+    migrate_to = [("Transactions", "0008_delete_smoke_categories")]
+
+    def setUp(self):
+        super().setUp()
+        self.executor = MigrationExecutor(connection)
+        self.executor.migrate(self.migrate_from)
+        old_apps = self.executor.loader.project_state(self.migrate_from).apps
+
+        user_model = old_apps.get_model("Users", "User")
+        currency_model = old_apps.get_model("Accounts", "Currency")
+        account_model = old_apps.get_model("Accounts", "Account")
+        cash_balance_model = old_apps.get_model("Accounts", "CashBalance")
+        transaction_model = old_apps.get_model("Transactions", "Transaction")
+        transaction_category_model = old_apps.get_model(
+            "Transactions", "TransactionCategory"
+        )
+        income_detail_model = old_apps.get_model(
+            "Transactions", "IncomeDetail"
+        )
+        expense_detail_model = old_apps.get_model(
+            "Transactions", "ExpenseDetail"
+        )
+
+        user = user_model.objects.create(
+            name="Migration User",
+            email="migration@example.com",
+            phone="+19999999999",
+            password="pass1234",
+        )
+        eur = currency_model.objects.create(
+            code="EUR",
+            name="Euro",
+            symbol="EUR",
+            currency_type="fiat",
+        )
+        account = account_model.objects.create(
+            user=user,
+            type=0,
+            name="Migration Account",
+            amount=Decimal("1000"),
+            currency="EUR",
+        )
+        balance = cash_balance_model.objects.create(
+            account=account,
+            currency=eur,
+            balance=Decimal("1000"),
+        )
+
+        smoke_income = transaction_category_model.objects.create(
+            category="Smoke Salary",
+            category_type=0,
+        )
+        smoke_expense = transaction_category_model.objects.create(
+            category="Smoke Food",
+            category_type=1,
+        )
+        transaction_category_model.objects.create(
+            category="Salary",
+            category_type=0,
+        )
+        transaction_category_model.objects.create(
+            category="Food",
+            category_type=1,
+        )
+
+        income_transaction = transaction_model.objects.create(
+            user=user,
+            transaction_type="income",
+            date=date(2026, 4, 18),
+        )
+        expense_transaction = transaction_model.objects.create(
+            user=user,
+            transaction_type="expense",
+            date=date(2026, 4, 18),
+        )
+
+        self.income_detail_id = income_detail_model.objects.create(
+            transaction=income_transaction,
+            to_cash_balance=balance,
+            amount=Decimal("100"),
+            category=smoke_income,
+        ).id
+        self.expense_detail_id = expense_detail_model.objects.create(
+            transaction=expense_transaction,
+            from_cash_balance=balance,
+            amount=Decimal("50"),
+            category=smoke_expense,
+        ).id
+
+        self.executor.migrate(self.migrate_to)
+        self.apps = self.executor.loader.project_state(self.migrate_to).apps
+
+    def test_migration_deletes_smoke_categories_and_nulls_linked_details(self):
+        transaction_category_model = self.apps.get_model(
+            "Transactions", "TransactionCategory"
+        )
+        income_detail_model = self.apps.get_model(
+            "Transactions", "IncomeDetail"
+        )
+        expense_detail_model = self.apps.get_model(
+            "Transactions", "ExpenseDetail"
+        )
+
+        self.assertFalse(
+            transaction_category_model.objects.filter(
+                category="Smoke Salary",
+                category_type=0,
+            ).exists()
+        )
+        self.assertFalse(
+            transaction_category_model.objects.filter(
+                category="Smoke Food",
+                category_type=1,
+            ).exists()
+        )
+        self.assertTrue(
+            transaction_category_model.objects.filter(
+                category="Salary",
+                category_type=0,
+            ).exists()
+        )
+        self.assertTrue(
+            transaction_category_model.objects.filter(
+                category="Food",
+                category_type=1,
+            ).exists()
+        )
+
+        income_detail = income_detail_model.objects.get(
+            pk=self.income_detail_id
+        )
+        expense_detail = expense_detail_model.objects.get(
+            pk=self.expense_detail_id
+        )
+        self.assertIsNone(income_detail.category_id)
+        self.assertIsNone(expense_detail.category_id)

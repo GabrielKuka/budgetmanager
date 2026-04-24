@@ -177,11 +177,11 @@ usd_balance = CashBalance.objects.create(account=account, currency=usd, balance=
 eur_balance = CashBalance.objects.create(account=account, currency=eur, balance=5000)
 
 income_cat, _ = TransactionCategory.objects.get_or_create(
-    category='Smoke Salary',
+    category='Salary',
     category_type=0,
 )
 expense_cat, _ = TransactionCategory.objects.get_or_create(
-    category='Smoke Food',
+    category='Food',
     category_type=1,
 )
 

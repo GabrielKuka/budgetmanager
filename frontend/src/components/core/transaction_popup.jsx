@@ -27,11 +27,22 @@ const TransactionPopup = ({
   }
 
   function getCategory(id) {
+    if (id == null) {
+      return "Uncategorized";
+    }
     const category = categories?.filter((c) => c.id === id);
     if (category?.length === 1) {
       return category[0]?.category;
     }
-    return "Not found.";
+    return "Uncategorized";
+  }
+
+  function getCategoryPhrase(id) {
+    const category = getCategory(id);
+    if (category === "Uncategorized") {
+      return "without category";
+    }
+    return `from ${category.toLowerCase()}`;
   }
 
   function getTitle() {
@@ -41,9 +52,9 @@ const TransactionPopup = ({
         helper.formatNumber(transaction.amount)
       )} ${helper.getCurrency(
         getAccountCurrency(transaction.from_account)
-      )} on ${getCategory(
+      )} ${getCategoryPhrase(
         transaction.category
-      ).toLowerCase()} from ${helper.getAccountName(
+      )} from ${helper.getAccountName(
         global.accounts,
         transaction.from_account
       )} account.`;
@@ -55,9 +66,7 @@ const TransactionPopup = ({
         helper.formatNumber(transaction.amount)
       )} ${helper.getCurrency(
         getAccountCurrency(transaction.to_account)
-      )} from ${getCategory(
-        transaction.category
-      ).toLowerCase()} to ${helper.getAccountName(
+      )} ${getCategoryPhrase(transaction.category)} to ${helper.getAccountName(
         global.accounts,
         transaction.to_account
       )} account.`;

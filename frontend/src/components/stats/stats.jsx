@@ -1,16 +1,12 @@
 import { useState, useEffect } from "react";
 import "./stats.scss";
-import NetworthPieChart from "./networthPieChart";
-import NetworthBasedOnCurrencyChart from "./currencyChart";
 import CurrentExpensesBarChart from "./currentExpensesBarChart";
 import IncomeVsExpenseChart from "./incomeVsExpenseChart";
-import FoodExpensesChart from "./foodExpensesChart";
 import { useGlobalContext } from "../../context/GlobalContext";
 import MonthlyFinancesSankeyChart from "./monthlyFinancesSankeyChart";
 import PercentExpensesPieChart from "./percentExpensesPie";
 import transactionService from "../../services/transactionService/transactionService";
 import WealthOverTime from "./wealthOverTime";
-import WealthByAccounts from "./wealthByAccounts";
 
 const Stats = () => {
   const global = useGlobalContext();
@@ -121,15 +117,6 @@ const Stats = () => {
               />
             </div>
             <div className={"chart-container"}>
-              <FoodExpensesChart
-                height={330}
-                width={1000}
-                expenses={expenses?.filter((e) => e.category === 11)}
-                incomes={incomes}
-                getAccountCurrency={getAccountCurrency}
-              />
-            </div>
-            <div className={"chart-container"}>
               <PercentExpensesPieChart
                 expenses={global.expenses?.filter(
                   (e) =>
@@ -139,30 +126,12 @@ const Stats = () => {
                 categories={global.expenseCategories}
                 getAccountCurrency={getAccountCurrency}
               />
+              <label className="chart_label">
+                Percentage of expenses per category.
+              </label>
             </div>
           </>
         )}
-      {global.accounts?.length > 0 && global.activeAccounts?.length > 0 && (
-        <>
-          <div className={"chart-container"}>
-            <NetworthPieChart accounts={global.accounts} />
-          </div>
-          <div className={"chart-container"}>
-            <NetworthBasedOnCurrencyChart accounts={global.accounts} />
-            <label className="chart_label">
-              Percentage of liquid wealth per currency.
-            </label>
-          </div>
-          <div className={"chart-container"}>
-            <WealthByAccounts
-              accounts={global.activeAccounts.filter((a) => a.amount > 0)}
-            />
-            <label className="chart_label">
-              Percentage of balances per account (cash included).
-            </label>
-          </div>
-        </>
-      )}
     </div>
   );
 };

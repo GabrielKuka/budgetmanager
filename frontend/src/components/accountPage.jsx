@@ -584,21 +584,24 @@ const TransactionItem = ({ account, transaction }) => {
   const category = getCategory(transaction.category);
 
   function getCategory(id) {
+    if (id == null) {
+      return "Uncategorized";
+    }
     const categories =
       transactionType === "income"
         ? global.incomeCategories
         : global.expenseCategories;
 
-    const result = categories.filter((c) => c.id === id);
+    const result = categories?.filter((c) => c.id === id);
     if (result.length === 1) {
       return result[0]?.category;
     }
 
-    return "(Transfer)";
+    return transactionType === "transfer" ? "(Transfer)" : "Uncategorized";
   }
 
   function categoryStyle() {
-    if (category === "(Transfer)") {
+    if (category === "(Transfer)" || category === "Uncategorized") {
       return {
         fontStyle: "italic",
         color: "gray",

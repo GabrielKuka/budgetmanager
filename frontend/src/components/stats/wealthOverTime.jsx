@@ -26,17 +26,19 @@ const WealthOverTime = (props) => {
       const wealthStats = await statService.getWealthStats(
         global.globalCurrency
       );
+      const monthlyDifferences = wealthStats["monthly_differences"].map(
+        (item) => ({
+          ...item,
+          monthly_wealth: Math.max(parseFloat(item.monthly_wealth || 0), 0),
+        })
+      );
       const uniqueYears = [
-        ...new Set(
-          wealthStats["monthly_differences"].map(
-            (item) => item.date.split("-")[0]
-          )
-        ),
+        ...new Set(monthlyDifferences.map((item) => item.date.split("-")[0])),
       ];
       if (years.length === 0) {
         setYears(["All Time", ...uniqueYears]);
       }
-      setData(wealthStats["monthly_differences"]);
+      setData(monthlyDifferences);
     }
     fetchWealthStats();
   }, [global.globalCurrency]);
@@ -128,7 +130,7 @@ const WealthOverTime = (props) => {
 
       <CartesianGrid strokeDasharray="6 6" />
       <XAxis dataKey="date" />
-      <YAxis yAxisId={"left"} orientation="left" />
+      <YAxis yAxisId={"left"} orientation="left" domain={[0, "auto"]} />
       <YAxis yAxisId={"right"} orientation="right" tick={{ fill: "#8884d8" }} />
       <Tooltip content={<AreaChartChartToolTip />} />
       <Legend
