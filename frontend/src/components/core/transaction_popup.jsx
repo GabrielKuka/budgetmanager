@@ -45,14 +45,20 @@ const TransactionPopup = ({
     return `from ${category.toLowerCase()}`;
   }
 
+  function getTransactionCurrency() {
+    return helper.getTransactionCurrency(
+      global.accounts,
+      transaction,
+      getAccountCurrency
+    );
+  }
+
   function getTitle() {
     if (transactionType === "expense") {
       return `Spent ${helper.showOrMask(
         global.privacyMode,
         helper.formatNumber(transaction.amount)
-      )} ${helper.getCurrency(
-        getAccountCurrency(transaction.from_account)
-      )} ${getCategoryPhrase(
+      )} ${helper.getCurrency(getTransactionCurrency())} ${getCategoryPhrase(
         transaction.category
       )} from ${helper.getAccountName(
         global.accounts,
@@ -64,9 +70,9 @@ const TransactionPopup = ({
       return `Earned ${helper.showOrMask(
         global.privacyMode,
         helper.formatNumber(transaction.amount)
-      )} ${helper.getCurrency(
-        getAccountCurrency(transaction.to_account)
-      )} ${getCategoryPhrase(transaction.category)} to ${helper.getAccountName(
+      )} ${helper.getCurrency(getTransactionCurrency())} ${getCategoryPhrase(
+        transaction.category
+      )} to ${helper.getAccountName(
         global.accounts,
         transaction.to_account
       )} account.`;
@@ -77,7 +83,7 @@ const TransactionPopup = ({
         global.privacyMode,
         helper.formatNumber(transaction.amount)
       )} ${helper.getCurrency(
-        getAccountCurrency(transaction.from_account)
+        getTransactionCurrency()
       )} from ${helper.getAccountName(
         global.accounts,
         transaction.from_account
@@ -171,18 +177,29 @@ const TransactionPopup = ({
       const payload = {
         type: t_type,
         amount: transaction.amount,
-        from_account:
-          t_type === 1 || t_type === 2 ? transaction.from_account : null,
-        to_account:
-          t_type === 0 || t_type === 2 ? transaction.to_account : null,
         description: transaction.description,
         category: transaction.category,
-        tags: transaction.tags.map((tag) => ({ name: tag.name })),
+        tags: (transaction.tags || []).map((tag) => ({ name: tag.name })),
         date: new Date().toISOString().slice(0, 10),
       };
 
+      if (t_type === 0) {
+        if (transaction.to_cash_balance) {
+          payload.to_cash_balance = transaction.to_cash_balance;
+        } else {
+          payload.to_account = transaction.to_account;
+        }
+      } else if (t_type === 1) {
+        if (transaction.from_cash_balance) {
+          payload.from_cash_balance = transaction.from_cash_balance;
+        } else {
+          payload.from_account = transaction.from_account;
+        }
+      }
+
       await addTransaction(payload);
       await refreshTransactions();
+      await global.updateAccounts();
 
       closePopup();
     });
@@ -221,9 +238,7 @@ const TransactionPopup = ({
                     global.privacyMode,
                     helper.formatNumber(transaction.amount)
                   )}{" "}
-                  {helper.getCurrency(
-                    getAccountCurrency(transaction.from_account)
-                  )}
+                  {helper.getCurrency(getTransactionCurrency())}
                 </span>
               </div>
               <div>
@@ -271,15 +286,7 @@ const TransactionPopup = ({
                     global.privacyMode,
                     helper.formatNumber(transaction.amount)
                   )}{" "}
-                  {helper.getCurrency(
-                    getAccountCurrency(
-                      transactionType === "income"
-                        ? transaction.to_account
-                        : transactionType === "sell"
-                        ? transaction.to_account
-                        : transaction.from_account
-                    )
-                  )}
+                  {helper.getCurrency(getTransactionCurrency())}
                 </span>
               </div>
               <div>

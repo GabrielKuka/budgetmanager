@@ -85,17 +85,33 @@ const TransactionItem = (props) => {
   function handleRepeatTransaction() {
     showConfirm("Repeat transaction?", async () => {
       const payload = {
-        type: transactionType == "income" ? 0 : 1,
+        type: transactionType === "income" ? 0 : 1,
         amount: props.transaction.amount,
-        account: props.transaction.account,
         description: props.transaction.description,
         category: props.transaction.category,
-        tags: props.transaction.tags.map((tag) => ({ name: tag.name })),
+        tags: (props.transaction.tags || []).map((tag) => ({
+          name: tag.name,
+        })),
         date: new Date().toISOString().slice(0, 10),
       };
 
+      if (transactionType === "income") {
+        if (props.transaction.to_cash_balance) {
+          payload.to_cash_balance = props.transaction.to_cash_balance;
+        } else {
+          payload.to_account = props.transaction.to_account;
+        }
+      } else if (transactionType === "expense") {
+        if (props.transaction.from_cash_balance) {
+          payload.from_cash_balance = props.transaction.from_cash_balance;
+        } else {
+          payload.from_account = props.transaction.from_account;
+        }
+      }
+
       await addTransaction(payload);
       await props.refreshTransactions();
+      await props.refreshAccounts();
     });
   }
 

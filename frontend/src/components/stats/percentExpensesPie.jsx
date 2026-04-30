@@ -27,7 +27,9 @@ const PercentExpensesPieChart = (props) => {
     let totalExpenses = 0;
     for (const e of props.expenses || []) {
       const convertedAmount = await currencyService.convert(
-        props.getAccountCurrency(e[accountField]),
+        props.getTransactionCurrency
+          ? props.getTransactionCurrency(e)
+          : props.getAccountCurrency(e[accountField]),
         global.globalCurrency,
         e.amount
       );
@@ -54,7 +56,9 @@ const PercentExpensesPieChart = (props) => {
         ?.filter((e) => e.category == c.id)
         ?.map(async (e) => {
           return await currencyService.convert(
-            props.getAccountCurrency(e[accountField]),
+            props.getTransactionCurrency
+              ? props.getTransactionCurrency(e)
+              : props.getAccountCurrency(e[accountField]),
             global.globalCurrency,
             e.amount
           );

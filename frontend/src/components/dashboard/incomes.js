@@ -41,6 +41,14 @@ const Incomes = () => {
     return "Not Found";
   }
 
+  function getTransactionCurrency(transaction) {
+    return helper.getTransactionCurrency(
+      global.accounts,
+      transaction,
+      getAccountCurrency
+    );
+  }
+
   return (
     <div className={"incomes-wrapper"}>
       <Sidebar
@@ -51,6 +59,7 @@ const Incomes = () => {
         shownIncomes={shownIncomes}
         dateRange={global.dateRange}
         getAccountCurrency={getAccountCurrency}
+        getTransactionCurrency={getTransactionCurrency}
       />
       {!global.incomes ? (
         <LoadingCard header="Loading Incomes..." />
@@ -69,6 +78,7 @@ const Incomes = () => {
           accounts={accounts}
           dateRange={global.dateRange}
           getAccountCurrency={getAccountCurrency}
+          getTransactionCurrency={getTransactionCurrency}
           refreshIncomes={global.updateIncomes}
           setTransactionPopup={setTransactionPopup}
         />
@@ -100,7 +110,7 @@ const Sidebar = (props) => {
       }
       let promises = props.shownIncomes?.map(async (e) => {
         return await currencyService.convert(
-          props.getAccountCurrency(e.to_account),
+          props.getTransactionCurrency(e),
           global.globalCurrency,
           e.amount
         );
@@ -122,7 +132,7 @@ const Sidebar = (props) => {
           ?.filter((e) => e.category == c.id)
           ?.map(async (e) => {
             return await currencyService.convert(
-              props.getAccountCurrency(e?.to_account),
+              props.getTransactionCurrency(e),
               global.globalCurrency,
               e.amount
             );
@@ -167,6 +177,7 @@ const Sidebar = (props) => {
           expenses={props.shownIncomes}
           categories={props.categories}
           getAccountCurrency={props.getAccountCurrency}
+          getTransactionCurrency={props.getTransactionCurrency}
           accountField="to_account"
           width={330}
           height={250}
@@ -408,7 +419,7 @@ const IncomesList = (props) => {
       date: (item) => new Date(item.date),
       amount: async (item) => {
         const convertedAmount = await currencyService.convert(
-          props.getAccountCurrency(item.to_account),
+          props.getTransactionCurrency(item),
           global.globalCurrency,
           item.amount
         );
@@ -547,7 +558,7 @@ const IncomesList = (props) => {
               refreshTransactions={props.refreshIncomes}
               categories={props.categories}
               currency={helper.getCurrency(
-                props.getAccountCurrency(income.to_account)
+                props.getTransactionCurrency(income)
               )}
               setTransactionPopup={props.setTransactionPopup}
               refreshAccounts={global.updateAccounts}

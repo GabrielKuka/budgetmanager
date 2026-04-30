@@ -69,6 +69,40 @@ export const helper = {
     }
     return null;
   },
+  getTransactionCurrency: (accounts, transaction, fallbackFn) => {
+    if (!transaction) {
+      return "Not Found";
+    }
+
+    let balanceId = null;
+    if (
+      transaction.transaction_type === "income" ||
+      transaction.transaction_type === "sell"
+    ) {
+      balanceId = transaction.to_cash_balance;
+    } else {
+      balanceId = transaction.from_cash_balance;
+    }
+
+    if (balanceId) {
+      for (const account of accounts || []) {
+        const balance = (account.cash_balances || []).find(
+          (item) => item.id === balanceId
+        );
+        if (balance) {
+          return balance.currency?.code || account.currency;
+        }
+      }
+    }
+
+    const accountId =
+      transaction.transaction_type === "income" ||
+      transaction.transaction_type === "sell"
+        ? transaction.to_account
+        : transaction.from_account;
+
+    return fallbackFn ? fallbackFn(accountId) : "Not Found";
+  },
   getCurrency: (currency) => {
     switch (currency) {
       case "EUR":

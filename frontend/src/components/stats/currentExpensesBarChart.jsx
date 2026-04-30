@@ -19,7 +19,9 @@ const CurrentExpensesBarChart = (props) => {
         ?.filter((e) => e.category == c.id)
         ?.map(async (e) => {
           return await currencyService.convert(
-            props.getAccountCurrency(e.from_account),
+            props.getTransactionCurrency
+              ? props.getTransactionCurrency(e)
+              : props.getAccountCurrency(e.from_account),
             global.globalCurrency,
             e.amount
           );
