@@ -12,6 +12,23 @@
     border: 1px solid #dadada;
     box-shadow: 3px 3px 10px #dadada;
     border-radius: 3px;
+    min-height: 320px;
+    min-width: 420px;
+
+    .chart-loading {
+      @include flex(column, center, center);
+      gap: 12px;
+      min-height: 280px;
+      min-width: 380px;
+      color: cadetblue;
+      font-size: 14px;
+      font-weight: bold;
+
+      img {
+        height: 40px;
+        width: 40px;
+      }
+    }
 
     .chart {
       border: none;

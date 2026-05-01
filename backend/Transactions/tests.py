@@ -1,11 +1,11 @@
 from decimal import Decimal
-from unittest.mock import patch
 from datetime import date
 
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from Accounts.models import Account, CashBalance, Currency, Security
+from Currency.models import ExchangeRate
 from Transactions.models import Holding, Transaction, TransactionCategory
 from Users.models import User
 from django.db import connection
@@ -40,6 +40,14 @@ class TransactionsApiTests(TestCase):
             code="USD",
             defaults={"name": "US Dollar", "symbol": "USD"},
         )
+        for quote in ("USD", "EUR"):
+            ExchangeRate.objects.update_or_create(
+                date=date(2026, 5, 1),
+                base_currency="USD",
+                quote_currency=quote,
+                provider=ExchangeRate.PROVIDER_FRANKFURTER,
+                defaults={"rate": Decimal("1")},
+            )
 
         self.account_eur = Account.objects.create(
             user=self.user,
@@ -96,9 +104,7 @@ class TransactionsApiTests(TestCase):
     def test_auth_supports_both_token_header_formats(self):
         url = "/transactions/get_expenses"
 
-        self.client.credentials(
-            HTTP_AUTHORIZATION=self._auth_header(raw=False)
-        )
+        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
@@ -148,9 +154,7 @@ class TransactionsApiTests(TestCase):
             self.assertIn(key, row)
 
     def test_transfer_updates_balances_and_derives_fx_rate(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION=self._auth_header(raw=False)
-        )
+        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
         response = self.client.post(
             "/transactions/add",
             {
@@ -181,9 +185,7 @@ class TransactionsApiTests(TestCase):
             asset_class="equity",
             currency=self.usd,
         )
-        self.client.credentials(
-            HTTP_AUTHORIZATION=self._auth_header(raw=False)
-        )
+        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
 
         buy_response = self.client.post(
             "/transactions/add",
@@ -202,9 +204,7 @@ class TransactionsApiTests(TestCase):
         self.balance_usd.refresh_from_db()
         self.assertEqual(self.balance_usd.balance, Decimal("450"))
 
-        holding = Holding.objects.get(
-            account=self.account_usd, security=security
-        )
+        holding = Holding.objects.get(account=self.account_usd, security=security)
         self.assertEqual(holding.quantity, Decimal("10"))
         self.assertEqual(holding.average_cost, Decimal("5"))
 
@@ -228,9 +228,7 @@ class TransactionsApiTests(TestCase):
         self.assertEqual(self.balance_eur.balance, Decimal("1024"))
 
     def test_buy_by_ticker_auto_creates_security_when_missing(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION=self._auth_header(raw=False)
-        )
+        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
         response = self.client.post(
             "/transactions/add",
             {
@@ -249,15 +247,11 @@ class TransactionsApiTests(TestCase):
         self.assertEqual(security.name, "ORCL")
         self.assertEqual(security.currency_id, self.usd.id)
 
-        holding = Holding.objects.get(
-            account=self.account_usd, security=security
-        )
+        holding = Holding.objects.get(account=self.account_usd, security=security)
         self.assertEqual(holding.quantity, Decimal("2"))
 
     def test_delete_reverses_balance_changes(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION=self._auth_header(raw=False)
-        )
+        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
         add_response = self.client.post(
             "/transactions/add",
             {
@@ -284,14 +278,8 @@ class TransactionsApiTests(TestCase):
         self.balance_eur.refresh_from_db()
         self.assertEqual(self.balance_eur.balance, Decimal("1000"))
 
-    @patch(
-        "Transactions.views.convert_currency",
-        return_value={"EUR": 1, "USD": 1, "BGN": 1, "GBP": 1, "ALL": 1},
-    )
-    def test_wealth_stats_exclude_transactions_before_2023(self, _):
-        self.client.credentials(
-            HTTP_AUTHORIZATION=self._auth_header(raw=False)
-        )
+    def test_wealth_stats_exclude_transactions_before_2023(self):
+        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
 
         for payload in (
             {
@@ -343,14 +331,8 @@ class TransactionsApiTests(TestCase):
             ],
         )
 
-    @patch(
-        "Transactions.views.convert_currency",
-        return_value={"EUR": 1, "USD": 1, "BGN": 1, "GBP": 1, "ALL": 1},
-    )
-    def test_wealth_stats_include_holdings_in_current_total(self, _):
-        self.client.credentials(
-            HTTP_AUTHORIZATION=self._auth_header(raw=False)
-        )
+    def test_wealth_stats_include_holdings_in_current_total(self):
+        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
         security = Security.objects.create(
             name="Test ETF",
             ticker="TETF",
@@ -389,22 +371,16 @@ class TransactionsApiTests(TestCase):
         )
 
     def test_food_stats_endpoint_is_removed(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION=self._auth_header(raw=False)
-        )
+        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
 
-        response = self.client.get(
-            "/transactions/get_food_stats", {"currency": "EUR"}
-        )
+        response = self.client.get("/transactions/get_food_stats", {"currency": "EUR"})
 
         self.assertEqual(response.status_code, 404)
 
     def test_validations_wrong_category_cross_user_ambiguous_and_oversell(
         self,
     ):
-        self.client.credentials(
-            HTTP_AUTHORIZATION=self._auth_header(raw=False)
-        )
+        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=False))
 
         # Wrong category type for income.
         response = self.client.post(
@@ -504,12 +480,8 @@ class SmokeCategoryMigrationTests(TransactionTestCase):
         transaction_category_model = old_apps.get_model(
             "Transactions", "TransactionCategory"
         )
-        income_detail_model = old_apps.get_model(
-            "Transactions", "IncomeDetail"
-        )
-        expense_detail_model = old_apps.get_model(
-            "Transactions", "ExpenseDetail"
-        )
+        income_detail_model = old_apps.get_model("Transactions", "IncomeDetail")
+        expense_detail_model = old_apps.get_model("Transactions", "ExpenseDetail")
 
         user = user_model.objects.create(
             name="Migration User",
@@ -584,12 +556,8 @@ class SmokeCategoryMigrationTests(TransactionTestCase):
         transaction_category_model = self.apps.get_model(
             "Transactions", "TransactionCategory"
         )
-        income_detail_model = self.apps.get_model(
-            "Transactions", "IncomeDetail"
-        )
-        expense_detail_model = self.apps.get_model(
-            "Transactions", "ExpenseDetail"
-        )
+        income_detail_model = self.apps.get_model("Transactions", "IncomeDetail")
+        expense_detail_model = self.apps.get_model("Transactions", "ExpenseDetail")
 
         self.assertFalse(
             transaction_category_model.objects.filter(
@@ -616,11 +584,7 @@ class SmokeCategoryMigrationTests(TransactionTestCase):
             ).exists()
         )
 
-        income_detail = income_detail_model.objects.get(
-            pk=self.income_detail_id
-        )
-        expense_detail = expense_detail_model.objects.get(
-            pk=self.expense_detail_id
-        )
+        income_detail = income_detail_model.objects.get(pk=self.income_detail_id)
+        expense_detail = expense_detail_model.objects.get(pk=self.expense_detail_id)
         self.assertIsNone(income_detail.category_id)
         self.assertIsNone(expense_detail.category_id)

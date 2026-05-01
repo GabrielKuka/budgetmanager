@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import currencyService from "../../services/currencyService";
 import { PieChart, Tooltip, Pie, Cell } from "recharts";
-import { useGlobalContext } from "../../context/GlobalContext";
 import PieChartToolTip from "./pieChartToolTip";
 
 const COLORS = [
@@ -19,32 +17,21 @@ const COLORS = [
 ];
 
 const PercentExpensesPieChart = (props) => {
-  const global = useGlobalContext();
   const [expensesPerCategory, setExpensesPerCategory] = useState(null);
-  const accountField = props.accountField || "from_account";
 
-  async function getTotalExpenses() {
-    let totalExpenses = 0;
-    for (const e of props.expenses || []) {
-      const convertedAmount = await currencyService.convert(
-        props.getTransactionCurrency
-          ? props.getTransactionCurrency(e)
-          : props.getAccountCurrency(e[accountField]),
-        global.globalCurrency,
-        e.amount
-      );
-      totalExpenses += parseFloat(convertedAmount);
-    }
-
-    return totalExpenses;
+  function getTotalExpenses() {
+    return (props.expenses || []).reduce(
+      (sum, e) => sum + parseFloat(e.converted_amount ?? e.amount ?? 0),
+      0
+    );
   }
 
-  async function getExpensesPerCategory() {
+  function getExpensesPerCategory() {
     if (!props.categories) {
       return;
     }
 
-    const totalExpenses = await getTotalExpenses();
+    const totalExpenses = getTotalExpenses();
     if (!totalExpenses) {
       setExpensesPerCategory([]);
       return;
@@ -52,19 +39,12 @@ const PercentExpensesPieChart = (props) => {
 
     const data = [];
     for (const c of props.categories) {
-      let promises = props.expenses
-        ?.filter((e) => e.category == c.id)
-        ?.map(async (e) => {
-          return await currencyService.convert(
-            props.getTransactionCurrency
-              ? props.getTransactionCurrency(e)
-              : props.getAccountCurrency(e[accountField]),
-            global.globalCurrency,
-            e.amount
-          );
-        });
-      const results = await Promise.all(promises);
-      const total = results.reduce((t, curr) => (t += parseFloat(curr)), 0);
+      const total = (props.expenses || [])
+        .filter((e) => e.category == c.id)
+        .reduce(
+          (sum, e) => sum + parseFloat(e.converted_amount ?? e.amount ?? 0),
+          0
+        );
       if (total > 0) {
         data.push({
           name: c.category,
@@ -81,7 +61,7 @@ const PercentExpensesPieChart = (props) => {
 
   useEffect(() => {
     getExpensesPerCategory();
-  }, [props.expenses, props.categories, global.globalCurrency]);
+  }, [props.expenses, props.categories]);
 
   if (!expensesPerCategory?.length) {
     return null;

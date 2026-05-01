@@ -1,70 +1,44 @@
 import { useState, useEffect } from "react";
 import "./stats.scss";
-import CurrentExpensesBarChart from "./currentExpensesBarChart";
 import IncomeVsExpenseChart from "./incomeVsExpenseChart";
 import { useGlobalContext } from "../../context/GlobalContext";
 import MonthlyFinancesSankeyChart from "./monthlyFinancesSankeyChart";
-import PercentExpensesPieChart from "./percentExpensesPie";
-import transactionService from "../../services/transactionService/transactionService";
 import WealthOverTime from "./wealthOverTime";
+import statService from "../../services/transactionService/statService";
+
+const ChartLoading = ({ label = "Loading chart..." }) => (
+  <div className="chart-loading">
+    <img
+      src={process.env.PUBLIC_URL + "/loading_icon.gif"}
+      alt="loading icon"
+    />
+    <span>{label}</span>
+  </div>
+);
 
 const Stats = () => {
   const global = useGlobalContext();
 
-  const dateRange = {
-    from: new Date(new Date().getFullYear() - 3, 0, 1),
-    to: new Date(),
-  };
-
-  const [expenses, setExpenses] = useState([]);
-  const [incomes, setIncomes] = useState([]);
+  const [profileStats, setProfileStats] = useState(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
   useEffect(() => {
-    async function getTransactions() {
-      const data = await transactionService.getTransactions(dateRange);
-      setExpenses(data.expenses);
-      setIncomes(data.incomes);
-    }
+    let ignore = false;
 
-    getTransactions();
-  }, []);
-
-  function getAccountCurrency(id) {
-    const account = global.accounts?.filter((a) => a.id === id);
-    if (account?.length === 1) {
-      return account[0].currency;
-    }
-
-    return "Not Found";
-  }
-
-  function getTransactionCurrency(transaction) {
-    if (!transaction) {
-      return "Not Found";
-    }
-
-    const balanceId =
-      transaction.transaction_type === "income"
-        ? transaction.to_cash_balance
-        : transaction.from_cash_balance;
-
-    if (balanceId) {
-      for (const account of global.accounts || []) {
-        const matched = (account.cash_balances || []).find(
-          (balance) => balance.id === balanceId
-        );
-        if (matched) {
-          return matched.currency?.code || account.currency;
-        }
+    async function getProfileStats() {
+      setIsLoadingStats(true);
+      const data = await statService.getProfileStats(global.globalCurrency);
+      if (!ignore) {
+        setProfileStats(data);
+        setIsLoadingStats(false);
       }
     }
 
-    const fallbackAccountId =
-      transaction.transaction_type === "income"
-        ? transaction.to_account
-        : transaction.from_account;
-    return getAccountCurrency(fallbackAccountId);
-  }
+    getProfileStats();
+    return () => {
+      ignore = true;
+    };
+  }, [global.globalCurrency]);
 
   return (
     <div className={"stats-wrapper"}>
@@ -73,62 +47,27 @@ const Stats = () => {
         global.expenseCategories?.length > 0 && (
           <>
             <div className={"chart-container"}>
-              <MonthlyFinancesSankeyChart
-                getAccountCurrency={getAccountCurrency}
-                incomes={global.incomes}
-                incomeCategories={global.incomeCategories}
-                expenses={global.expenses}
-                expenseCategories={global.expenseCategories}
-                accounts={global.accounts}
-                dateRange={dateRange}
-              />
+              {isLoadingStats ? (
+                <ChartLoading label="Loading monthly finances..." />
+              ) : (
+                <MonthlyFinancesSankeyChart
+                  data={profileStats?.monthly_finances_sankey}
+                />
+              )}
             </div>
-            <div className={"chart-container"}>
-              <CurrentExpensesBarChart
-                stats={true}
-                expenses={global.expenses?.filter(
-                  (e) =>
-                    new Date(e.date) >= dateRange.from &&
-                    new Date(e.date) <= dateRange.to
-                )}
-                categories={global.expenseCategories}
-                getAccountCurrency={getAccountCurrency}
-                height={280}
-                width={420}
-              />
-            </div>
-            <div className={"chart-container"}>
-              <IncomeVsExpenseChart
-                getAccountCurrency={getAccountCurrency}
-                getTransactionCurrency={getTransactionCurrency}
-                height={300}
-                width={480}
-                expenses={expenses}
-                incomes={incomes}
-              />
+            <div className={"chart-container wide-chart-container"}>
+              {isLoadingStats ? (
+                <ChartLoading label="Loading income vs expense..." />
+              ) : (
+                <IncomeVsExpenseChart
+                  height={300}
+                  width={1000}
+                  data={profileStats?.income_vs_expense}
+                />
+              )}
             </div>
             <div className={"chart-container"} id="wealthOverTimeContainer">
-              <WealthOverTime
-                getAccountCurrency={getAccountCurrency}
-                height={600}
-                width={1000}
-                expenses={expenses}
-                incomes={incomes}
-              />
-            </div>
-            <div className={"chart-container"}>
-              <PercentExpensesPieChart
-                expenses={global.expenses?.filter(
-                  (e) =>
-                    new Date(e.date) >= dateRange.from &&
-                    new Date(e.date) <= dateRange.to
-                )}
-                categories={global.expenseCategories}
-                getAccountCurrency={getAccountCurrency}
-              />
-              <label className="chart_label">
-                Percentage of expenses per category.
-              </label>
+              <WealthOverTime height={600} width={1000} />
             </div>
           </>
         )}

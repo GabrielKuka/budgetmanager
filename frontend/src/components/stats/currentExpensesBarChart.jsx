@@ -1,33 +1,23 @@
 import { useState, useEffect } from "react";
-import currencyService from "../../services/currencyService";
 import { Bar, BarChart, Legend, Tooltip, XAxis, YAxis } from "recharts";
-import { useGlobalContext } from "../../context/GlobalContext";
 import BarChartToolTip from "./barChartTooltip";
 
 const CurrentExpensesBarChart = (props) => {
-  const global = useGlobalContext();
   const [yMaxValue, setYMaxValue] = useState({});
   const [expensesPerCategory, setExpensesPerCategory] = useState(null);
 
-  async function getExpensesPerCategory() {
+  function getExpensesPerCategory() {
     if (!props.categories) {
       return;
     }
     const data = [];
     for (const c of props.categories) {
-      let promises = props.expenses
-        ?.filter((e) => e.category == c.id)
-        ?.map(async (e) => {
-          return await currencyService.convert(
-            props.getTransactionCurrency
-              ? props.getTransactionCurrency(e)
-              : props.getAccountCurrency(e.from_account),
-            global.globalCurrency,
-            e.amount
-          );
-        });
-      const results = await Promise.all(promises);
-      const total = results.reduce((t, curr) => (t += parseFloat(curr)), 0);
+      const total = (props.expenses || [])
+        .filter((e) => e.category == c.id)
+        .reduce(
+          (sum, e) => sum + parseFloat(e.converted_amount ?? e.amount ?? 0),
+          0
+        );
       data.push({
         category: c.category,
         amount: parseFloat(total).toFixed(2),
@@ -43,7 +33,7 @@ const CurrentExpensesBarChart = (props) => {
 
   useEffect(() => {
     getExpensesPerCategory();
-  }, [props.expenses, props.categories, global.globalCurrency]);
+  }, [props.expenses, props.categories]);
 
   useEffect(() => {
     if (expensesPerCategory) {

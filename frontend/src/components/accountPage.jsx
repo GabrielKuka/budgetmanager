@@ -6,7 +6,6 @@ import { Navigate } from "react-router-dom";
 import NotFound from "./notfound";
 import { helper } from "./helper";
 import accountService from "../services/transactionService/accountService";
-import currencyService from "../services/currencyService";
 
 const AccountPage = () => {
   const { id } = useParams();
@@ -15,6 +14,7 @@ const AccountPage = () => {
   const [transactions, setTransactions] = useState(false);
   const [accountStats, setAccountStats] = useState(false);
   const [currentMonthStats, setCurrentMonthStats] = useState({});
+  const [accountTotalsData, setAccountTotalsData] = useState(null);
 
   useEffect(() => {
     async function getAccountTransactions() {
@@ -26,7 +26,29 @@ const AccountPage = () => {
     }
 
     getAccountTransactions();
-  }, []);
+  }, [id]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function getAccountTotals() {
+      const totals = await accountService.getAccountTotals(
+        global.globalCurrency,
+        id
+      );
+      if (active) {
+        setAccountTotalsData(totals?.accounts?.[id] || null);
+      }
+    }
+
+    if (account !== "Not Found") {
+      getAccountTotals();
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [account, global.globalCurrency, id]);
 
   if (!global.authToken) {
     return <Navigate push to="/login" />;
@@ -60,6 +82,7 @@ const AccountPage = () => {
         stats={accountStats}
         accountType={accountTypes[account.type]}
         currentMonthStats={currentMonthStats}
+        totals={accountTotalsData}
       />
       <MainContainer
         account={account}
@@ -71,63 +94,21 @@ const AccountPage = () => {
   );
 };
 
-const Sidebar = ({ account, accountType, stats, currentMonthStats }) => {
+const Sidebar = ({ account, accountType, stats, currentMonthStats, totals }) => {
   const global = useGlobalContext();
   const [cashTotalGlobal, setCashTotalGlobal] = useState(0);
   const [holdingsTotalGlobal, setHoldingsTotalGlobal] = useState(0);
   const [grandTotalGlobal, setGrandTotalGlobal] = useState(0);
 
   useEffect(() => {
-    let active = true;
-
-    async function computeTotals() {
-      if (!account) {
-        return;
-      }
-
-      const cashConversions = (account.cash_balances || []).map((balance) => {
-        const fromCurrency = balance.currency?.code || account.currency;
-        return currencyService
-          .convert(
-            fromCurrency,
-            global.globalCurrency,
-            parseFloat(balance.balance || 0)
-          )
-          .then((value) => parseFloat(value || 0));
-      });
-
-      const holdingConversions = (account.holdings || []).map((holding) => {
-        const fromCurrency =
-          holding.security?.currency?.code || account.currency;
-        const costBasis =
-          parseFloat(holding.quantity || 0) *
-          parseFloat(holding.average_cost || 0);
-        return currencyService
-          .convert(fromCurrency, global.globalCurrency, costBasis)
-          .then((value) => parseFloat(value || 0));
-      });
-
-      const [cashRows, holdingRows] = await Promise.all([
-        Promise.all(cashConversions),
-        Promise.all(holdingConversions),
-      ]);
-
-      const cashTotal = cashRows.reduce((acc, value) => acc + value, 0);
-      const holdingsTotal = holdingRows.reduce((acc, value) => acc + value, 0);
-      const total = cashTotal + holdingsTotal;
-
-      if (active) {
-        setCashTotalGlobal(cashTotal);
-        setHoldingsTotalGlobal(holdingsTotal);
-        setGrandTotalGlobal(total);
-      }
+    if (!totals) {
+      return;
     }
 
-    computeTotals();
-    return () => {
-      active = false;
-    };
-  }, [account, global.globalCurrency]);
+    setCashTotalGlobal(parseFloat(totals.cash_total || 0));
+    setHoldingsTotalGlobal(parseFloat(totals.holdings_total || 0));
+    setGrandTotalGlobal(parseFloat(totals.total || 0));
+  }, [totals]);
 
   return (
     <div className={"account-page-wrapper__sidebar"}>

@@ -51,6 +51,26 @@ async function getAllUserAccounts() {
   }
 }
 
+async function getAccountTotals(currency, accountId = null) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    params: {
+      currency,
+      ...(accountId ? { account_id: accountId } : {}),
+    },
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  };
+  const response = await axios.get(`${ENDPOINT}/totals`, config);
+
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    return "no data";
+  }
+}
+
 async function addAccount(payload) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
@@ -128,6 +148,7 @@ const accountService = {
   deleteAccount,
   restoreAccount,
   getAllUserAccounts,
+  getAccountTotals,
   addAccount,
 };
 

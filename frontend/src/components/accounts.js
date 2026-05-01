@@ -7,23 +7,47 @@ import "./accounts.scss";
 import { useToast } from "../context/ToastContext";
 import { useConfirm } from "../context/ConfirmContext";
 import { helper } from "./helper";
-import currencyService from "../services/currencyService";
 import { useGlobalContext } from "../context/GlobalContext";
 import { validationSchemas } from "../validationSchemas";
+import accountService from "../services/transactionService/accountService";
 
 const Accounts = () => {
   const global = useGlobalContext();
 
   const [accounts, setAccounts] = useState(global.activeAccounts);
   const [accountTypeSelected, setAccountTypeSelected] = useState("active");
+  const [accountTotalsData, setAccountTotalsData] = useState(null);
 
   useEffect(() => {
     setAccounts(global.activeAccounts);
   }, [global.activeAccounts]);
 
+  useEffect(() => {
+    let active = true;
+
+    async function fetchAccountTotals() {
+      const totals = await accountService.getAccountTotals(
+        global.globalCurrency
+      );
+      if (active) {
+        setAccountTotalsData(totals);
+      }
+    }
+
+    if (global.accounts != null) {
+      fetchAccountTotals();
+    }
+    return () => {
+      active = false;
+    };
+  }, [global.accounts, global.globalCurrency]);
+
   return (
     <div className={"accounts-wrapper"}>
-      <Sidebar accounts={accounts} refreshAccounts={global.updateAccounts} />
+      <Sidebar
+        totals={accountTotalsData}
+        refreshAccounts={global.updateAccounts}
+      />
       {!accounts?.length ? (
         <NoDataCard
           header={"No accounts found."}
@@ -36,99 +60,28 @@ const Accounts = () => {
           refreshAccounts={global.updateAccounts}
           accountTypeSelected={accountTypeSelected}
           setAccountTypeSelected={setAccountTypeSelected}
+          totals={accountTotalsData}
         />
       )}
     </div>
   );
 };
 
-const Sidebar = ({ accounts, refreshAccounts }) => {
+const Sidebar = ({ totals, refreshAccounts }) => {
   const global = useGlobalContext();
   const [investments, setInvestments] = useState(0);
   const [cash, setCash] = useState(0);
   const [totalAssets, setTotalAssets] = useState(0);
 
-  function resolveHoldingValue(holding) {
-    if (holding.market_value !== null && holding.market_value !== undefined) {
-      return parseFloat(holding.market_value || 0);
-    }
-    if (
-      holding.latest_price?.price !== null &&
-      holding.latest_price?.price !== undefined
-    ) {
-      return (
-        parseFloat(holding.quantity || 0) *
-        parseFloat(holding.latest_price.price || 0)
-      );
-    }
-    return (
-      parseFloat(holding.quantity || 0) * parseFloat(holding.average_cost || 0)
-    );
-  }
-
   useEffect(() => {
-    if (accounts == null) {
+    if (!totals?.summary) {
       return;
     }
-    let active = true;
 
-    async function computeSummary() {
-      const sourceAccounts = accounts || [];
-      const cashConversions = [];
-      const holdingConversions = [];
-
-      sourceAccounts.forEach((account) => {
-        (account.cash_balances || []).forEach((balance) => {
-          const fromCurrency = balance.currency?.code || account.currency;
-          cashConversions.push(
-            currencyService
-              .convert(
-                fromCurrency,
-                global.globalCurrency,
-                parseFloat(balance.balance || 0)
-              )
-              .then((value) => parseFloat(value || 0))
-          );
-        });
-
-        (account.holdings || []).forEach((holding) => {
-          const fromCurrency =
-            holding.security?.currency?.code || account.currency;
-          holdingConversions.push(
-            currencyService
-              .convert(
-                fromCurrency,
-                global.globalCurrency,
-                resolveHoldingValue(holding)
-              )
-              .then((value) => parseFloat(value || 0))
-          );
-        });
-      });
-
-      const [cashResults, holdingResults] = await Promise.all([
-        Promise.all(cashConversions),
-        Promise.all(holdingConversions),
-      ]);
-
-      const cashTotal = cashResults.reduce((acc, curr) => acc + curr, 0);
-      const investmentsTotal = holdingResults.reduce(
-        (acc, curr) => acc + curr,
-        0
-      );
-
-      if (active) {
-        setCash(cashTotal);
-        setInvestments(investmentsTotal);
-        setTotalAssets(cashTotal + investmentsTotal);
-      }
-    }
-
-    computeSummary();
-    return () => {
-      active = false;
-    };
-  }, [accounts, global.globalCurrency]);
+    setCash(parseFloat(totals.summary.cash || 0));
+    setInvestments(parseFloat(totals.summary.investments || 0));
+    setTotalAssets(parseFloat(totals.summary.total_assets || 0));
+  }, [totals]);
 
   return (
     <div className={"accounts-wrapper__sidebar"}>
@@ -338,6 +291,7 @@ const AccountsList = ({
   refreshAccounts,
   accountTypeSelected,
   setAccountTypeSelected,
+  totals,
 }) => {
   const global = useGlobalContext();
   const [sortedBy, setSortedBy] = useState({ amount: "descending" });
@@ -347,77 +301,18 @@ const AccountsList = ({
   const [accountHoldingTotals, setAccountHoldingTotals] = useState({});
 
   useEffect(() => {
-    let active = true;
-
-    async function computeAccountTotals() {
-      const sourceAccounts = global.accounts || [];
-      const convertedTotals = await Promise.all(
-        sourceAccounts.map(async (account) => {
-          let cashTotal = 0;
-          let holdingsTotal = 0;
-
-          for (const balance of account.cash_balances || []) {
-            const balanceCurrency = balance.currency?.code || account.currency;
-            const converted = await currencyService.convert(
-              balanceCurrency,
-              global.globalCurrency,
-              parseFloat(balance.balance || 0)
-            );
-            cashTotal += parseFloat(converted || 0);
-          }
-
-          for (const holding of account.holdings || []) {
-            const holdingCurrency =
-              holding.security?.currency?.code || account.currency;
-            let holdingValue = holding.market_value;
-
-            if (holdingValue === null || holdingValue === undefined) {
-              if (
-                holding.latest_price?.price !== null &&
-                holding.latest_price?.price !== undefined
-              ) {
-                holdingValue =
-                  parseFloat(holding.quantity || 0) *
-                  parseFloat(holding.latest_price.price || 0);
-              } else {
-                holdingValue =
-                  parseFloat(holding.quantity || 0) *
-                  parseFloat(holding.average_cost || 0);
-              }
-            }
-
-            const converted = await currencyService.convert(
-              holdingCurrency,
-              global.globalCurrency,
-              parseFloat(holdingValue || 0)
-            );
-            holdingsTotal += parseFloat(converted || 0);
-          }
-
-          return [account.id, { cashTotal, holdingsTotal }];
-        })
-      );
-
-      if (active) {
-        const totalsByAccount = {};
-        const cashTotalsByAccount = {};
-        const holdingsTotalsByAccount = {};
-        convertedTotals.forEach(([accountId, values]) => {
-          totalsByAccount[accountId] = values.cashTotal + values.holdingsTotal;
-          cashTotalsByAccount[accountId] = values.cashTotal;
-          holdingsTotalsByAccount[accountId] = values.holdingsTotal;
-        });
-        setAccountTotals(totalsByAccount);
-        setAccountCashTotals(cashTotalsByAccount);
-        setAccountHoldingTotals(holdingsTotalsByAccount);
-      }
-    }
-
-    computeAccountTotals();
-    return () => {
-      active = false;
-    };
-  }, [global.accounts, global.globalCurrency]);
+    const totalsByAccount = {};
+    const cashTotalsByAccount = {};
+    const holdingsTotalsByAccount = {};
+    Object.entries(totals?.accounts || {}).forEach(([accountId, values]) => {
+      totalsByAccount[accountId] = values.total;
+      cashTotalsByAccount[accountId] = values.cash_total;
+      holdingsTotalsByAccount[accountId] = values.holdings_total;
+    });
+    setAccountTotals(totalsByAccount);
+    setAccountCashTotals(cashTotalsByAccount);
+    setAccountHoldingTotals(holdingsTotalsByAccount);
+  }, [totals]);
 
   useEffect(() => {
     const { by, order } = getSortConfig();

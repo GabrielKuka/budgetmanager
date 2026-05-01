@@ -3,18 +3,22 @@ import { BASE_URL, BACKEND_PORT } from "../../config";
 
 const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
 
-async function getTransactions(dateRange) {
+async function getTransactions(dateRange, currency) {
   const token = JSON.parse(localStorage.getItem("authToken"));
 
   const config = {
     params: {
       from_date: dateRange.from.toLocaleDateString("en-GB").replace(/\//g, "-"),
       to_date: dateRange.to.toLocaleDateString("en-GB").replace(/\//g, "-"),
+      currency,
     },
     headers: {
       Authorization: token,
     },
   };
+  if (!currency) {
+    delete config.params.currency;
+  }
   const response = await axios.get(`${ENDPOINT}/get_transactions`, config);
 
   if (response.status === 200) {

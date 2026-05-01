@@ -22,8 +22,28 @@ async function getWealthStats(currency) {
   }
 }
 
+async function getProfileStats(currency) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    params: {
+      currency: currency,
+    },
+    headers: {
+      Authorization: token,
+    },
+  };
+
+  const response = await axios.get(`${ENDPOINT}/get_profile_stats`, config);
+  if (response.status === 200) {
+    return response.data;
+  } else {
+    alert("Error fetching profile stats.");
+  }
+}
+
 const statService = {
   getWealthStats,
+  getProfileStats,
 };
 
 export default statService;

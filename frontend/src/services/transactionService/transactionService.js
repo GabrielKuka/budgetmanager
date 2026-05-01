@@ -7,8 +7,8 @@ import { BASE_URL, BACKEND_PORT } from "../../config";
 const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
 
 // Get transaction in a timeframe
-async function getTransactions(dateRange) {
-  return await expenseService.getTransactions(dateRange);
+async function getTransactions(dateRange, currency) {
+  return await expenseService.getTransactions(dateRange, currency);
 }
 
 // Accounts

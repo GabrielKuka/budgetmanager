@@ -129,34 +129,6 @@ const Sidebar = (props) => {
   const navigate = useNavigate();
   const [totalWealth, setTotalWealth] = useState({ wealth: null, change: 0 });
 
-  function resolveTransactionCurrency(transaction) {
-    if (!transaction) {
-      return "Not Found";
-    }
-
-    const balanceId =
-      transaction.transaction_type === "income"
-        ? transaction.to_cash_balance
-        : transaction.from_cash_balance;
-
-    if (balanceId) {
-      for (const account of global.accounts || []) {
-        const matched = (account.cash_balances || []).find(
-          (balance) => balance.id === balanceId
-        );
-        if (matched) {
-          return matched.currency?.code || account.currency;
-        }
-      }
-    }
-
-    return getAccountCurrency(
-      transaction.transaction_type === "income"
-        ? transaction.to_account
-        : transaction.from_account
-    );
-  }
-
   function resolveHoldingValue(holding) {
     if (holding.market_value !== null && holding.market_value !== undefined) {
       return parseFloat(holding.market_value || 0);
@@ -242,25 +214,20 @@ const Sidebar = (props) => {
         to: lastDay,
       };
       // Get expenses and incomes from the previous month
-      const data = await transactionService.getTransactions(dateRange);
+      const data = await transactionService.getTransactions(
+        dateRange,
+        global.globalCurrency
+      );
       const previousMonthExpenses = data.expenses;
       const previousMonthIncomes = data.incomes;
 
       async function getSumOfTransactions(transactions) {
-        let promises = transactions?.map(async (t) => {
-          return await currencyService.convert(
-            resolveTransactionCurrency(t),
-            global.globalCurrency,
-            t.amount
-          );
-        });
-        if (!promises) {
-          return;
-        }
-        const results = await Promise.all(promises);
-        const total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
-
-        return parseFloat(total);
+        return parseFloat(
+          (transactions || []).reduce(
+            (acc, t) => acc + parseFloat(t.converted_amount ?? t.amount ?? 0),
+            0
+          )
+        );
       }
 
       const totalPrevMonthExpenses = await getSumOfTransactions(
@@ -284,7 +251,7 @@ const Sidebar = (props) => {
     }
 
     getPercentageChange();
-  }, [totalWealth.wealth]);
+  }, [totalWealth.wealth, global.globalCurrency]);
 
   function getAccountCurrency(id) {
     const account = global.accounts?.filter((a) => a.id === id);

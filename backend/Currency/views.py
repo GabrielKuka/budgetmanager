@@ -1,33 +1,31 @@
-import requests
+from decimal import Decimal
+
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from Accounts.models import Account
-
-BASE_URL = "https://v6.exchangerate-api.com/v6"
-API_KEY = "c5bb0807f5e382a4275da6eb"
+from Currency.services import MissingExchangeRate, convert_amount
 
 
 @api_view(["GET"])
 def convert(request, base: str, to: str, amount: float) -> Response:
-    amount = float(amount)
-
-    response = requests.get(
-        url=f"{BASE_URL}/{API_KEY}/pair/{base}/{to}/{amount}"
-    )
-
-    if response.status_code >= 400:
+    try:
+        converted = convert_amount(amount, base, to, None)
+    except MissingExchangeRate as exc:
         return Response(
-            {
-                "error": "Failed to convert currencies",
-                "message": response.text,
-            },
-            status=response.status_code,
+            {"error": "Failed to convert currencies", "message": str(exc)},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
-    return Response(response.json())
+    return Response(
+        {
+            "base_code": base.upper(),
+            "target_code": to.upper(),
+            "conversion_result": float(converted),
+        }
+    )
 
 
 @api_view(["GET"])
@@ -44,28 +42,18 @@ def convert_account_currency_on_type(request, currency, type):
 
     filtered_accounts = Account.objects.filter(type=type, user_id=user_id)
 
-    total = 0
+    total = Decimal("0")
 
     for a in filtered_accounts:
-        # If it's the same currency don't make request
-        if currency == a.currency:
-            total += a.amount
-            continue
-
-        response = requests.get(
-            url=f"{BASE_URL}/{API_KEY}/pair/{a.currency}/{currency}/{a.amount}"
-        )
-
-        if response.status_code != 200:
+        try:
+            total += convert_amount(a.amount, a.currency, currency, None)
+        except MissingExchangeRate as exc:
             return Response(
                 {
                     "error": f"Failed to convert currencies for account {a.name} with base currency {a.currency}",
-                    "message": response.text,
+                    "message": str(exc),
                 },
-                status=response.status_code,
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        converted_amount = response.json()["conversion_result"]
-        total += converted_amount
-
-    return Response({"amount": total}, status=status.HTTP_200_OK)
+    return Response({"amount": float(total)}, status=status.HTTP_200_OK)

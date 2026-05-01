@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-import currencyService from "../../services/currencyService";
 import {
   AreaChart,
   CartesianGrid,
@@ -13,105 +11,13 @@ import { useGlobalContext } from "../../context/GlobalContext";
 import { helper } from "../helper";
 
 const IncomeVsExpenseChart = (props) => {
-  const global = useGlobalContext();
-  const [data, setData] = useState(null);
-
-  useEffect(() => {
-    async function arrangeData() {
-      const items = [];
-
-      const today = new Date();
-      const twelveMonthsAgo = new Date();
-      twelveMonthsAgo.setFullYear(today.getFullYear() - 1);
-
-      async function getExpensesYoY() {
-        let expensesByMonth = {};
-        for (const e of props.expenses) {
-          const date = new Date(e.date);
-          if (date > twelveMonthsAgo) {
-            const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1)
-              .toString()
-              .padStart(2, "0")}`;
-
-            if (!expensesByMonth[monthYear]) {
-              expensesByMonth[monthYear] = 0;
-            }
-
-            const expenseCurrency = props.getTransactionCurrency
-              ? props.getTransactionCurrency(e)
-              : props.getAccountCurrency(e.from_account);
-            let amount = await currencyService.convert(
-              expenseCurrency,
-              global.globalCurrency,
-              e.amount
-            );
-            expensesByMonth[monthYear] += Number(amount) || 0;
-          }
-        }
-        return expensesByMonth;
-      }
-
-      async function getIncomesYoY() {
-        let incomesByMonth = {};
-        for (const i of props.incomes) {
-          const date = new Date(i.date);
-
-          if (date > twelveMonthsAgo) {
-            const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1)
-              .toString()
-              .padStart(2, "0")}`;
-            if (!incomesByMonth[monthYear]) {
-              incomesByMonth[monthYear] = 0;
-            }
-
-            const incomeCurrency = props.getTransactionCurrency
-              ? props.getTransactionCurrency(i)
-              : props.getAccountCurrency(i.to_account);
-            const amount = await currencyService.convert(
-              incomeCurrency,
-              global.globalCurrency,
-              i.amount
-            );
-
-            incomesByMonth[monthYear] += Number(amount) || 0;
-          }
-        }
-        return incomesByMonth;
-      }
-
-      const expensesByMonth = await getExpensesYoY();
-      const incomesByMonth = await getIncomesYoY();
-
-      const allMonths = Array.from(
-        new Set([
-          ...Object.keys(expensesByMonth),
-          ...Object.keys(incomesByMonth),
-        ])
-      );
-
-      for (let monthYear of allMonths) {
-        const monthIncome = incomesByMonth[monthYear] || 0;
-        const monthExpense = expensesByMonth[monthYear] || 0;
-        const currentIncome = parseFloat(monthIncome.toFixed(2));
-        const currentExpense = parseFloat(monthExpense.toFixed(2));
-
-        items.push({
-          date: monthYear,
-          income: currentIncome,
-          expense: currentExpense,
-        });
-      }
-      setData(items);
-    }
-
-    arrangeData();
-  }, [props.expenses, props.incomes, global.globalCurrency]);
+  const data = props.data || [];
 
   return (
     <AreaChart
       width={props.width}
       height={props.height}
-      data={data?.sort((a, b) => new Date(a.date) - new Date(b.date))}
+      data={[...data].sort((a, b) => new Date(a.date) - new Date(b.date))}
       margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
     >
       <defs>
