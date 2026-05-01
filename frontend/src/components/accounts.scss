@@ -160,11 +160,7 @@
       padding: 30px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
-
-      div {
-        margin-bottom: 10px;
-      }
+      gap: 14px;
 
       label {
         display: flex;
@@ -187,6 +183,52 @@
         transition: padding-left 0.3s;
         width: fit-content;
         font-weight: bold;
+      }
+
+      .summary-section {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #d9e8ea;
+      }
+
+      .summary-section-title,
+      .summary-sub-row,
+      .summary-total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .summary-section-title {
+        font-weight: bold;
+
+        > span {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+      }
+
+      .summary-sub-row {
+        padding-left: 28px;
+        color: #455a64;
+        font-size: 13px;
+
+        &.is-empty {
+          color: #9aa6ad;
+        }
+      }
+
+      .summary-total-row {
+        font-size: 15px;
+        font-weight: bold;
+
+        b {
+          border-bottom: 2px solid #5f9ea0;
+        }
       }
 
       &:hover {

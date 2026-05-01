@@ -400,3 +400,34 @@ class SecurityPriceIntegrationTests(TestCase):
         account_total = response.data["accounts"][str(self.account.id)]
         self.assertEqual(account_total["holdings_total"], 250.0)
         self.assertEqual(response.data["summary"]["total_assets"], 350.0)
+
+    def test_account_totals_include_cash_and_asset_class_breakdowns(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
+        hard_cash = Account.objects.create(
+            user=self.user,
+            type=2,
+            name="Wallet",
+            currency="EUR",
+        )
+        CashBalance.objects.create(
+            account=hard_cash,
+            currency=self.currency,
+            balance=Decimal("40"),
+        )
+
+        response = self.client.get("/accounts/totals", {"currency": "EUR"})
+
+        self.assertEqual(response.status_code, 200)
+        summary = response.data["summary"]
+        self.assertEqual(summary["cash_breakdown"]["cash_balances"], 100.0)
+        self.assertEqual(summary["cash_breakdown"]["hard_cash"], 40.0)
+        self.assertEqual(
+            summary["investments_by_asset_class"],
+            [
+                {
+                    "asset_class": "equity",
+                    "label": "Equity",
+                    "amount": 250.0,
+                }
+            ],
+        )

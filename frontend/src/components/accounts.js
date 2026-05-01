@@ -73,6 +73,11 @@ const Sidebar = ({ totals, refreshAccounts }) => {
   const [investments, setInvestments] = useState(0);
   const [cash, setCash] = useState(0);
   const [totalAssets, setTotalAssets] = useState(0);
+  const [cashBreakdown, setCashBreakdown] = useState({
+    cash_balances: 0,
+    hard_cash: 0,
+  });
+  const [investmentsByAssetClass, setInvestmentsByAssetClass] = useState([]);
 
   useEffect(() => {
     if (!totals?.summary) {
@@ -82,60 +87,89 @@ const Sidebar = ({ totals, refreshAccounts }) => {
     setCash(parseFloat(totals.summary.cash || 0));
     setInvestments(parseFloat(totals.summary.investments || 0));
     setTotalAssets(parseFloat(totals.summary.total_assets || 0));
+    setCashBreakdown({
+      cash_balances: parseFloat(
+        totals.summary.cash_breakdown?.cash_balances || 0
+      ),
+      hard_cash: parseFloat(totals.summary.cash_breakdown?.hard_cash || 0),
+    });
+    setInvestmentsByAssetClass(totals.summary.investments_by_asset_class || []);
   }, [totals]);
+
+  const SummaryAmount = ({ value, strong = false }) => {
+    const content = (
+      <>
+        {helper.showOrMask(global.privacyMode, helper.formatNumber(value))}{" "}
+        {helper.getCurrency(global.globalCurrency)}
+      </>
+    );
+    return strong ? <b>{content}</b> : <small>{content}</small>;
+  };
 
   return (
     <div className={"accounts-wrapper__sidebar"}>
       <CreateAccount refreshAccounts={refreshAccounts} />
       <div className={"accounts-info"}>
         <div className={"card-label"}>Summary</div>
-        <label>
-          {
-            <img
-              alt="account-type"
-              src={process.env.PUBLIC_URL + "/investment_icon.png"}
-              width="20"
-              height="17"
-              style={{ marginRight: "10px" }}
-            />
-          }
-          <span>Investments: </span>
-          <small>
-            {helper.showOrMask(
-              global.privacyMode,
-              helper.formatNumber(investments)
-            )}{" "}
-            {helper.getCurrency(global.globalCurrency)}
-          </small>
-        </label>
-        <label>
-          {
-            <img
-              alt="account-type"
-              src={process.env.PUBLIC_URL + "/cash_icon.png"}
-              width="20"
-              height="17"
-              style={{ marginRight: "10px" }}
-            />
-          }
-          <span>Cash: </span>
-          <small>
-            {helper.showOrMask(global.privacyMode, helper.formatNumber(cash))}{" "}
-            {helper.getCurrency(global.globalCurrency)}
-          </small>
-        </label>
-        <label>
-          <span>
-            <b>Total:</b>{" "}
-          </span>
-          <b style={{ borderBottom: "2px solid #5F9EA0" }}>
+        <div className="summary-section">
+          <div className="summary-section-title">
+            <span>
+              <img
+                alt="investments"
+                src={process.env.PUBLIC_URL + "/investment_icon.png"}
+                width="20"
+                height="17"
+              />
+              Investments
+            </span>
+            <SummaryAmount value={investments} strong />
+          </div>
+          {investmentsByAssetClass.length > 0 ? (
+            investmentsByAssetClass.map((row) => (
+              <div className="summary-sub-row" key={row.asset_class}>
+                <span>{row.label}</span>
+                <SummaryAmount value={parseFloat(row.amount || 0)} />
+              </div>
+            ))
+          ) : (
+            <div className="summary-sub-row is-empty">
+              <span>No investments</span>
+              <SummaryAmount value={0} />
+            </div>
+          )}
+        </div>
+        <div className="summary-section">
+          <div className="summary-section-title">
+            <span>
+              <img
+                alt="cash"
+                src={process.env.PUBLIC_URL + "/cash_icon.png"}
+                width="20"
+                height="17"
+              />
+              Cash
+            </span>
+            <SummaryAmount value={cash} strong />
+          </div>
+          <div className="summary-sub-row">
+            <span>Cash balances</span>
+            <SummaryAmount value={cashBreakdown.cash_balances} />
+          </div>
+          <div className="summary-sub-row">
+            <span>Hard cash</span>
+            <SummaryAmount value={cashBreakdown.hard_cash} />
+          </div>
+        </div>
+        <div className="summary-total-row">
+          <span>Total</span>
+          <b>
             {helper.showOrMask(
               global.privacyMode,
               helper.formatNumber(totalAssets)
             )}{" "}
             {helper.getCurrency(global.globalCurrency)}
           </b>
-        </label>
+        </div>
       </div>
     </div>
   );

@@ -19,7 +19,7 @@ from rest_framework.response import Response
 from Currency.services import MissingExchangeRate, convert_amount
 from Transactions.models import Transaction
 
-from .models import Account, CashBalance, Currency
+from .models import Account, CashBalance, Currency, Security
 from .serializers import AccountSerializer
 
 
@@ -35,6 +35,10 @@ def _round_2(value):
     return float(
         _to_decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     )
+
+
+def _security_asset_class_label(value):
+    return dict(Security.ASSET_CLASS_CHOICES).get(value, value)
 
 
 def _holding_value(holding):
@@ -67,31 +71,47 @@ def _account_totals_payload(accounts, currency):
     currency = currency.upper()
     by_account = {}
     summary_cash = Decimal("0")
+    summary_cash_balances = Decimal("0")
+    summary_hard_cash = Decimal("0")
     summary_holdings = Decimal("0")
+    summary_holdings_by_asset_class = {}
     conversion_rates = {}
 
     for account in accounts:
         cash_total = Decimal("0")
         holdings_total = Decimal("0")
+        converted_cash_balances = Decimal("0")
 
         for balance in account.cash_balances.all():
-            cash_total += _convert_cached(
+            converted_balance = _convert_cached(
                 balance.balance,
                 balance.currency.code,
                 currency,
                 conversion_rates,
             )
+            cash_total += converted_balance
+            if account.type == 2:
+                summary_hard_cash += converted_balance
+            else:
+                converted_cash_balances += converted_balance
 
         for holding in account.holdings.all():
-            holdings_total += _convert_cached(
+            converted_holding = _convert_cached(
                 _holding_value(holding),
                 holding.security.currency.code,
                 currency,
                 conversion_rates,
             )
+            holdings_total += converted_holding
+            asset_class = holding.security.asset_class
+            summary_holdings_by_asset_class[asset_class] = (
+                summary_holdings_by_asset_class.get(asset_class, Decimal("0"))
+                + converted_holding
+            )
 
         total = cash_total + holdings_total
         summary_cash += cash_total
+        summary_cash_balances += converted_cash_balances
         summary_holdings += holdings_total
         by_account[str(account.id)] = {
             "cash_total": _round_2(cash_total),
@@ -103,7 +123,21 @@ def _account_totals_payload(accounts, currency):
         "currency": currency,
         "summary": {
             "cash": _round_2(summary_cash),
+            "cash_breakdown": {
+                "cash_balances": _round_2(summary_cash_balances),
+                "hard_cash": _round_2(summary_hard_cash),
+            },
             "investments": _round_2(summary_holdings),
+            "investments_by_asset_class": [
+                {
+                    "asset_class": asset_class,
+                    "label": _security_asset_class_label(asset_class),
+                    "amount": _round_2(amount),
+                }
+                for asset_class, amount in sorted(
+                    summary_holdings_by_asset_class.items()
+                )
+            ],
             "total_assets": _round_2(summary_cash + summary_holdings),
         },
         "accounts": by_account,
