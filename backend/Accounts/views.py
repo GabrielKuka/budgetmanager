@@ -32,7 +32,9 @@ def _to_decimal(value):
 
 
 def _round_2(value):
-    return float(_to_decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+    return float(
+        _to_decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    )
 
 
 def _holding_value(holding):
@@ -194,7 +196,10 @@ def account_collection(request):
 
     parsed_cash_balances = None
     if raw_cash_balances is not None:
-        if not isinstance(raw_cash_balances, list) or len(raw_cash_balances) == 0:
+        if (
+            not isinstance(raw_cash_balances, list)
+            or len(raw_cash_balances) == 0
+        ):
             return Response(
                 {"error": "cash_balances must contain at least one item."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -234,7 +239,9 @@ def account_collection(request):
             if isinstance(raw_currency, int) or (
                 isinstance(raw_currency, str) and raw_currency.isdigit()
             ):
-                currency = Currency.objects.filter(pk=int(raw_currency)).first()
+                currency = Currency.objects.filter(
+                    pk=int(raw_currency)
+                ).first()
             else:
                 currency = Currency.objects.filter(
                     code=str(raw_currency).strip().upper()
@@ -247,11 +254,15 @@ def account_collection(request):
                 )
             if currency.id in seen_currency_ids:
                 return Response(
-                    {"error": "Duplicate currencies in cash_balances are not allowed."},
+                    {
+                        "error": "Duplicate currencies in cash_balances are not allowed."
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             seen_currency_ids.add(currency.id)
-            parsed_cash_balances.append({"currency": currency, "amount": amount})
+            parsed_cash_balances.append(
+                {"currency": currency, "amount": amount}
+            )
     else:
         if amount_raw not in (None, "") and not currency_code:
             return Response(
@@ -309,7 +320,9 @@ def account_collection(request):
                 account=account, currency=currency, balance=amount
             )
 
-    return Response(AccountSerializer(account).data, status=status.HTTP_201_CREATED)
+    return Response(
+        AccountSerializer(account).data, status=status.HTTP_201_CREATED
+    )
 
 
 @api_view(["GET"])
@@ -333,7 +346,9 @@ def account_totals(request):
     try:
         payload = _account_totals_payload(accounts, currency)
     except MissingExchangeRate as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     return Response(payload, status=status.HTTP_200_OK)
 
@@ -346,12 +361,16 @@ def account_detail(request, account_id, deleted=None):
 
     if request.method == "DELETE":
         account.delete()
-        return Response({"message": "Account deleted."}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "Account deleted."}, status=status.HTTP_200_OK
+        )
 
     if deleted is not None:
         account.deleted = bool(deleted)
         account.save(update_fields=["deleted"])
-        message = "Account soft deleted." if account.deleted else "Account restored."
+        message = (
+            "Account soft deleted." if account.deleted else "Account restored."
+        )
         return Response(
             {"message": message, "deleted": account.deleted},
             status=status.HTTP_200_OK,
@@ -547,7 +566,9 @@ def account_stats(request, account_id):
         if total_income_cats > 0:
             incomes_by_category.append(
                 {
-                    "category__category": item["income_detail__category__category"]
+                    "category__category": item[
+                        "income_detail__category__category"
+                    ]
                     or "Uncategorized",
                     "total_amount": _round_2(amount),
                     "percentage": _round_2(
@@ -577,7 +598,9 @@ def account_stats(request, account_id):
         if total_expense_cats > 0:
             expenses_by_category.append(
                 {
-                    "category__category": item["expense_detail__category__category"]
+                    "category__category": item[
+                        "expense_detail__category__category"
+                    ]
                     or "Uncategorized",
                     "total_amount": _round_2(amount),
                     "percentage": _round_2(
@@ -622,7 +645,11 @@ def account_stats(request, account_id):
     if balances:
         primary_balance = (
             next(
-                (balance for balance in balances if balance.currency.code == "EUR"),
+                (
+                    balance
+                    for balance in balances
+                    if balance.currency.code == "EUR"
+                ),
                 None,
             )
             or balances[0]
@@ -648,12 +675,15 @@ def account_stats(request, account_id):
             _round_2(primary_balance.balance) if primary_balance else 0.0
         ),
         "net_month_to_date": _round_2(
-            _to_decimal(income_month["total"]) - _to_decimal(expense_month["total"])
+            _to_decimal(income_month["total"])
+            - _to_decimal(expense_month["total"])
         ),
         "net_year_to_date": _round_2(
-            _to_decimal(income_year["total"]) - _to_decimal(expense_year["total"])
+            _to_decimal(income_year["total"])
+            - _to_decimal(expense_year["total"])
         ),
-        "transactions_this_month": income_month["count"] + expense_month["count"],
+        "transactions_this_month": income_month["count"]
+        + expense_month["count"],
         "transactions_this_year": income_year["count"] + expense_year["count"],
         "last_month_p_and_l": _round_2(
             last_month_income_total - last_month_expense_total

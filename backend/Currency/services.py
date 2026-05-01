@@ -50,7 +50,9 @@ def _available_rate_date(target_date, quote_currency):
 def _usd_quote_rate(target_date, quote_currency):
     quote_currency = _normalize_currency(quote_currency)
     target_date = (
-        get_latest_rate_date() if target_date is None else _normalize_date(target_date)
+        get_latest_rate_date()
+        if target_date is None
+        else _normalize_date(target_date)
     )
 
     if quote_currency == USD:

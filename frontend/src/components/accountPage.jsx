@@ -94,7 +94,13 @@ const AccountPage = () => {
   );
 };
 
-const Sidebar = ({ account, accountType, stats, currentMonthStats, totals }) => {
+const Sidebar = ({
+  account,
+  accountType,
+  stats,
+  currentMonthStats,
+  totals,
+}) => {
   const global = useGlobalContext();
   const [cashTotalGlobal, setCashTotalGlobal] = useState(0);
   const [holdingsTotalGlobal, setHoldingsTotalGlobal] = useState(0);

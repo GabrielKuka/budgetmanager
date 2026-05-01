@@ -45,7 +45,9 @@ class Command(BaseCommand):
         if not quotes:
             raise CommandError("At least one quote currency is required.")
 
-        single_date = self._parse_optional_date(options["single_date"], "--date")
+        single_date = self._parse_optional_date(
+            options["single_date"], "--date"
+        )
         start_date = self._parse_optional_date(options["start_date"], "--from")
         end_date = self._parse_optional_date(options["end_date"], "--to")
 
@@ -60,7 +62,9 @@ class Command(BaseCommand):
             raise CommandError("--batch-size must be greater than zero.")
 
         self.stdout.write("Fetching rates from Frankfurter...")
-        payload = self._fetch_rates(base, quotes, single_date, start_date, end_date)
+        payload = self._fetch_rates(
+            base, quotes, single_date, start_date, end_date
+        )
         rows = self._extract_rows(payload, single_date)
         records = self._build_records(base, quotes, rows)
 
@@ -68,7 +72,9 @@ class Command(BaseCommand):
             f"Fetched {len(rows)} rate date(s), preparing {len(records)} row(s)."
         )
         synced = self._upsert_records(records, batch_size)
-        self.stdout.write(self.style.SUCCESS(f"Synced {synced} exchange rates."))
+        self.stdout.write(
+            self.style.SUCCESS(f"Synced {synced} exchange rates.")
+        )
 
     def _build_records(self, base, quotes, rows):
         records = []
@@ -105,7 +111,9 @@ class Command(BaseCommand):
         for start in range(0, total, batch_size):
             batch = records[start : start + batch_size]
             self._upsert_batch(batch)
-            self.stdout.write(f"Wrote {min(start + len(batch), total)}/{total} rows...")
+            self.stdout.write(
+                f"Wrote {min(start + len(batch), total)}/{total} rows..."
+            )
         return total
 
     @transaction.atomic
@@ -146,7 +154,9 @@ class Command(BaseCommand):
                 to_update.append(current)
 
         if to_create:
-            ExchangeRate.objects.bulk_create(to_create, batch_size=len(to_create))
+            ExchangeRate.objects.bulk_create(
+                to_create, batch_size=len(to_create)
+            )
         if to_update:
             ExchangeRate.objects.bulk_update(
                 to_update, ["rate"], batch_size=len(to_update)
@@ -202,7 +212,9 @@ class Command(BaseCommand):
         return {rate_date: rates}
 
     def _is_time_series_rates(self, rates):
-        return bool(rates) and all(isinstance(value, dict) for value in rates.values())
+        return bool(rates) and all(
+            isinstance(value, dict) for value in rates.values()
+        )
 
     def _parse_optional_date(self, value, option_name):
         if not value:
@@ -215,5 +227,7 @@ class Command(BaseCommand):
     def _parse_required_date(self, value):
         parsed = parse_date(str(value))
         if parsed is None:
-            raise CommandError(f"Invalid date in Frankfurter response: {value}")
+            raise CommandError(
+                f"Invalid date in Frankfurter response: {value}"
+            )
         return parsed

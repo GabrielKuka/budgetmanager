@@ -23,10 +23,19 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("date", models.DateField()),
-                ("base_currency", models.CharField(default="USD", max_length=3)),
+                (
+                    "base_currency",
+                    models.CharField(default="USD", max_length=3),
+                ),
                 ("quote_currency", models.CharField(max_length=3)),
-                ("rate", models.DecimalField(decimal_places=10, max_digits=20)),
-                ("provider", models.CharField(default="frankfurter", max_length=50)),
+                (
+                    "rate",
+                    models.DecimalField(decimal_places=10, max_digits=20),
+                ),
+                (
+                    "provider",
+                    models.CharField(default="frankfurter", max_length=50),
+                ),
                 ("fetched_at", models.DateTimeField(auto_now=True)),
             ],
             options={

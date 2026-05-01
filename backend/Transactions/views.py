@@ -117,7 +117,9 @@ def _parse_date_range(request):
     return from_date, to_date
 
 
-def _transaction_queryset(user, transaction_type=None, from_date=None, to_date=None):
+def _transaction_queryset(
+    user, transaction_type=None, from_date=None, to_date=None
+):
     queryset = (
         Transaction.objects.filter(user=user)
         .select_related(
@@ -152,16 +154,24 @@ def _transaction_queryset(user, transaction_type=None, from_date=None, to_date=N
 
 def _group_transactions_by_type(rows):
     return {
-        "incomes": [row for row in rows if row["transaction_type"] == "income"],
-        "expenses": [row for row in rows if row["transaction_type"] == "expense"],
-        "transfers": [row for row in rows if row["transaction_type"] == "transfer"],
+        "incomes": [
+            row for row in rows if row["transaction_type"] == "income"
+        ],
+        "expenses": [
+            row for row in rows if row["transaction_type"] == "expense"
+        ],
+        "transfers": [
+            row for row in rows if row["transaction_type"] == "transfer"
+        ],
         "buys": [row for row in rows if row["transaction_type"] == "buy"],
         "sells": [row for row in rows if row["transaction_type"] == "sell"],
     }
 
 
 def _apply_cash_delta(cash_balance, delta):
-    CashBalance.objects.filter(pk=cash_balance.pk).update(balance=F("balance") + delta)
+    CashBalance.objects.filter(pk=cash_balance.pk).update(
+        balance=F("balance") + delta
+    )
     cash_balance.refresh_from_db(fields=["balance"])
 
 
@@ -212,7 +222,9 @@ def _update_holding_for_sell(holding, quantity):
     old_qty = _to_decimal(holding.quantity)
     new_qty = old_qty - quantity
     if new_qty < 0:
-        raise ValueError(f"Cannot sell {quantity}; holding has only {old_qty}.")
+        raise ValueError(
+            f"Cannot sell {quantity}; holding has only {old_qty}."
+        )
     holding.quantity = new_qty
     holding.save(update_fields=["quantity", "updated_on"])
 
@@ -244,7 +256,9 @@ def _delete_transaction_and_reverse(txn):
             total = detail.total_value
             _apply_cash_delta(detail.cash_balance, total)
             if detail.holding_id:
-                holding = Holding.objects.select_for_update().get(pk=detail.holding_id)
+                holding = Holding.objects.select_for_update().get(
+                    pk=detail.holding_id
+                )
                 _update_holding_for_buy_reversal(
                     holding,
                     detail.quantity,
@@ -256,7 +270,9 @@ def _delete_transaction_and_reverse(txn):
             total = detail.total_value
             _apply_cash_delta(detail.cash_balance, -total)
             if detail.holding_id:
-                holding = Holding.objects.select_for_update().get(pk=detail.holding_id)
+                holding = Holding.objects.select_for_update().get(
+                    pk=detail.holding_id
+                )
                 _update_holding_for_sell_reversal(holding, detail.quantity)
 
         txn.delete()
@@ -375,7 +391,10 @@ def add_transaction(request):
 
                 provided_holding = data.get("resolved_holding")
                 if provided_holding:
-                    if provided_holding.account_id != from_cash_balance.account_id:
+                    if (
+                        provided_holding.account_id
+                        != from_cash_balance.account_id
+                    ):
                         raise ValueError(
                             "Provided holding account does not match source cash balance account."
                         )
@@ -467,7 +486,9 @@ def add_transaction(request):
         )
 
     except ValueError as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 @api_view(["POST"])
@@ -496,7 +517,9 @@ def delete_transaction(request):
         )
 
     _delete_transaction_and_reverse(txn)
-    return Response({"message": "Transaction deleted."}, status=status.HTTP_200_OK)
+    return Response(
+        {"message": "Transaction deleted."}, status=status.HTTP_200_OK
+    )
 
 
 @api_view(["DELETE"])
@@ -529,7 +552,9 @@ def get_transactions(request):
     try:
         from_date, to_date = _parse_date_range(request)
     except ValueError as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     queryset = _transaction_queryset(
         request.user,
@@ -539,10 +564,14 @@ def get_transactions(request):
     )
     transactions = list(queryset)
     rows = TransactionReadSerializer(transactions, many=True).data
-    error = _append_converted_amounts(transactions, rows, request.GET.get("currency"))
+    error = _append_converted_amounts(
+        transactions, rows, request.GET.get("currency")
+    )
     if error:
         return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
-    return Response(_group_transactions_by_type(rows), status=status.HTTP_200_OK)
+    return Response(
+        _group_transactions_by_type(rows), status=status.HTTP_200_OK
+    )
 
 
 @api_view(["GET"])
@@ -552,8 +581,12 @@ def get_expenses(request):
     try:
         from_date, to_date = _parse_date_range(request)
     except ValueError as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-    queryset = _transaction_queryset(request.user, "expense", from_date, to_date)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
+    queryset = _transaction_queryset(
+        request.user, "expense", from_date, to_date
+    )
     return Response(TransactionReadSerializer(queryset, many=True).data)
 
 
@@ -564,8 +597,12 @@ def get_incomes(request):
     try:
         from_date, to_date = _parse_date_range(request)
     except ValueError as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-    queryset = _transaction_queryset(request.user, "income", from_date, to_date)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
+    queryset = _transaction_queryset(
+        request.user, "income", from_date, to_date
+    )
     return Response(TransactionReadSerializer(queryset, many=True).data)
 
 
@@ -576,8 +613,12 @@ def get_transfers(request):
     try:
         from_date, to_date = _parse_date_range(request)
     except ValueError as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-    queryset = _transaction_queryset(request.user, "transfer", from_date, to_date)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
+    queryset = _transaction_queryset(
+        request.user, "transfer", from_date, to_date
+    )
     return Response(TransactionReadSerializer(queryset, many=True).data)
 
 
@@ -587,7 +628,9 @@ def get_transfers(request):
 def get_all_transactions(request):
     queryset = _transaction_queryset(request.user)
     rows = TransactionReadSerializer(queryset, many=True).data
-    return Response(_group_transactions_by_type(rows), status=status.HTTP_200_OK)
+    return Response(
+        _group_transactions_by_type(rows), status=status.HTTP_200_OK
+    )
 
 
 @api_view(["GET"])
@@ -616,13 +659,17 @@ def get_all_transfers(request):
 
 @api_view(["GET"])
 def get_income_categories(request):
-    queryset = TransactionCategory.objects.filter(category_type=0).order_by("category")
+    queryset = TransactionCategory.objects.filter(category_type=0).order_by(
+        "category"
+    )
     return Response(TransactionCategorySerializer(queryset, many=True).data)
 
 
 @api_view(["GET"])
 def get_expense_categories(request):
-    queryset = TransactionCategory.objects.filter(category_type=1).order_by("category")
+    queryset = TransactionCategory.objects.filter(category_type=1).order_by(
+        "category"
+    )
     return Response(TransactionCategorySerializer(queryset, many=True).data)
 
 
@@ -650,7 +697,9 @@ def search(request):
         .distinct()
     )
     rows = TransactionReadSerializer(transactions, many=True).data
-    return Response(_group_transactions_by_type(rows), status=status.HTTP_200_OK)
+    return Response(
+        _group_transactions_by_type(rows), status=status.HTTP_200_OK
+    )
 
 
 def _transaction_currency_code(txn):
@@ -769,7 +818,9 @@ def _usd_quote_rate_cached(rate_cache, target_date, quote_currency):
     return rate_cache[key]
 
 
-def _convert_amount_cached(rate_cache, amount, from_currency, to_currency, target_date):
+def _convert_amount_cached(
+    rate_cache, amount, from_currency, to_currency, target_date
+):
     amount = _to_decimal(amount)
     from_currency = from_currency.upper()
     to_currency = to_currency.upper()
@@ -781,7 +832,9 @@ def _convert_amount_cached(rate_cache, amount, from_currency, to_currency, targe
     if from_currency == BGN and to_currency == EUR:
         return amount / EUR_BGN_RATE
 
-    from_usd_rate = _usd_quote_rate_cached(rate_cache, target_date, from_currency)
+    from_usd_rate = _usd_quote_rate_cached(
+        rate_cache, target_date, from_currency
+    )
     to_usd_rate = _usd_quote_rate_cached(rate_cache, target_date, to_currency)
     return amount / from_usd_rate * to_usd_rate
 
@@ -819,7 +872,9 @@ def _converted_transaction_amounts(transactions, currency):
 
 
 def _build_sankey_payload(current_month_transactions, currency):
-    amounts = _converted_transaction_amounts(current_month_transactions, currency)
+    amounts = _converted_transaction_amounts(
+        current_month_transactions, currency
+    )
     income_categories = defaultdict(Decimal)
     expense_categories = defaultdict(Decimal)
 
@@ -877,7 +932,9 @@ def _build_sankey_payload(current_month_transactions, currency):
 
 def _build_income_vs_expense_payload(transactions, currency):
     amounts = _converted_transaction_amounts(transactions, currency)
-    grouped = defaultdict(lambda: {"income": Decimal("0"), "expense": Decimal("0")})
+    grouped = defaultdict(
+        lambda: {"income": Decimal("0"), "expense": Decimal("0")}
+    )
 
     for txn, amount in zip(transactions, amounts):
         month = txn.date.strftime("%Y-%m")
@@ -921,7 +978,9 @@ def get_profile_stats(request):
     current_month_transactions = list(
         base_queryset.filter(date__gte=current_month_start, date__lte=today)
     )
-    recent_transactions = list(base_queryset.filter(date__gte=twelve_months_ago))
+    recent_transactions = list(
+        base_queryset.filter(date__gte=twelve_months_ago)
+    )
 
     try:
         payload = {
@@ -934,7 +993,9 @@ def get_profile_stats(request):
             ),
         }
     except MissingExchangeRate as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     return Response(payload, status=status.HTTP_200_OK)
 
@@ -948,9 +1009,13 @@ def get_wealth_stats(request):
     try:
         latest_rate_date = get_latest_rate_date()
     except MissingExchangeRate as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
-    balances = CashBalance.objects.filter(account__user=user).select_related("currency")
+    balances = CashBalance.objects.filter(account__user=user).select_related(
+        "currency"
+    )
     try:
         current_total_wealth = sum(
             convert_amount(
@@ -977,7 +1042,9 @@ def get_wealth_stats(request):
             for holding in holdings
         )
     except MissingExchangeRate as exc:
-        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     transactions = (
         Transaction.objects.filter(
@@ -992,7 +1059,9 @@ def get_wealth_stats(request):
         .order_by("-date")
     )
 
-    grouped = defaultdict(lambda: {"incomes": Decimal("0"), "expenses": Decimal("0")})
+    grouped = defaultdict(
+        lambda: {"incomes": Decimal("0"), "expenses": Decimal("0")}
+    )
     for txn in transactions:
         year_month = txn.date.strftime("%Y-%m")
         amount = _cash_impact_amount(txn)
@@ -1000,7 +1069,9 @@ def get_wealth_stats(request):
         try:
             converted = convert_amount(amount, code, currency, txn.date)
         except MissingExchangeRate as exc:
-            return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+            )
         grouped[year_month][f"{txn.transaction_type}s"] += converted
 
     sorted_months = sorted(grouped.keys(), reverse=True)

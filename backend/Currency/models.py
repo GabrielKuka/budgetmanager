@@ -31,4 +31,7 @@ class ExchangeRate(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.date} {self.base_currency}/" f"{self.quote_currency} {self.rate}"
+        return (
+            f"{self.date} {self.base_currency}/"
+            f"{self.quote_currency} {self.rate}"
+        )

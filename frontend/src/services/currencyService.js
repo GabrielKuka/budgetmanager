@@ -8,7 +8,9 @@ async function convert(from, to, amount) {
     return parseFloat(amount);
   }
 
-  const response = await axios.get(`${ENDPOINT}/convert/${from}/${to}/${amount}`);
+  const response = await axios.get(
+    `${ENDPOINT}/convert/${from}/${to}/${amount}`
+  );
   return parseFloat(response.data.conversion_result);
 }
 
