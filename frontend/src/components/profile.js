@@ -71,7 +71,7 @@ const Profile = () => {
   }
 
   function getAccountCurrency(id) {
-    const account = global.accounts.filter((a) => a.id === id);
+    const account = global.accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }
@@ -562,7 +562,7 @@ const IncomeItem = ({ income, accounts, categories, setTransactionPopup }) => {
     return "Uncategorized";
   }
   function getAccountCurrency(id) {
-    const account = global.accounts.filter((a) => a.id === id);
+    const account = global.accounts?.filter((a) => a.id === id);
     if (account?.length === 1) {
       return account[0].currency;
     }

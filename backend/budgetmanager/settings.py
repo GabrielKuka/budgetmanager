@@ -127,3 +127,10 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "Users.User"
+
+SECURITY_PRICE_SYMBOL_MAP = {
+    "ERNX": "ERNX.DE",
+    "SXR8": "SXR8.DE",
+    "CSH2": "CSH2.PA",
+    "XNAS": "XNAS.DE",
+}

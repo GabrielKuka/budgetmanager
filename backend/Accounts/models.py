@@ -173,6 +173,7 @@ class SecurityPrice(models.Model):
     price = models.DecimalField(max_digits=19, decimal_places=8)
     source = models.CharField(max_length=100, default="manual")
     created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ("security", "date", "source")

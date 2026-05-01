@@ -34,8 +34,8 @@ class HoldingInline(admin.TabularInline):
 class SecurityPriceInline(admin.TabularInline):
     model = SecurityPrice
     extra = 0
-    fields = ("date", "price", "source", "created_on")
-    readonly_fields = ("created_on",)
+    fields = ("date", "price", "source", "created_on", "updated_on")
+    readonly_fields = ("created_on", "updated_on")
 
 
 @admin.register(Account)
@@ -90,10 +90,17 @@ class SecurityAdmin(admin.ModelAdmin):
 
 @admin.register(SecurityPrice)
 class SecurityPriceAdmin(admin.ModelAdmin):
-    list_display = ("security", "date", "price", "source", "created_on")
+    list_display = (
+        "security",
+        "date",
+        "price",
+        "source",
+        "updated_on",
+        "created_on",
+    )
     list_filter = ("date", "source", "security__currency")
     search_fields = ("security__ticker", "security__name", "source")
-    readonly_fields = ("created_on",)
+    readonly_fields = ("created_on", "updated_on")
     autocomplete_fields = ("security",)
 
 

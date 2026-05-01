@@ -12,12 +12,21 @@ import { helper } from "../helper";
 
 const IncomeVsExpenseChart = (props) => {
   const data = props.data || [];
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const filteredData = data.filter((item) => {
+    if (item.date !== currentMonth) {
+      return true;
+    }
+    return parseFloat(item.income || 0) - parseFloat(item.expense || 0) >= 0;
+  });
 
   return (
     <AreaChart
       width={props.width}
       height={props.height}
-      data={[...data].sort((a, b) => new Date(a.date) - new Date(b.date))}
+      data={[...filteredData].sort(
+        (a, b) => new Date(a.date) - new Date(b.date)
+      )}
       margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
     >
       <defs>

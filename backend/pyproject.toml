@@ -8,7 +8,9 @@ dependencies = [
     "django-cors-headers==3.11.0",
     "django==4.2.1",
     "djangorestframework==3.14.0",
+    "multitasking==0.0.11",
     "requests==2.31.0",
+    "yfinance==0.2.66",
 ]
 
 [tool.uv]

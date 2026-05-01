@@ -432,6 +432,39 @@
               align-items: center;
             }
 
+            .holding-values {
+              display: grid;
+              grid-template-columns: minmax(82px, 1fr) minmax(82px, 1fr);
+              align-items: center;
+              column-gap: 12px;
+              min-width: 190px;
+              text-align: right;
+              white-space: nowrap;
+            }
+
+            .holding-cost-value {
+              color: #455a64;
+            }
+
+            .holding-market-value {
+              font-weight: bold;
+              color: #1f3f42;
+            }
+
+            .holding-gain {
+              grid-column: 2;
+              font-size: 12px;
+              font-weight: bold;
+
+              &.is-positive {
+                color: #2e7d32;
+              }
+
+              &.is-negative {
+                color: #b3261e;
+              }
+            }
+
             .holding-label {
               display: grid;
               grid-template-columns: 72px minmax(0, 1fr);

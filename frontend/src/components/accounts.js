@@ -10,6 +10,7 @@ import { helper } from "./helper";
 import { useGlobalContext } from "../context/GlobalContext";
 import { validationSchemas } from "../validationSchemas";
 import accountService from "../services/transactionService/accountService";
+import currencyService from "../services/currencyService";
 
 const Accounts = () => {
   const global = useGlobalContext();
@@ -439,6 +440,11 @@ const AccountItem = ({
   const global = useGlobalContext();
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
+  const [holdingTotals, setHoldingTotals] = useState({
+    invested: null,
+    market: null,
+    hasMissingMarketPrices: false,
+  });
   const accountTypes = [
     { source: `${process.env.PUBLIC_URL}/bank_icon.png`, name: "Bank Account" },
     {
@@ -505,9 +511,106 @@ const AccountItem = ({
       ? parseFloat(holding.cost_basis || 0)
       : parseFloat(holding.quantity || 0) *
         parseFloat(holding.average_cost || 0);
+  const getHoldingMarketValue = (holding) =>
+    holding.market_value !== null && holding.market_value !== undefined
+      ? parseFloat(holding.market_value || 0)
+      : holding.latest_price?.price !== null &&
+        holding.latest_price?.price !== undefined
+      ? parseFloat(holding.quantity || 0) *
+        parseFloat(holding.latest_price.price || 0)
+      : null;
+  const getHoldingUnrealizedGain = (holding) => {
+    if (
+      holding.unrealized_gain !== null &&
+      holding.unrealized_gain !== undefined
+    ) {
+      return parseFloat(holding.unrealized_gain || 0);
+    }
+    const marketValue = getHoldingMarketValue(holding);
+    if (marketValue === null) {
+      return null;
+    }
+    return marketValue - getHoldingAmount(holding);
+  };
   const sortedHoldings = [...(account.holdings || [])].sort(
     (a, b) => getHoldingAmount(b) - getHoldingAmount(a)
   );
+
+  useEffect(() => {
+    let active = true;
+
+    async function convertHoldingTotals() {
+      if (!expanded || sortedHoldings.length === 0) {
+        setHoldingTotals({
+          invested: null,
+          market: null,
+          hasMissingMarketPrices: false,
+        });
+        return;
+      }
+
+      try {
+        const convertedRows = await Promise.all(
+          sortedHoldings.map(async (holding) => {
+            const currency = holding.security?.currency?.code;
+            const costBasis = getHoldingAmount(holding);
+            const marketValue = getHoldingMarketValue(holding);
+            const invested = currency
+              ? await currencyService.convert(
+                  currency,
+                  global.globalCurrency,
+                  costBasis
+                )
+              : costBasis;
+            const market =
+              marketValue !== null && currency
+                ? await currencyService.convert(
+                    currency,
+                    global.globalCurrency,
+                    marketValue
+                  )
+                : marketValue;
+
+            return { invested, market };
+          })
+        );
+
+        if (!active) {
+          return;
+        }
+
+        setHoldingTotals({
+          invested: convertedRows.reduce(
+            (sum, row) => sum + parseFloat(row.invested || 0),
+            0
+          ),
+          market: convertedRows.reduce(
+            (sum, row) =>
+              row.market === null ? sum : sum + parseFloat(row.market || 0),
+            0
+          ),
+          hasMissingMarketPrices: convertedRows.some(
+            (row) => row.market === null
+          ),
+        });
+      } catch (error) {
+        console.error("Failed to convert holding totals", error);
+        if (active) {
+          setHoldingTotals({
+            invested: null,
+            market: null,
+            hasMissingMarketPrices: false,
+          });
+        }
+      }
+    }
+
+    convertHoldingTotals();
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded, account.holdings, global.globalCurrency]);
 
   return (
     <div className="account-item-wrapper">
@@ -648,24 +751,78 @@ const AccountItem = ({
                         {holding.security?.ticker || "N/A"}
                       </span>
                     </span>
-                    <span>
-                      {helper.showOrMask(
-                        global.privacyMode,
-                        helper.formatNumber(getHoldingAmount(holding))
-                      )}{" "}
-                      {helper.getCurrency(holding.security?.currency?.code)}
+                    <span className="holding-values">
+                      <span className="holding-cost-value">
+                        {helper.showOrMask(
+                          global.privacyMode,
+                          helper.formatNumber(getHoldingAmount(holding))
+                        )}{" "}
+                        {helper.getCurrency(holding.security?.currency?.code)}
+                      </span>
+                      <span className="holding-market-value">
+                        {getHoldingMarketValue(holding) !== null
+                          ? helper.showOrMask(
+                              global.privacyMode,
+                              helper.formatNumber(
+                                getHoldingMarketValue(holding)
+                              )
+                            )
+                          : "N/A"}{" "}
+                        {getHoldingMarketValue(holding) !== null &&
+                          helper.getCurrency(holding.security?.currency?.code)}
+                      </span>
+                      {getHoldingUnrealizedGain(holding) !== null && (
+                        <span
+                          className={`holding-gain ${
+                            getHoldingUnrealizedGain(holding) >= 0
+                              ? "is-positive"
+                              : "is-negative"
+                          }`}
+                        >
+                          {helper.showOrMask(
+                            global.privacyMode,
+                            `${
+                              getHoldingUnrealizedGain(holding) >= 0 ? "+" : ""
+                            }${helper.formatNumber(
+                              getHoldingUnrealizedGain(holding)
+                            )}`
+                          )}{" "}
+                          {helper.getCurrency(holding.security?.currency?.code)}
+                        </span>
+                      )}
                     </span>
                   </div>
                 ))}
                 <div className="detail-divider"></div>
-                <div className="detail-row detail-total">
+                <div className="detail-row detail-total holding-detail-row">
                   <span className="detail-total-spacer">.</span>
-                  <span>
-                    {helper.showOrMask(
-                      global.privacyMode,
-                      helper.formatNumber(resolvedHoldingsTotal)
-                    )}{" "}
-                    {helper.getCurrency(global.globalCurrency)}
+                  <span className="holding-values">
+                    <span className="holding-cost-value">
+                      {helper.showOrMask(
+                        global.privacyMode,
+                        helper.formatNumber(holdingTotals.invested || 0)
+                      )}{" "}
+                      {helper.getCurrency(global.globalCurrency)}
+                    </span>
+                    <span
+                      className="holding-market-value"
+                      title={
+                        holdingTotals.hasMissingMarketPrices
+                          ? "Some holdings do not have a latest price."
+                          : ""
+                      }
+                    >
+                      {helper.showOrMask(
+                        global.privacyMode,
+                        helper.formatNumber(
+                          holdingTotals.market !== null
+                            ? holdingTotals.market
+                            : resolvedHoldingsTotal
+                        )
+                      )}{" "}
+                      {helper.getCurrency(global.globalCurrency)}
+                      {holdingTotals.hasMissingMarketPrices ? "*" : ""}
+                    </span>
                   </span>
                 </div>
               </>

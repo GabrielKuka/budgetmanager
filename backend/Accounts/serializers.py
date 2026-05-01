@@ -47,8 +47,9 @@ class SecurityPriceSerializer(serializers.ModelSerializer):
             "price",
             "source",
             "created_on",
+            "updated_on",
         )
-        read_only_fields = ("id", "security", "created_on")
+        read_only_fields = ("id", "security", "created_on", "updated_on")
 
 
 class SecuritySerializer(serializers.ModelSerializer):
