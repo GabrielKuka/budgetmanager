@@ -1,298 +1,353 @@
-@import "../mixins";
+.account-page-loading {
+  margin-top: 96px;
+  text-align: center;
+  color: #3b7f8f;
+  font-weight: 700;
+}
 
 .account-page-wrapper {
-  margin-top: 80px;
-  padding-left: 20px;
+  margin-top: 74px;
+  padding: 0 24px 32px;
+  color: #1f2a30;
 
-  &__sidebar {
-    position: fixed;
-    width: 350px;
-    padding: 0px 20px 20px 20px;
-    @include flex(column, center, center);
-    gap: 10px;
-
-    .card-label {
-      background-color: cadetblue;
-      color: white;
-      padding: 5px;
-      text-transform: uppercase;
-      cursor: pointer;
-      border-radius: 2px;
-      transition: padding-left 0.3s;
-      width: fit-content;
-      font-weight: bold;
-    }
-
-    #account_information {
-      border: 1px solid #dadada;
-      box-shadow: 1px 1px 10px #dadada;
-      border-radius: 3px;
-      transition: border-color 0.3s, box-shadow 0.3s;
-
-      width: 270px;
-      padding: 30px;
-      @include flex(column, flex-start, flex-start);
-      gap: 10px;
-
-      &:hover {
-        border-color: cadetblue;
-        box-shadow: 1px 1px 5px cadetblue;
-        .card-label {
-          padding-left: 15px;
-        }
-      }
-
-      .grid-container {
-        width: 100%;
-
-        .grid-row {
-          display: grid;
-          grid-template-columns: 1.1fr 2fr;
-          margin-top: 10px;
-          border-bottom: 1px solid #dadada;
-          align-items: center;
-          min-height: 30px;
-          padding-bottom: 2px;
-
-          span {
-            text-align: right;
-          }
-          #account-name {
-            font-weight: bold;
-            display: inline-flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 6px;
-            width: 100%;
-
-            .account-status-indicator {
-              font-size: 14px;
-              line-height: 1;
-              font-weight: 700;
-            }
-
-            .account-status-indicator.active {
-              color: #2f9e44;
-            }
-
-            .account-status-indicator.inactive {
-              color: #c92a2a;
-            }
-          }
-          .datetime {
-            font-size: 14px;
-          }
-
-          label {
-            color: gray;
-            font-size: 14px;
-          }
-        }
-
-        .grid-row.aggregate-row {
-          label,
-          span {
-            font-weight: 600;
-            color: #2f3b43;
-          }
-        }
-
-        .grid-row.cash-sub-row {
-          margin-top: 4px;
-          min-height: 24px;
-          padding-bottom: 1px;
-
-          label,
-          span {
-            font-size: 13px;
-            color: #62727d;
-          }
-
-          label {
-            padding-left: 10px;
-          }
-        }
-
-        .grid-row.grand-total-row {
-          label,
-          span {
-            font-weight: 700;
-            color: #1d2a31;
-          }
-        }
-      }
-    }
-
-    #summary-container {
-      border: 1px solid #dadada;
-      box-shadow: 1px 1px 10px #dadada;
-      border-radius: 3px;
-      transition: border-color 0.3s, box-shadow 0.3s;
-
-      width: 270px;
-      padding: 30px;
-      @include flex(column, flex-start, flex-start);
-      gap: 10px;
-
-      &:hover {
-        border-color: cadetblue;
-        box-shadow: 1px 1px 5px cadetblue;
-        .card-label {
-          padding-left: 15px;
-        }
-      }
-
-      .grid-container {
-        width: 100%;
-
-        .grid-row {
-          display: grid;
-          grid-template-columns: 1.1fr 2fr;
-          margin-top: 10px;
-          border-bottom: 1px solid #dadada;
-
-          span {
-            text-align: right;
-
-            .num_of_transactions {
-              color: gray;
-              font-size: 13px;
-            }
-          }
-
-          label {
-            color: gray;
-            font-size: 14px;
-          }
-        }
-      }
-    }
+  .positive {
+    color: #2f9e44;
   }
 
-  .main-container {
-    left: 450px;
-    position: absolute;
-    border: 1px solid #dadada;
-    box-shadow: 1px 1px 2px #dadada;
-    border-radius: 3px;
-    padding-bottom: 20px;
-    width: 900px;
-    @include flex(column, flex-start, center);
+  .negative {
+    color: #c92a2a;
+  }
 
-    .empty-account,
-    #loading-div {
-      color: cadetblue;
-      text-align: center;
-      width: 100%;
-      margin-top: 20px;
-      font-size: 18px;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
+  .muted {
+    color: #7a8790;
+  }
 
-    .time-filter-container {
-      @include flex(row, flex-start, center);
-      padding: 20px;
-      padding-left: 25px;
-      gap: 10px;
-      align-self: flex-start;
+  .badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    background: #f1f3f5;
+    color: #6c757d;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+}
 
-      .month-buttons-container {
-        @include flex(row, flex-start, center);
-        gap: 5px;
+.account-hero {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) repeat(4, minmax(130px, 1fr));
+  gap: 12px;
+  align-items: stretch;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #d9e1e5;
 
-        button {
-          color: cadetblue;
-          font-weight: bold;
-          text-transform: uppercase;
-          background-color: white;
-          padding: 7px;
-          border: none;
-          transition: background-color 0.2s ease-out;
+  .account-kind {
+    color: #6c757d;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
 
-          &:hover {
-            background-color: #dadada;
-            border-radius: 3px;
-          }
-        }
-      }
-    }
+  h1 {
+    margin: 4px 0 0;
+    font-size: 28px;
+    line-height: 1.2;
+  }
 
-    .transactions-list {
-      .header {
-        font-weight: bold;
-        text-transform: uppercase;
-        display: grid;
-        grid-template-columns: 1fr 2fr 1fr 1fr;
-        grid-gap: 10px;
-        width: 800px;
-        padding: 20px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid cadetblue;
+  .status {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: #e9f7ef;
+    color: #2f9e44;
+    font-size: 12px;
+    vertical-align: middle;
+  }
 
-        label {
-          cursor: pointer;
-          width: fit-content;
-          height: fit-content;
-        }
+  .status.inactive {
+    background: #fff0f0;
+    color: #c92a2a;
+  }
+}
 
-        label:hover {
-          @include title-decoration($height: 3px, $width: 100%, $bottom: -1px);
-        }
-      }
+.metric {
+  min-height: 70px;
+  padding: 12px;
+  border: 1px solid #d9e1e5;
+  border-radius: 8px;
+  background: #fff;
 
-      .content {
-        height: 500px;
-        overflow-x: hidden;
-        overflow-y: scroll;
-        /* hide scrollbar */
-        &::-webkit-scrollbar {
-          display: none;
-        }
-        -ms-overflow-style: none; /* IE and Edge */
-        scrollbar-width: none; /* Firefox */
-        overflow: -moz-scrollbars-none; /* Firefox */
+  span {
+    display: block;
+    color: #6c757d;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
 
-        .transaction-item {
-          display: grid;
-          grid-template-columns: 1fr 2fr 1fr 1fr;
-          grid-gap: 10px;
-          position: relative;
-          cursor: pointer;
-          width: 800px;
-          padding: 20px;
-          gap: 20px;
-          border-bottom: 1px solid #eeebeb;
-          transition: border-bottom 0.3s, background-color 0.3s, padding 0.3s,
-            font-size 0.3s;
+  strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 20px;
+    line-height: 1.2;
+  }
+}
 
-          .date {
-            color: gray;
-          }
+.account-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 18px;
+}
 
-          .new-transaction {
-            color: white;
-            background-color: cadetblue;
-            width: fit-content;
-            padding: 2px 5px;
-            height: 13px;
-            border-top-right-radius: 5px;
-            border-bottom-left-radius: 5px;
-            font-size: 12px;
-            position: absolute;
-            top: 0;
-            right: 0;
-            transition: padding 0.3s ease;
-          }
+.account-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 
-          &:hover {
-            background-color: #eeebeb;
-            .new-transaction {
-              padding: 2px 10px;
-            }
-          }
-        }
-      }
-    }
+  section {
+    padding: 14px;
+    border: 1px solid #d9e1e5;
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  h2 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #3b7f8f;
+  }
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: 0.9fr 1.3fr;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eef2f4;
+  font-size: 13px;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  span {
+    color: #6c757d;
+  }
+
+  strong {
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+}
+
+.account-workspace {
+  min-width: 0;
+}
+
+.account-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #d9e1e5;
+
+  button {
+    padding: 10px 12px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: #4f5f68;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  button.active {
+    color: #3b7f8f;
+    border-bottom-color: #3b7f8f;
+  }
+}
+
+.tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.split-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.chart-card {
+  min-height: 300px;
+  padding: 14px;
+  border: 1px solid #d9e1e5;
+  border-radius: 8px;
+  background: #fff;
+
+  h2 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: #2f3b43;
+  }
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  color: #7a8790;
+  font-weight: 700;
+}
+
+.data-table {
+  overflow-x: auto;
+  border: 1px solid #d9e1e5;
+  border-radius: 8px;
+  background: #fff;
+
+  table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  th,
+  td {
+    padding: 11px 12px;
+    border-bottom: 1px solid #eef2f4;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    color: #52636d;
+    background: #f8fafb;
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+
+  th button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    text-transform: inherit;
+  }
+
+  tbody tr:hover {
+    background: #f8fafb;
+  }
+}
+
+.table-toolbar,
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  button,
+  select,
+  input {
+    min-height: 36px;
+    padding: 7px 10px;
+    border: 1px solid #cfd8dd;
+    border-radius: 6px;
+    background: #fff;
+    color: #1f2a30;
+  }
+
+  button {
+    cursor: pointer;
+    font-weight: 700;
+  }
+
+  button.active {
+    border-color: #3b7f8f;
+    color: #3b7f8f;
+  }
+
+  input {
+    min-width: 240px;
+  }
+}
+
+.cash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.cash-card {
+  padding: 14px;
+  border: 1px solid #d9e1e5;
+  border-radius: 8px;
+  background: #fff;
+
+  span,
+  small {
+    display: block;
+    color: #6c757d;
+    font-weight: 700;
+  }
+
+  strong {
+    display: block;
+    margin: 8px 0;
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .account-hero {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .account-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .account-sidebar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .account-page-wrapper {
+    padding: 0 12px 24px;
+  }
+
+  .account-hero,
+  .metric-grid,
+  .chart-grid,
+  .split-grid,
+  .account-sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .account-tabs {
+    overflow-x: auto;
   }
 }

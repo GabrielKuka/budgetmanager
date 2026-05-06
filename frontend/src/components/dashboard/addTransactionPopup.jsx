@@ -93,6 +93,22 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
     );
   };
 
+  const getAutoSelectedCashBalanceId = (accountId) => {
+    const balances = getBalancesByAccountId(accountId);
+    if (balances.length === 1) {
+      return String(balances[0].id);
+    }
+
+    const positiveBalances = balances.filter(
+      (balance) => Number(balance.balance || 0) > 0
+    );
+    if (positiveBalances.length === 1) {
+      return String(positiveBalances[0].id);
+    }
+
+    return "";
+  };
+
   const getBalanceLabel = (item) =>
     `${item.currencyCode} (${helper.formatNumber(item.balance || 0, 2)})`;
 
@@ -306,11 +322,19 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
                         name="from_account"
                         className="select_field"
                         id="from_account"
-                        onChange={(e) => {
-                          setFieldValue("from_account", e.target.value);
-                          setFieldValue("from_cash_balance", "");
+                        onChange={async (e) => {
+                          const accountId = e.target.value;
+                          const balanceId =
+                            getAutoSelectedCashBalanceId(accountId);
+                          setFieldValue("from_account", accountId);
                           if (transactionType === "2") {
-                            setCustomRate("");
+                            await handleRate(
+                              "from_cash_balance",
+                              setFieldValue,
+                              balanceId
+                            );
+                          } else {
+                            setFieldValue("from_cash_balance", balanceId);
                           }
                         }}
                       >
@@ -360,11 +384,19 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
                         name="to_account"
                         className="select_field"
                         id="to_account"
-                        onChange={(e) => {
-                          setFieldValue("to_account", e.target.value);
-                          setFieldValue("to_cash_balance", "");
+                        onChange={async (e) => {
+                          const accountId = e.target.value;
+                          const balanceId =
+                            getAutoSelectedCashBalanceId(accountId);
+                          setFieldValue("to_account", accountId);
                           if (transactionType === "2") {
-                            setCustomRate("");
+                            await handleRate(
+                              "to_cash_balance",
+                              setFieldValue,
+                              balanceId
+                            );
+                          } else {
+                            setFieldValue("to_cash_balance", balanceId);
                           }
                         }}
                       >

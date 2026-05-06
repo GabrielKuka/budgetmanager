@@ -15,25 +15,23 @@ import { validationSchemas } from "../../validationSchemas";
 
 const Transfers = () => {
   const global = useGlobalContext();
-  const [accounts, setAccounts] = useState(global.activeAccounts);
+  const accounts = global.activeAccounts || [];
+  const accountsLoaded =
+    Array.isArray(global.accounts) && Array.isArray(global.activeAccounts);
   const [transactionPopup, setTransactionPopup] = useState(false);
 
-  useEffect(() => {
-    setAccounts(global.activeAccounts);
-  }, [global.activeAccounts]);
-
   function getAccountCurrency(id) {
-    const account = global.accounts.filter((a) => a.id === id);
-    if (account?.length === 1) {
-      return account[0].currency;
+    const account = global.accounts?.find((a) => Number(a.id) === Number(id));
+    if (account) {
+      return account.currency;
     }
 
-    return "Not Found";
+    return accountsLoaded ? "Not Found" : null;
   }
 
   return (
     <div className={"transfers-wrapper"}>
-      {!global.transfers ? (
+      {!global.transfers || !accountsLoaded ? (
         <LoadingCard header="Loading Transfers..." />
       ) : global.transfers && !global.transfers?.length ? (
         <NoDataCard

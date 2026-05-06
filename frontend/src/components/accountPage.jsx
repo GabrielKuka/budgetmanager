@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useGlobalContext } from "../context/GlobalContext";
 import "./accountPage.scss";
 import { useParams } from "react-router-dom";
@@ -6,44 +6,74 @@ import { Navigate } from "react-router-dom";
 import NotFound from "./notfound";
 import { helper } from "./helper";
 import accountService from "../services/transactionService/accountService";
+import {
+  Bar,
+  BarChart,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+const TABS = ["Overview", "Holdings", "Cash", "Transactions", "Analytics"];
+const COLORS = ["#3b7f8f", "#6c8f3b", "#9b6a3b", "#7b6fb0", "#a85f6a"];
+const TX_LABELS = {
+  income: "Income",
+  expense: "Expense",
+  transfer: "Transfer",
+  buy: "Buy",
+  sell: "Sell",
+};
 
 const AccountPage = () => {
   const { id } = useParams();
   const global = useGlobalContext();
-  const account = getAccountObject(id);
-  const [transactions, setTransactions] = useState(false);
-  const [accountStats, setAccountStats] = useState(false);
-  const [currentMonthStats, setCurrentMonthStats] = useState({});
-  const [accountTotalsData, setAccountTotalsData] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [accountStats, setAccountStats] = useState(null);
+  const [overview, setOverview] = useState(null);
+  const [activeTab, setActiveTab] = useState("Overview");
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function getAccountTransactions() {
-      const transactions = await accountService.getAccountTransactions(id);
-      setTransactions(transactions);
-
-      const stats = await accountService.getAccountStats(id);
-      setAccountStats(stats);
+  const account = useMemo(() => {
+    if (!Array.isArray(global.accounts)) {
+      return null;
     }
-
-    getAccountTransactions();
-  }, [id]);
+    return (
+      global.accounts.find((item) => Number(item.id) === Number(id)) ||
+      "Not Found"
+    );
+  }, [global.accounts, id]);
 
   useEffect(() => {
     let active = true;
 
-    async function getAccountTotals() {
-      const totals = await accountService.getAccountTotals(
-        global.globalCurrency,
-        id
-      );
+    async function getAccountData() {
+      if (!account || account === "Not Found") {
+        return;
+      }
+      setLoading(true);
+      const [transactionsData, statsData, overviewData] = await Promise.all([
+        accountService.getAccountTransactions(id),
+        accountService.getAccountStats(id),
+        accountService.getAccountOverview(id, global.globalCurrency),
+      ]);
       if (active) {
-        setAccountTotalsData(totals?.accounts?.[id] || null);
+        setTransactions(
+          Array.isArray(transactionsData) ? transactionsData : []
+        );
+        setAccountStats(statsData || null);
+        setOverview(overviewData || null);
+        setLoading(false);
       }
     }
 
-    if (account !== "Not Found") {
-      getAccountTotals();
-    }
+    getAccountData();
 
     return () => {
       active = false;
@@ -54,567 +84,846 @@ const AccountPage = () => {
     return <Navigate push to="/login" />;
   }
 
-  const invalidAccount = account === "Not Found";
-  if (invalidAccount) {
+  if (!Array.isArray(global.accounts) || loading) {
+    return <div className="account-page-loading">Loading account...</div>;
+  }
+
+  if (account === "Not Found" || global.user?.data?.id !== account?.user) {
     return <NotFound />;
   }
-
-  const notMyAccount = global.user?.data?.id !== account?.user;
-  if (notMyAccount) {
-    return <NotFound />;
-  }
-
-  function getAccountObject(id) {
-    const account = global.accounts?.filter((a) => a.id === parseInt(id));
-    if (account?.length === 1) {
-      return account[0];
-    }
-
-    return "Not Found";
-  }
-
-  const accountTypes = ["Bank Account", "Investment Account", "Hard Cash"];
 
   return (
-    <div className={"account-page-wrapper"}>
-      <Sidebar
+    <div className="account-page-wrapper">
+      <AccountHeader
         account={account}
+        overview={overview}
         stats={accountStats}
-        accountType={accountTypes[account.type]}
-        currentMonthStats={currentMonthStats}
-        totals={accountTotalsData}
+        currency={global.globalCurrency}
       />
-      <MainContainer
-        account={account}
-        accountType={accountTypes[account.type]}
-        transactions={transactions}
-        setCurrentMonthStats={setCurrentMonthStats}
-      />
-    </div>
-  );
-};
-
-const Sidebar = ({
-  account,
-  accountType,
-  stats,
-  currentMonthStats,
-  totals,
-}) => {
-  const global = useGlobalContext();
-  const [cashTotalGlobal, setCashTotalGlobal] = useState(0);
-  const [holdingsTotalGlobal, setHoldingsTotalGlobal] = useState(0);
-  const [grandTotalGlobal, setGrandTotalGlobal] = useState(0);
-
-  useEffect(() => {
-    if (!totals) {
-      return;
-    }
-
-    setCashTotalGlobal(parseFloat(totals.cash_total || 0));
-    setHoldingsTotalGlobal(parseFloat(totals.holdings_total || 0));
-    setGrandTotalGlobal(parseFloat(totals.total || 0));
-  }, [totals]);
-
-  return (
-    <div className={"account-page-wrapper__sidebar"}>
-      <div id="account_information">
-        <div className={"card-label"}>{accountType}</div>
-        <div className="grid-container">
-          <div className="grid-row">
-            <label>Name: </label>
-            <span id="account-name">
-              {account.name}
-              <span
-                className={`account-status-indicator ${
-                  account.deleted ? "inactive" : "active"
-                }`}
-                aria-label={
-                  account.deleted ? "Inactive account" : "Active account"
-                }
-                title={account.deleted ? "Inactive" : "Active"}
+      <div className="account-layout">
+        <AccountSidebar
+          account={account}
+          overview={overview}
+          stats={accountStats}
+          currency={global.globalCurrency}
+        />
+        <main className="account-workspace">
+          <div className="account-tabs">
+            {TABS.map((tab) => (
+              <button
+                key={tab}
+                className={activeTab === tab ? "active" : ""}
+                onClick={() => setActiveTab(tab)}
+                type="button"
               >
-                {account.deleted ? "✕" : "✓"}
-              </span>
-            </span>
+                {tab}
+              </button>
+            ))}
           </div>
-          <div className="grid-row aggregate-row">
-            <label>Total Cash: </label>
-            <span>
-              {helper.showOrMask(
-                global.privacyMode,
-                helper.formatNumber(cashTotalGlobal)
-              )}{" "}
-              {helper.getCurrency(global.globalCurrency)}
-            </span>
-          </div>
-          {(account.cash_balances || []).map((balance) => {
-            const code = balance.currency?.code || account.currency;
-            const symbol = balance.currency?.symbol || helper.getCurrency(code);
-            return (
-              <div
-                className="grid-row cash-sub-row"
-                key={`cash-balance-${balance.id}`}
-              >
-                <label>{code}:</label>
-                <span>
-                  {helper.showOrMask(
-                    global.privacyMode,
-                    helper.formatNumber(balance.balance)
-                  )}{" "}
-                  {symbol}
-                </span>
-              </div>
-            );
-          })}
-          <div className="grid-row aggregate-row">
-            <label>Holdings: </label>
-            <span>
-              {helper.showOrMask(
-                global.privacyMode,
-                helper.formatNumber(holdingsTotalGlobal)
-              )}{" "}
-              {helper.getCurrency(global.globalCurrency)}
-            </span>
-          </div>
-          <div className="grid-row grand-total-row">
-            <label>Total: </label>
-            <span>
-              {helper.showOrMask(
-                global.privacyMode,
-                helper.formatNumber(grandTotalGlobal)
-              )}{" "}
-              {helper.getCurrency(global.globalCurrency)}
-            </span>
-          </div>
-          <div className={"grid-row"}>
-            <label>Month to Date:</label>
-            {stats != false && (
-              <span
-                style={{
-                  color: stats["net_month_to_date"] >= 0 ? "green" : "red",
-                }}
-              >
-                {stats["net_month_to_date"] >= 0 ? "+" : ""}{" "}
-                {helper.showOrMask(
-                  global.privacyMode,
-                  helper.formatNumber(stats["net_month_to_date"])
-                )}{" "}
-                {helper.getCurrency(account.currency)}
-              </span>
-            )}
-          </div>
-          <div className={"grid-row"}>
-            <label>Year to Date:</label>
-            {stats != false && (
-              <span
-                style={{
-                  color: stats["net_year_to_date"] >= 0 ? "green" : "red",
-                }}
-              >
-                {stats["net_year_to_date"] >= 0 ? "+" : ""}{" "}
-                {helper.showOrMask(
-                  global.privacyMode,
-                  helper.formatNumber(stats["net_year_to_date"])
-                )}{" "}
-                {helper.getCurrency(account.currency)}
-              </span>
-            )}
-          </div>
-          <div className="grid-row">
-            <label>Created On: </label>
-            <span className="datetime">
-              {helper.formatDatetime(account.created_on)}
-            </span>
-          </div>
-          <div className="grid-row">
-            <label>Last activity: </label>
-            <span className="datetime">
-              {helper.formatDatetime(account.updated_on)}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div id={"summary-container"}>
-        <div className={"card-label"}>Short Summary</div>
-        <div className={"grid-container"}>
-          <div className={"grid-row"}>
-            <label>Expenses:</label>
-            <span>
-              {helper.showOrMask(
-                global.privacyMode,
-                helper.formatNumber(
-                  currentMonthStats?.transactionsSumByType?.expense || 0
-                )
-              )}{" "}
-              {helper.getCurrency(account.currency)}{" "}
-              {currentMonthStats?.transactionsSumByType?.expense !== 0 && (
-                <span className={"num_of_transactions"}>
-                  ({currentMonthStats?.transactionsCountByType?.expense})
-                </span>
-              )}
-            </span>
-          </div>
-          <div className={"grid-row"}>
-            <label>Incomes:</label>
-            <span>
-              {helper.showOrMask(
-                global.privacyMode,
-                helper.formatNumber(
-                  currentMonthStats?.transactionsSumByType?.income || 0
-                )
-              )}{" "}
-              {helper.getCurrency(account.currency)}{" "}
-              {currentMonthStats?.transactionsSumByType?.income !== 0 && (
-                <span className={"num_of_transactions"}>
-                  ({currentMonthStats?.transactionsCountByType?.income})
-                </span>
-              )}
-            </span>
-          </div>
-          <div className={"grid-row"}>
-            <label>Transfers:</label>
-            <span>
-              {helper.showOrMask(
-                global.privacyMode,
-                helper.formatNumber(
-                  currentMonthStats?.transactionsSumByType?.transfer || 0
-                )
-              )}{" "}
-              {helper.getCurrency(account.currency)}{" "}
-              {currentMonthStats?.transactionsSumByType?.transfer !== 0 && (
-                <span className={"num_of_transactions"}>
-                  ({currentMonthStats?.transactionsCountByType?.transfer})
-                </span>
-              )}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const MainContainer = ({
-  account,
-  accountType,
-  transactions,
-  setCurrentMonthStats,
-}) => {
-  const [sortedBy, setSortedBy] = useState({});
-  const [shownTransactions, setShownTransactions] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedPeriod, setSelectedPeriod] = useState({
-    year: new Date().getFullYear(),
-    month: new Date().toLocaleString("en-US", { month: "short" }),
-  });
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-  const [years, setYears] = useState([]);
-  const [groupedTransactions, setGroupedTransactions] = useState({});
-
-  useEffect(() => {
-    if (transactions) {
-      setIsLoading(false);
-      setGroupedTransactions(groupTransactionsByMonthYear(transactions));
-    }
-  }, [transactions]);
-
-  useEffect(() => {
-    if (groupedTransactions) {
-      const results = new Set(
-        Object.keys(groupedTransactions).map((key) => key.split("-")[0])
-      );
-      setYears(Array.from(results));
-      filterTransactions(groupedTransactions);
-    }
-  }, [groupedTransactions]);
-
-  useEffect(() => {
-    let stats = {};
-    if (shownTransactions) {
-      const transactionsCountByType = shownTransactions.reduce(
-        (counts, transaction) => {
-          const type = transaction.transaction_type;
-          counts[type] = (counts[type] || 0) + 1;
-          return counts;
-        },
-        { income: 0, expense: 0, transfer: 0 }
-      );
-
-      const transactionsSumByType = shownTransactions.reduce(
-        (counts, transaction) => {
-          const type = transaction.transaction_type;
-          counts[type] = (counts[type] || 0) + transaction.amount;
-          return counts;
-        },
-        { income: 0, expense: 0, transfer: 0 }
-      );
-
-      stats["transactionsCountByType"] = transactionsCountByType;
-      stats["transactionsSumByType"] = transactionsSumByType;
-    }
-    setCurrentMonthStats(stats);
-  }, [shownTransactions]);
-
-  useEffect(() => {
-    if (groupedTransactions) {
-      filterTransactions(groupedTransactions);
-    }
-  }, [selectedPeriod]);
-
-  function sortShownTransactions(by = "") {
-    if (!by) {
-      return;
-    }
-
-    let sorted = null;
-
-    if (by == "date") {
-      if ("date" in sortedBy) {
-        if (sortedBy["date"] == "ascending") {
-          sorted = [...shownTransactions].sort(
-            (a, b) => new Date(b.date) - new Date(a.date)
-          );
-          setSortedBy({ date: "descending" });
-        } else {
-          sorted = [...shownTransactions].sort(
-            (a, b) => new Date(a.date) - new Date(b.date)
-          );
-          setSortedBy({ date: "ascending" });
-        }
-      } else {
-        sorted = [...shownTransactions].sort(
-          (a, b) => new Date(b.date) - new Date(a.date)
-        );
-        setSortedBy({ date: "descending" });
-      }
-      setShownTransactions(sorted);
-      return;
-    }
-
-    if (`${by}` in sortedBy) {
-      if (sortedBy[`${by}`] == "ascending") {
-        sorted = [...shownTransactions].sort((a, b) => b[`${by}`] - a[`${by}`]);
-        setSortedBy({ [by]: "descending" });
-      } else {
-        sorted = [...shownTransactions].sort((a, b) => a[`${by}`] - b[`${by}`]);
-        setSortedBy({ [by]: "ascending" });
-      }
-    } else {
-      sorted = [...shownTransactions].sort((a, b) => b[`${by}`] - a[`${by}`]);
-      setSortedBy({ [by]: "descending" });
-    }
-    setShownTransactions(sorted);
-  }
-
-  function groupTransactionsByMonthYear(transactions) {
-    return transactions?.reduce((grouped, transaction) => {
-      // Extract the month-year from the transaction date
-      const date = new Date(transaction.date);
-
-      const monthYear = `${date.getFullYear()}-${date.toLocaleString("en-US", {
-        month: "short",
-      })}`;
-
-      // Initialize the group if it doesn't exist
-      if (!grouped[monthYear]) {
-        grouped[monthYear] = [];
-      }
-
-      // Add the transaction to the appropriate group
-      grouped[monthYear].push(transaction);
-
-      return grouped;
-    }, {});
-  }
-
-  function filterTransactions() {
-    if (groupedTransactions) {
-      setShownTransactions(
-        groupedTransactions[
-          `${selectedPeriod["year"]}-${selectedPeriod["month"]}`
-        ]
-      );
-    }
-  }
-
-  function selectedMonthButtonStyle(m) {
-    if (selectedPeriod["month"] === m) {
-      return {
-        borderBottom: "2px solid cadetblue",
-      };
-    }
-
-    return {};
-  }
-
-  return (
-    <div className={"main-container"}>
-      {isLoading && <div id="loading-div">Loading...</div>}
-      {!isLoading && (
-        <>
-          <div className={"time-filter-container"}>
-            <select
-              className={"years"}
-              value={selectedPeriod["year"]}
-              onChange={(e) =>
-                setSelectedPeriod((prev) => ({
-                  ...prev,
-                  year: e.target.value,
-                }))
-              }
-            >
-              {years && years?.map((y) => <option key={y}>{y}</option>)}
-            </select>
-            <div className="month-buttons-container">
-              {months.map((m) => (
-                <button
-                  style={selectedMonthButtonStyle(m)}
-                  key={m}
-                  onClick={() =>
-                    setSelectedPeriod((prev) => ({ ...prev, month: m }))
-                  }
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
-          {shownTransactions?.length > 0 ? (
-            <>
-              <div className="transactions-list">
-                <div className="header">
-                  <div>
-                    <label onClick={() => sortShownTransactions("date")}>
-                      Date:
-                    </label>
-                    {sortedBy["date"] == "ascending" && (
-                      <img
-                        src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
-                        width="12"
-                        height="12"
-                      />
-                    )}
-                    {sortedBy["date"] == "descending" && (
-                      <img
-                        src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
-                        width="12"
-                        height="12"
-                      />
-                    )}
-                  </div>
-
-                  <label>Description</label>
-
-                  <div>
-                    <label onClick={() => sortShownTransactions("amount")}>
-                      Amount
-                    </label>
-                    {sortedBy["amount"] == "ascending" && (
-                      <img
-                        src={`${process.env.PUBLIC_URL}/up_arrow_icon.png`}
-                        width="12"
-                        height="12"
-                      />
-                    )}
-                    {sortedBy["amount"] == "descending" && (
-                      <img
-                        src={`${process.env.PUBLIC_URL}/down_arrow_icon.png`}
-                        width="12"
-                        height="12"
-                      />
-                    )}
-                  </div>
-
-                  <div>
-                    <label>Category:</label>
-                  </div>
-                </div>
-                <div className="content">
-                  {shownTransactions?.length > 0 &&
-                    shownTransactions?.map((t) => (
-                      <TransactionItem
-                        transaction={t}
-                        key={`${"income_category" in t ? "i" : "e"}_${t.id}`}
-                        account={account}
-                      />
-                    ))}
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="empty-account">No transactions found.</div>
+          {activeTab === "Overview" && (
+            <OverviewTab
+              overview={overview}
+              stats={accountStats}
+              currency={global.globalCurrency}
+            />
           )}
-        </>
-      )}
+          {activeTab === "Holdings" && (
+            <HoldingsTab overview={overview} currency={global.globalCurrency} />
+          )}
+          {activeTab === "Cash" && (
+            <CashTab overview={overview} currency={global.globalCurrency} />
+          )}
+          {activeTab === "Transactions" && (
+            <TransactionsTab
+              transactions={transactions}
+              account={account}
+              currency={global.globalCurrency}
+            />
+          )}
+          {activeTab === "Analytics" && (
+            <AnalyticsTab
+              overview={overview}
+              stats={accountStats}
+              currency={global.globalCurrency}
+            />
+          )}
+        </main>
+      </div>
     </div>
   );
 };
 
-const TransactionItem = ({ account, transaction }) => {
+const AccountHeader = ({ account, overview, stats, currency }) => {
   const global = useGlobalContext();
-  const transactionType = transaction.transaction_type;
-  const category = getCategory(transaction.category);
+  const totals = overview?.totals || {};
+  return (
+    <header className="account-hero">
+      <div>
+        <div className="account-kind">
+          {account.type_display || account.name}
+        </div>
+        <h1>
+          {account.name}
+          <span className={account.deleted ? "status inactive" : "status"}>
+            {account.deleted ? "Inactive" : "Active"}
+          </span>
+        </h1>
+      </div>
+      <Metric
+        label="Total"
+        value={totals.total}
+        currency={currency}
+        mask={global.privacyMode}
+      />
+      <Metric
+        label="Cash"
+        value={totals.cash_total}
+        currency={currency}
+        mask={global.privacyMode}
+      />
+      <Metric
+        label="Holdings"
+        value={totals.holdings_total}
+        currency={currency}
+        mask={global.privacyMode}
+      />
+      <SignedMetric
+        label="YTD Net"
+        value={stats?.net_year_to_date}
+        currency={account.currency}
+        mask={global.privacyMode}
+      />
+    </header>
+  );
+};
 
-  function getCategory(id) {
-    if (id == null) {
-      return "Uncategorized";
-    }
-    const categories =
-      transactionType === "income"
-        ? global.incomeCategories
-        : global.expenseCategories;
+const AccountSidebar = ({ account, overview, stats, currency }) => {
+  const global = useGlobalContext();
+  return (
+    <aside className="account-sidebar">
+      <section>
+        <h2>Account</h2>
+        <InfoRow label="Type" value={account.type_display} />
+        <InfoRow
+          label="Created"
+          value={helper.formatDatetime(account.created_on)}
+        />
+        <InfoRow
+          label="Updated"
+          value={helper.formatDatetime(account.updated_on)}
+        />
+        <InfoRow
+          label="Status"
+          value={account.deleted ? "Inactive" : "Active"}
+        />
+      </section>
+      <section>
+        <h2>Cash</h2>
+        {(overview?.cash_balances || []).map((balance) => (
+          <InfoRow
+            key={balance.id}
+            label={balance.currency.code}
+            value={`${helper.showOrMask(
+              global.privacyMode,
+              helper.formatNumber(balance.balance)
+            )} ${
+              balance.currency.symbol ||
+              helper.getCurrency(balance.currency.code)
+            }`}
+          />
+        ))}
+      </section>
+      <section>
+        <h2>Performance</h2>
+        <SignedInfoRow
+          label="MTD"
+          value={stats?.net_month_to_date}
+          currency={account.currency}
+          mask={global.privacyMode}
+        />
+        <SignedInfoRow
+          label="YTD"
+          value={stats?.net_year_to_date}
+          currency={account.currency}
+          mask={global.privacyMode}
+        />
+        <SignedInfoRow
+          label="Last month"
+          value={stats?.last_month_p_and_l}
+          currency={account.currency}
+          mask={global.privacyMode}
+        />
+      </section>
+      <section>
+        <h2>Base</h2>
+        <InfoRow label="View currency" value={currency} />
+      </section>
+    </aside>
+  );
+};
 
-    const result = categories?.filter((c) => c.id === id);
-    if (result.length === 1) {
-      return result[0]?.category;
-    }
+const OverviewTab = ({ overview, stats, currency }) => {
+  const global = useGlobalContext();
+  const totals = overview?.totals || {};
+  return (
+    <div className="tab-panel">
+      <div className="metric-grid">
+        <Metric
+          label="Total value"
+          value={totals.total}
+          currency={currency}
+          mask={global.privacyMode}
+        />
+        <Metric
+          label="Cash value"
+          value={totals.cash_total}
+          currency={currency}
+          mask={global.privacyMode}
+        />
+        <Metric
+          label="Invested value"
+          value={totals.holdings_total}
+          currency={currency}
+          mask={global.privacyMode}
+        />
+        <SignedMetric
+          label="MTD net"
+          value={stats?.net_month_to_date}
+          currency={currency}
+          mask={global.privacyMode}
+        />
+      </div>
+      <div className="chart-grid">
+        <ChartCard title="Cash vs Holdings">
+          <DonutChart data={overview?.allocations?.cash_vs_holdings || []} />
+        </ChartCard>
+        <ChartCard title="Asset Classes">
+          <BarListChart
+            data={overview?.allocations?.holdings_by_asset_class || []}
+            dataKey="amount"
+            nameKey="label"
+          />
+        </ChartCard>
+        <ChartCard title="Monthly Activity">
+          <MonthlyActivityChart
+            data={
+              overview?.activity?.transactions_by_month ||
+              stats?.transactions_by_month ||
+              []
+            }
+          />
+        </ChartCard>
+      </div>
+    </div>
+  );
+};
 
-    return transactionType === "transfer" ? "(Transfer)" : "Uncategorized";
-  }
-
-  function categoryStyle() {
-    if (category === "(Transfer)" || category === "Uncategorized") {
-      return {
-        fontStyle: "italic",
-        color: "gray",
-      };
-    }
-    return {};
-  }
+const HoldingsTab = ({ overview, currency }) => {
+  const global = useGlobalContext();
+  const [sortKey, setSortKey] = useState("converted_market_value");
+  const holdings = useMemo(() => {
+    return [...(overview?.holdings || [])].sort((a, b) => {
+      const aValue = holdingSortValue(a, sortKey);
+      const bValue = holdingSortValue(b, sortKey);
+      if (typeof aValue === "string" || typeof bValue === "string") {
+        return String(aValue || "").localeCompare(String(bValue || ""));
+      }
+      return Number(bValue || 0) - Number(aValue || 0);
+    });
+  }, [overview, sortKey]);
 
   return (
-    <div className={"transaction-item"}>
-      {helper.isRecent(transaction?.created_on) && (
-        <label className="new-transaction">NEW!</label>
-      )}
-      <label className="date">{transaction?.date}</label>
-      <label>{transaction?.description}</label>
-      <label style={{ color: transactionType === "expense" ? "red" : "green" }}>
-        {transactionType === "expense" ? "-" : "+"}{" "}
-        {helper.showOrMask(
-          global.privacyMode,
-          helper.formatNumber(transaction?.amount)
-        )}{" "}
-        {helper.getCurrency(account?.currency)}
-      </label>
-      <label style={categoryStyle()}>{category}</label>
+    <div className="tab-panel">
+      <div className="split-grid">
+        <ChartCard title="Security Allocation">
+          <DonutChart
+            data={overview?.allocations?.holdings_by_security || []}
+          />
+        </ChartCard>
+        <ChartCard title="Gain/Loss">
+          <BarListChart
+            data={holdings}
+            dataKey="converted_unrealized_gain"
+            nameKey="security.ticker"
+            signed
+          />
+        </ChartCard>
+      </div>
+      <DataTable>
+        <thead>
+          <tr>
+            <SortableTh
+              label="Ticker"
+              sortKey="ticker"
+              setSortKey={setSortKey}
+            />
+            <th>Name</th>
+            <th>Asset</th>
+            <SortableTh
+              label="Qty"
+              sortKey="quantity"
+              setSortKey={setSortKey}
+            />
+            <SortableTh
+              label="Avg Cost"
+              sortKey="average_cost"
+              setSortKey={setSortKey}
+            />
+            <SortableTh
+              label="Price"
+              sortKey="latest_price"
+              setSortKey={setSortKey}
+            />
+            <SortableTh
+              label="Value"
+              sortKey="converted_market_value"
+              setSortKey={setSortKey}
+            />
+            <SortableTh
+              label="Gain"
+              sortKey="converted_unrealized_gain"
+              setSortKey={setSortKey}
+            />
+            <th>Alloc</th>
+          </tr>
+        </thead>
+        <tbody>
+          {holdings.map((holding) => (
+            <tr key={holding.id}>
+              <td>{holding.security.ticker}</td>
+              <td>{holding.security.name}</td>
+              <td>{holding.security.asset_class_label}</td>
+              <td>{helper.formatNumber(holding.quantity, 4)}</td>
+              <td>
+                {money(
+                  holding.average_cost,
+                  holding.security.currency.code,
+                  global.privacyMode
+                )}
+              </td>
+              <td>
+                {holding.latest_price ? (
+                  money(
+                    holding.latest_price.price,
+                    holding.security.currency.code,
+                    global.privacyMode
+                  )
+                ) : (
+                  <span className="muted">Missing</span>
+                )}
+                {holding.price_missing && (
+                  <span className="badge">fallback</span>
+                )}
+              </td>
+              <td>
+                {money(
+                  holding.converted_market_value,
+                  currency,
+                  global.privacyMode
+                )}
+              </td>
+              <td className={signedClass(holding.converted_unrealized_gain)}>
+                {money(
+                  holding.converted_unrealized_gain,
+                  currency,
+                  global.privacyMode,
+                  true
+                )}
+              </td>
+              <td>{helper.formatNumber(holding.allocation_percent)}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </DataTable>
     </div>
   );
 };
+
+const CashTab = ({ overview, currency }) => {
+  const global = useGlobalContext();
+  const [showZero, setShowZero] = useState(false);
+  const balances = (overview?.cash_balances || []).filter(
+    (balance) => showZero || Number(balance.balance || 0) !== 0
+  );
+  return (
+    <div className="tab-panel">
+      <div className="table-toolbar">
+        <button type="button" onClick={() => setShowZero((value) => !value)}>
+          {showZero ? "Hide zero balances" : "Show zero balances"}
+        </button>
+      </div>
+      <div className="cash-grid">
+        {balances.map((balance) => (
+          <div className="cash-card" key={balance.id}>
+            <span>{balance.currency.code}</span>
+            <strong>
+              {money(
+                balance.balance,
+                balance.currency.code,
+                global.privacyMode
+              )}
+            </strong>
+            <small>
+              {money(balance.converted_value, currency, global.privacyMode)} /{" "}
+              {helper.formatNumber(balance.allocation_percent)}%
+            </small>
+          </div>
+        ))}
+      </div>
+      <DataTable>
+        <thead>
+          <tr>
+            <th>Currency</th>
+            <th>Native Balance</th>
+            <th>Converted</th>
+            <th>Allocation</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {balances.map((balance) => (
+            <tr key={balance.id}>
+              <td>{balance.currency.code}</td>
+              <td>
+                {money(
+                  balance.balance,
+                  balance.currency.code,
+                  global.privacyMode
+                )}
+              </td>
+              <td>
+                {money(balance.converted_value, currency, global.privacyMode)}
+              </td>
+              <td>{helper.formatNumber(balance.allocation_percent)}%</td>
+              <td>{helper.formatDatetime(balance.updated_on)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </DataTable>
+    </div>
+  );
+};
+
+const TransactionsTab = ({ transactions, account, currency }) => {
+  const global = useGlobalContext();
+  const current = new Date();
+  const [period, setPeriod] = useState({
+    year: String(current.getFullYear()),
+    month: String(current.getMonth() + 1).padStart(2, "0"),
+    mode: "month",
+  });
+  const [type, setType] = useState("all");
+  const [query, setQuery] = useState("");
+
+  const years = useMemo(() => {
+    const result = new Set(
+      transactions.map((item) => String(new Date(item.date).getFullYear()))
+    );
+    result.add(period.year);
+    return Array.from(result).sort((a, b) => b - a);
+  }, [transactions, period.year]);
+
+  const shown = useMemo(() => {
+    return transactions.filter((item) => {
+      const date = new Date(item.date);
+      const yearMatches = String(date.getFullYear()) === period.year;
+      const monthMatches =
+        String(date.getMonth() + 1).padStart(2, "0") === period.month;
+      const periodMatches =
+        period.mode === "year" ? yearMatches : yearMatches && monthMatches;
+      const typeMatches = type === "all" || item.transaction_type === type;
+      const q = query.trim().toLowerCase();
+      const queryMatches =
+        !q ||
+        String(item.description || "")
+          .toLowerCase()
+          .includes(q) ||
+        String(item.ticker || "")
+          .toLowerCase()
+          .includes(q) ||
+        getCategoryName(item, global).toLowerCase().includes(q);
+      return periodMatches && typeMatches && queryMatches;
+    });
+  }, [transactions, period, type, query, global]);
+
+  return (
+    <div className="tab-panel">
+      <div className="filters">
+        <select
+          value={period.year}
+          onChange={(e) =>
+            setPeriod((prev) => ({ ...prev, year: e.target.value }))
+          }
+        >
+          {years.map((year) => (
+            <option key={year}>{year}</option>
+          ))}
+        </select>
+        <select
+          value={period.month}
+          onChange={(e) =>
+            setPeriod((prev) => ({
+              ...prev,
+              month: e.target.value,
+              mode: "month",
+            }))
+          }
+        >
+          {monthOptions().map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          className={period.mode === "year" ? "active" : ""}
+          onClick={() => setPeriod((prev) => ({ ...prev, mode: "year" }))}
+        >
+          All year
+        </button>
+        <select value={type} onChange={(e) => setType(e.target.value)}>
+          <option value="all">All types</option>
+          {Object.entries(TX_LABELS).map(([key, label]) => (
+            <option key={key} value={key}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Filter category, security, text"
+        />
+      </div>
+      <DataTable>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Security</th>
+            <th>Amount</th>
+            <th>Category</th>
+          </tr>
+        </thead>
+        <tbody>
+          {shown.map((transaction) => (
+            <tr key={`${transaction.transaction_type}-${transaction.id}`}>
+              <td>{transaction.date}</td>
+              <td>
+                {TX_LABELS[transaction.transaction_type] ||
+                  transaction.transaction_type}
+              </td>
+              <td>{transaction.description || "-"}</td>
+              <td>{transaction.ticker || "-"}</td>
+              <td
+                className={signedClass(
+                  transactionSignedAmount(transaction, account)
+                )}
+              >
+                {money(
+                  transactionSignedAmount(transaction, account),
+                  transaction.currency || account.currency || currency,
+                  global.privacyMode,
+                  true
+                )}
+              </td>
+              <td>{getCategoryName(transaction, global)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </DataTable>
+    </div>
+  );
+};
+
+const AnalyticsTab = ({ overview, stats, currency }) => {
+  return (
+    <div className="tab-panel">
+      <div className="chart-grid">
+        <ChartCard title="Income Running Total">
+          <LineSeries
+            data={stats?.running_total_incomes_current_year || []}
+            dataKey="running_total"
+          />
+        </ChartCard>
+        <ChartCard title="Expense Running Total">
+          <LineSeries
+            data={stats?.running_total_expenses_current_year || []}
+            dataKey="running_total"
+          />
+        </ChartCard>
+        <ChartCard title="Expenses by Category">
+          <BarListChart
+            data={stats?.expenses_by_category || []}
+            dataKey="total_amount"
+            nameKey="category__category"
+          />
+        </ChartCard>
+        <ChartCard title="Incomes by Category">
+          <BarListChart
+            data={stats?.incomes_by_category || []}
+            dataKey="total_amount"
+            nameKey="category__category"
+          />
+        </ChartCard>
+        <ChartCard title={`Unrealized Gain (${currency})`}>
+          <BarListChart
+            data={overview?.holdings || []}
+            dataKey="converted_unrealized_gain"
+            nameKey="security.ticker"
+            signed
+          />
+        </ChartCard>
+      </div>
+    </div>
+  );
+};
+
+const Metric = ({ label, value = 0, currency, mask }) => (
+  <div className="metric">
+    <span>{label}</span>
+    <strong>{money(value || 0, currency, mask)}</strong>
+  </div>
+);
+
+const SignedMetric = ({ label, value = 0, currency, mask }) => (
+  <div className="metric">
+    <span>{label}</span>
+    <strong className={signedClass(value)}>
+      {money(value || 0, currency, mask, true)}
+    </strong>
+  </div>
+);
+
+const InfoRow = ({ label, value }) => (
+  <div className="info-row">
+    <span>{label}</span>
+    <strong>{value || "-"}</strong>
+  </div>
+);
+
+const SignedInfoRow = ({ label, value = 0, currency, mask }) => (
+  <div className="info-row">
+    <span>{label}</span>
+    <strong className={signedClass(value)}>
+      {money(value || 0, currency, mask, true)}
+    </strong>
+  </div>
+);
+
+const ChartCard = ({ title, children }) => (
+  <section className="chart-card">
+    <h2>{title}</h2>
+    {children}
+  </section>
+);
+
+const DataTable = ({ children }) => (
+  <div className="data-table">
+    <table>{children}</table>
+  </div>
+);
+
+const SortableTh = ({ label, sortKey, setSortKey }) => (
+  <th>
+    <button type="button" onClick={() => setSortKey(sortKey)}>
+      {label}
+    </button>
+  </th>
+);
+
+const DonutChart = ({ data }) => {
+  const rows = data.filter((row) => Number(row.amount || 0) !== 0);
+  if (!rows.length) {
+    return <div className="empty-state">No data</div>;
+  }
+  return (
+    <ResponsiveContainer width="100%" height={240}>
+      <PieChart>
+        <Pie
+          data={rows}
+          dataKey="amount"
+          nameKey="name"
+          innerRadius={58}
+          outerRadius={88}
+        >
+          {rows.map((entry, index) => (
+            <Cell
+              key={entry.name || index}
+              fill={COLORS[index % COLORS.length]}
+            />
+          ))}
+        </Pie>
+        <Tooltip />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+};
+
+const BarListChart = ({ data, dataKey, nameKey, signed = false }) => {
+  const rows = (data || [])
+    .map((row) => ({
+      ...row,
+      label: getNested(row, nameKey),
+      value: Number(row[dataKey] || 0),
+    }))
+    .filter((row) => row.label);
+  if (!rows.length) {
+    return <div className="empty-state">No data</div>;
+  }
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <BarChart data={rows}>
+        <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+        <YAxis tick={{ fontSize: 12 }} />
+        <Tooltip />
+        <Bar dataKey="value">
+          {rows.map((entry, index) => (
+            <Cell
+              key={entry.label}
+              fill={
+                signed
+                  ? entry.value >= 0
+                    ? "#2f9e44"
+                    : "#c92a2a"
+                  : COLORS[index % COLORS.length]
+              }
+            />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
+
+const MonthlyActivityChart = ({ data }) => {
+  const rows = (data || []).map((row) => ({
+    month: String(row.month_year || "").slice(0, 7),
+    income: row.income_count || 0,
+    expense: row.expense_count || 0,
+    transfer: row.transfer_count || 0,
+    buy: row.buy_count || 0,
+    sell: row.sell_count || 0,
+  }));
+  if (!rows.length) {
+    return <div className="empty-state">No data</div>;
+  }
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <BarChart data={rows}>
+        <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+        <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="income" fill="#2f9e44" />
+        <Bar dataKey="expense" fill="#c92a2a" />
+        <Bar dataKey="transfer" fill="#3b7f8f" />
+        <Bar dataKey="buy" fill="#9b6a3b" />
+        <Bar dataKey="sell" fill="#6c8f3b" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
+
+const LineSeries = ({ data, dataKey }) => {
+  if (!data?.length) {
+    return <div className="empty-state">No data</div>;
+  }
+  return (
+    <ResponsiveContainer width="100%" height={240}>
+      <LineChart data={data}>
+        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+        <YAxis tick={{ fontSize: 12 }} />
+        <Tooltip />
+        <Line
+          type="monotone"
+          dataKey={dataKey}
+          stroke="#3b7f8f"
+          strokeWidth={2}
+          dot={false}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+};
+
+function money(value, currency, mask, signed = false) {
+  const number = Number(value || 0);
+  const prefix = signed && number > 0 ? "+" : "";
+  return `${prefix}${helper.showOrMask(mask, helper.formatNumber(number))} ${
+    helper.getCurrency(currency) || currency || ""
+  }`;
+}
+
+function signedClass(value) {
+  return Number(value || 0) >= 0 ? "positive" : "negative";
+}
+
+function getNested(row, path) {
+  return path.split(".").reduce((value, key) => value?.[key], row);
+}
+
+function monthOptions() {
+  return Array.from({ length: 12 }, (_, index) => {
+    const date = new Date(2000, index, 1);
+    return {
+      value: String(index + 1).padStart(2, "0"),
+      label: date.toLocaleString("en-US", { month: "short" }),
+    };
+  });
+}
+
+function transactionSignedAmount(transaction, account) {
+  const amount = Number(transaction.amount || 0);
+  if (
+    transaction.transaction_type === "income" ||
+    transaction.transaction_type === "sell"
+  ) {
+    return amount;
+  }
+  if (
+    transaction.transaction_type === "expense" ||
+    transaction.transaction_type === "buy"
+  ) {
+    return -amount;
+  }
+  if (transaction.transaction_type === "transfer") {
+    return Number(transaction.to_account) === Number(account.id)
+      ? amount
+      : -amount;
+  }
+  return amount;
+}
+
+function getCategoryName(transaction, global) {
+  if (transaction.transaction_type === "transfer") {
+    return "Transfer";
+  }
+  if (
+    transaction.transaction_type === "buy" ||
+    transaction.transaction_type === "sell"
+  ) {
+    return "Security trade";
+  }
+  const categories =
+    transaction.transaction_type === "income"
+      ? global.incomeCategories
+      : global.expenseCategories;
+  const category = categories?.find((item) => item.id === transaction.category);
+  return category?.category || "Uncategorized";
+}
+
+function holdingSortValue(holding, sortKey) {
+  if (sortKey === "ticker") {
+    return holding.security?.ticker;
+  }
+  if (sortKey === "latest_price") {
+    return holding.latest_price?.price || 0;
+  }
+  return holding[sortKey];
+}
 
 export default AccountPage;

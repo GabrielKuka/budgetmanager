@@ -19,26 +19,24 @@ import PercentExpensesPieChart from "../stats/percentExpensesPie";
 const Incomes = () => {
   const global = useGlobalContext();
   const [categories, setCategories] = useState(global.incomeCategories);
-  const [accounts, setAccounts] = useState(global.activeAccounts);
+  const accounts = global.activeAccounts || [];
+  const accountsLoaded =
+    Array.isArray(global.accounts) && Array.isArray(global.activeAccounts);
 
   const [shownIncomes = global.incomes, setShownIncomes] = useState();
   const [transactionPopup, setTransactionPopup] = useState(false);
-
-  useEffect(() => {
-    setAccounts(global.activeAccounts);
-  }, [global.activeAcounts]);
 
   useEffect(() => {
     setCategories(global.incomeCategories);
   }, [global.incomeCategories]);
 
   function getAccountCurrency(id) {
-    const account = global.accounts?.filter((a) => a.id === id);
-    if (account?.length === 1) {
-      return account[0].currency;
+    const account = global.accounts?.find((a) => Number(a.id) === Number(id));
+    if (account) {
+      return account.currency;
     }
 
-    return "Not Found";
+    return accountsLoaded ? "Not Found" : null;
   }
 
   function getTransactionCurrency(transaction) {
@@ -61,7 +59,7 @@ const Incomes = () => {
         getAccountCurrency={getAccountCurrency}
         getTransactionCurrency={getTransactionCurrency}
       />
-      {!global.incomes ? (
+      {!global.incomes || !accountsLoaded ? (
         <LoadingCard header="Loading Incomes..." />
       ) : global.incomes && !global.incomes?.length ? (
         <NoDataCard

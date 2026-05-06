@@ -26,6 +26,7 @@ from Accounts.services.security_prices import (
     SOURCE_YFINANCE_ADJ_CLOSE,
     sync_security_prices,
 )
+from Transactions.models import SecurityTradeDetail, Transaction
 
 
 def price_frame(rows):
@@ -431,3 +432,107 @@ class SecurityPriceIntegrationTests(TestCase):
                 }
             ],
         )
+
+    def test_account_overview_includes_cash_holdings_and_allocations(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
+
+        response = self.client.get(
+            f"/accounts/{self.account.id}/overview", {"currency": "EUR"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["totals"]["cash_total"], 100.0)
+        self.assertEqual(response.data["totals"]["holdings_total"], 250.0)
+        self.assertEqual(response.data["totals"]["total"], 350.0)
+        self.assertEqual(
+            response.data["cash_balances"][0]["converted_value"], 100.0
+        )
+        holding = response.data["holdings"][0]
+        self.assertEqual(holding["security"]["ticker"], "TETF")
+        self.assertEqual(holding["converted_market_value"], 250.0)
+        self.assertEqual(holding["converted_unrealized_gain"], 50.0)
+        self.assertFalse(holding["price_missing"])
+        self.assertEqual(
+            response.data["allocations"]["holdings_by_asset_class"][0][
+                "label"
+            ],
+            "Equity",
+        )
+
+    def test_account_overview_missing_price_uses_average_cost(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
+        SecurityPrice.objects.filter(security=self.security).delete()
+
+        response = self.client.get(
+            f"/accounts/{self.account.id}/overview", {"currency": "EUR"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        holding = response.data["holdings"][0]
+        self.assertTrue(holding["price_missing"])
+        self.assertEqual(holding["converted_market_value"], 200.0)
+        self.assertEqual(holding["converted_unrealized_gain"], 0.0)
+
+    def test_account_overview_rejects_other_user_account(self):
+        other_user = get_user_model().objects.create_user(
+            name="Other",
+            email="other@example.com",
+            phone="+222222222",
+            password="password",
+        )
+        other_account = Account.objects.create(
+            user=other_user,
+            type=0,
+            name="Other Account",
+            currency="EUR",
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
+
+        response = self.client.get(f"/accounts/{other_account.id}/overview")
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_account_transactions_include_buy_and_sell(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
+        cash_balance = self.account.cash_balances.first()
+        holding = self.account.holdings.first()
+        buy = Transaction.objects.create(
+            user=self.user,
+            transaction_type="buy",
+            date=timezone.localdate(),
+            description="Buy TETF",
+            amount=Decimal("125"),
+            from_account=self.account,
+        )
+        SecurityTradeDetail.objects.create(
+            transaction=buy,
+            security=self.security,
+            holding=holding,
+            cash_balance=cash_balance,
+            quantity=Decimal("1"),
+            price_per_unit=Decimal("125"),
+        )
+        sell = Transaction.objects.create(
+            user=self.user,
+            transaction_type="sell",
+            date=timezone.localdate(),
+            description="Sell TETF",
+            amount=Decimal("125"),
+            to_account=self.account,
+        )
+        SecurityTradeDetail.objects.create(
+            transaction=sell,
+            security=self.security,
+            holding=holding,
+            cash_balance=cash_balance,
+            quantity=Decimal("1"),
+            price_per_unit=Decimal("125"),
+        )
+
+        response = self.client.get(f"/accounts/{self.account.id}/transactions")
+
+        self.assertEqual(response.status_code, 200)
+        rows_by_type = {row["transaction_type"]: row for row in response.data}
+        self.assertEqual(rows_by_type["buy"]["ticker"], "TETF")
+        self.assertEqual(rows_by_type["buy"]["from_account"], self.account.id)
+        self.assertEqual(rows_by_type["sell"]["to_account"], self.account.id)

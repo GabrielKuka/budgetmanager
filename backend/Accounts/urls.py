@@ -5,6 +5,11 @@ from . import views
 urlpatterns = [
     path("", views.account_collection, name="accounts"),
     path("totals", views.account_totals, name="account_totals"),
+    path(
+        "<int:account_id>/overview",
+        views.account_overview,
+        name="account_overview",
+    ),
     path("<int:account_id>", views.account_detail, name="account"),
     path("<int:account_id>/stats", views.account_stats, name="account_stats"),
     path(
