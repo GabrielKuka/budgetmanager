@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Bar, BarChart, Legend, Tooltip, XAxis, YAxis } from "recharts";
 import BarChartToolTip from "./barChartTooltip";
 
+const chartAxisTick = { fill: "var(--chart-axis)" };
+
 const CurrentExpensesBarChart = (props) => {
   const [yMaxValue, setYMaxValue] = useState({});
   const [expensesPerCategory, setExpensesPerCategory] = useState(null);
@@ -50,8 +52,13 @@ const CurrentExpensesBarChart = (props) => {
       data={expensesPerCategory}
       barSize={20}
     >
-      <XAxis dataKey="category" />
-      <YAxis type="number" tickSize={2} domain={[0, yMaxValue]} />
+      <XAxis dataKey="category" tick={chartAxisTick} />
+      <YAxis
+        type="number"
+        tickSize={2}
+        domain={[0, yMaxValue]}
+        tick={chartAxisTick}
+      />
       <Tooltip
         content={<BarChartToolTip />}
         wrapperStyle={{ border: "none" }}
@@ -70,8 +77,8 @@ const CustomLenged = () => {
       style={{
         fontSize: "13px",
         margin: "10px 0px 10px 40px",
-        backgroundColor: "#D3D3D3",
-        color: "black",
+        backgroundColor: "var(--chart-label-bg)",
+        color: "var(--chart-label-text)",
         padding: "7px",
         width: "80%",
         borderRadius: "3px",

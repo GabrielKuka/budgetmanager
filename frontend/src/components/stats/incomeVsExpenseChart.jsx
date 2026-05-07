@@ -10,6 +10,8 @@ import {
 import { useGlobalContext } from "../../context/GlobalContext";
 import { helper } from "../helper";
 
+const chartAxisTick = { fill: "var(--chart-axis)" };
+
 const IncomeVsExpenseChart = (props) => {
   const data = props.data || [];
   const currentMonth = new Date().toISOString().slice(0, 7);
@@ -40,9 +42,9 @@ const IncomeVsExpenseChart = (props) => {
         </linearGradient>
       </defs>
 
-      <CartesianGrid strokeDasharray="6 6" />
-      <XAxis dataKey="date" />
-      <YAxis />
+      <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="6 6" />
+      <XAxis dataKey="date" tick={chartAxisTick} />
+      <YAxis tick={chartAxisTick} />
       <Tooltip content={<AreaChartChartToolTip />} />
       <Area
         type="monotone"
@@ -70,11 +72,10 @@ const AreaChartChartToolTip = ({ active, payload }) => {
     return (
       <div
         style={{
-          backgroundColor: "cadetblue",
+          backgroundColor: "var(--chart-tooltip-bg)",
           padding: "5px",
           borderRadius: "3px",
-          height: "50px",
-          color: "white",
+          color: "var(--chart-tooltip-text)",
           height: "fit-content",
         }}
       >
@@ -119,8 +120,8 @@ const CustomLegend = () => {
       style={{
         fontSize: "13px",
         margin: "10px 0px 10px 40px",
-        backgroundColor: "#D3D3D3",
-        color: "black",
+        backgroundColor: "var(--chart-label-bg)",
+        color: "var(--chart-label-text)",
         padding: "7px",
         width: "90%",
         borderRadius: "3px",

@@ -3,8 +3,8 @@
 .loading-card {
   left: 520px;
   position: absolute;
-  border: 1px solid #dadada;
-  box-shadow: 1px 1px 2px #dadada;
+  border: 1px solid var(--border);
+  box-shadow: 1px 1px 2px var(--shadow);
   border-radius: 3px;
   padding-bottom: 20px;
   width: 500px;

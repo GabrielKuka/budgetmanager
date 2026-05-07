@@ -12,28 +12,31 @@ import ToastProvider from "./context/ToastContext";
 import ConfirmProvider from "./context/ConfirmContext";
 import SearchResults from "./components/search/searchresults";
 import AccountPage from "./components/accountPage";
+import ThemeProvider from "./context/ThemeContext";
 
 function App() {
   return (
-    <GlobalProvider>
-      <ConfirmProvider>
-        <ToastProvider>
-          <Navbar />
-          <Routes>
-            <Route path="/dashboard/*" element={<Dashboard />} />
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/accounts" element={<Accounts />} />
-            <Route path="/accounts/:id" element={<AccountPage />} />
-            <Route path="/searchresults" element={<SearchResults />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="" element={<Register />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </ToastProvider>
-      </ConfirmProvider>
-    </GlobalProvider>
+    <ThemeProvider>
+      <GlobalProvider>
+        <ConfirmProvider>
+          <ToastProvider>
+            <Navbar />
+            <Routes>
+              <Route path="/dashboard/*" element={<Dashboard />} />
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/accounts" element={<Accounts />} />
+              <Route path="/accounts/:id" element={<AccountPage />} />
+              <Route path="/searchresults" element={<SearchResults />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="" element={<Register />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </ToastProvider>
+        </ConfirmProvider>
+      </GlobalProvider>
+    </ThemeProvider>
   );
 }
 

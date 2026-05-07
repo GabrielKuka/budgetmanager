@@ -13,6 +13,8 @@ import {
 } from "recharts";
 import statService from "../../services/transactionService/statService";
 
+const chartAxisTick = { fill: "var(--chart-axis)" };
+
 const WealthOverTime = (props) => {
   const global = useGlobalContext();
   const [data, setData] = useState(null);
@@ -128,10 +130,15 @@ const WealthOverTime = (props) => {
         </linearGradient>
       </defs>
 
-      <CartesianGrid strokeDasharray="6 6" />
-      <XAxis dataKey="date" />
-      <YAxis yAxisId={"left"} orientation="left" domain={[0, "auto"]} />
-      <YAxis yAxisId={"right"} orientation="right" tick={{ fill: "#8884d8" }} />
+      <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="6 6" />
+      <XAxis dataKey="date" tick={chartAxisTick} />
+      <YAxis
+        yAxisId={"left"}
+        orientation="left"
+        domain={[0, "auto"]}
+        tick={chartAxisTick}
+      />
+      <YAxis yAxisId={"right"} orientation="right" tick={chartAxisTick} />
       <Tooltip content={<AreaChartChartToolTip />} />
       <Legend
         content={(props) => (
@@ -146,7 +153,7 @@ const WealthOverTime = (props) => {
       <Area
         type="monotone"
         dataKey="monthly_wealth"
-        stroke="cadetblue"
+        stroke="var(--brand)"
         fillOpacity={1}
         fill="url(#colorLine)"
         yAxisId={"left"}
@@ -178,10 +185,10 @@ const AreaChartChartToolTip = ({ active, payload }) => {
     return (
       <div
         style={{
-          backgroundColor: "cadetblue",
+          backgroundColor: "var(--chart-tooltip-bg)",
           padding: "5px",
           borderRadius: "3px",
-          color: "white",
+          color: "var(--chart-tooltip-text)",
           height: "fit-content",
         }}
       >

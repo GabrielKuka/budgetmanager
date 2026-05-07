@@ -11,8 +11,8 @@
 }
 
 div[class^="confirm-dialog"] {
-  box-shadow: 1px 1px 4px cadetblue;
-  border: 2px solid cadetblue;
+  box-shadow: 1px 1px 4px var(--brand);
+  border: 2px solid var(--brand);
   @include flex(column, flex-start, flex-end);
   gap: 20px;
   top: 45%;
@@ -24,8 +24,8 @@ div[class^="confirm-dialog"] {
   padding: 10px 20px;
   transform: translate(-50%, -50%);
   border-radius: 5px;
-  background-color: cadetblue;
-  color: white;
+  background-color: var(--brand);
+  color: var(--brand-text);
   z-index: 2001;
 
   animation: fadein 0.2s ease-in-out;
@@ -69,7 +69,7 @@ div[class$="show"] {
   hr {
     margin: 0;
     width: 100%;
-    border-top: 1px solid cadetblue;
+    border-top: 1px solid var(--brand);
   }
 
   .action-buttons {
@@ -80,23 +80,23 @@ div[class$="show"] {
       border-radius: 5px;
       height: 30px;
       width: 50px;
-      background-color: white;
+      background-color: var(--surface-bg);
       transition: background-color 0.2s ease-in-out;
       font-weight: bold;
     }
     .yes {
-      border: 1px solid cadetblue;
+      border: 1px solid var(--brand);
     }
     .yes:hover {
-      background-color: cadetblue;
-      color: white;
+      background-color: var(--brand);
+      color: var(--brand-text);
     }
     .no {
       border: 1px solid red;
     }
     .no:hover {
       background-color: red;
-      color: white;
+      color: var(--brand-text);
     }
   }
 }

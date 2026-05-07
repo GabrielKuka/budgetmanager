@@ -10,7 +10,7 @@ const PieChartToolTip = ({ active, payload }) => {
           padding: "5px",
           borderRadius: "3px",
           height: "50px",
-          color: "white",
+          color: "var(--chart-tooltip-text)",
         }}
       >
         <p>

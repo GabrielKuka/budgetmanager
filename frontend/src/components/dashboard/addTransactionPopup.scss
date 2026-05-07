@@ -17,16 +17,16 @@
   transform: translate(-50%, -50%);
   max-height: 90vh;
   width: min(560px, 92vw);
-  background-color: white;
+  background-color: var(--surface-bg);
   z-index: 2001;
-  box-shadow: 0px 7px 15px rgba(0, 0, 0, 0.5);
-  border-top: 1px solid cadetblue;
+  box-shadow: 0px 7px 15px var(--shadow);
+  border-top: 1px solid var(--brand);
   border-radius: 6px;
   overflow: hidden;
 
   .title-bar {
-    border-bottom: 1px solid cadetblue;
-    background-color: cadetblue;
+    border-bottom: 1px solid var(--brand);
+    background-color: var(--brand);
     width: 100%;
     @include flex(row, flex-start, center);
 
@@ -36,7 +36,7 @@
       gap: 5px;
       width: fit-content;
       flex-grow: 1;
-      color: white;
+      color: var(--brand-text);
       font-weight: bold;
       font-size: 20px;
       text-transform: uppercase;
@@ -46,7 +46,7 @@
       margin: 10px;
       justify-self: end;
       background-color: #d8807d;
-      color: white;
+      color: var(--brand-text);
       width: 40px;
       height: 30px;
       padding: 5px;
@@ -84,13 +84,22 @@
       textarea {
         width: 100%;
         box-sizing: border-box;
+        border-radius: 5px;
+        padding: 6px;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+
+        &:focus {
+          border-color: var(--brand);
+          box-shadow: 0 0 0 2px rgba(95, 158, 160, 0.18);
+        }
       }
 
       label {
         text-transform: uppercase;
         font-weight: bold;
-        background-color: cadetblue;
-        color: white;
+        background-color: var(--brand);
+        color: var(--brand-text);
         padding: 5px;
         border-radius: 2px;
         cursor: pointer;
@@ -100,7 +109,7 @@
         display: block;
         width: 100%;
         padding-bottom: 15px;
-        border-bottom: 1px solid cadetblue;
+        border-bottom: 1px solid var(--brand);
         margin-bottom: 10px;
         #transaction_type_select {
           width: 100%;
@@ -130,7 +139,7 @@
       }
       .amount_currency_chip {
         color: #2b5e61;
-        border: 1px solid cadetblue;
+        border: 1px solid var(--brand);
         border-radius: 3px;
         min-width: 42px;
         height: 34px;
@@ -162,25 +171,25 @@
           align-items: stretch;
 
           .add-tag-button {
-            border: 1px solid cadetblue;
-            border-radius: 3px;
-            background-color: cadetblue;
-            color: white;
+            border: 1px solid var(--brand);
+            border-radius: 5px;
+            background-color: var(--brand);
+            color: var(--brand-text);
             font-weight: bold;
             white-space: nowrap;
             flex: 0 0 auto;
           }
 
           #add_tag_textfield {
-            border: 1px solid cadetblue;
-            border-radius: 3px;
+            border: 1px solid var(--brand);
+            border-radius: 5px;
             transition: border 0.3s;
             flex: 1 1 auto;
             min-width: 0;
             width: auto;
 
             &:hover {
-              border-radius: 3px;
+              border-radius: 5px;
             }
             &:focus {
               outline: none;
@@ -194,15 +203,15 @@
           flex-wrap: wrap;
           overflow-x: auto;
           span {
-            background-color: cadetblue;
-            color: white;
+            background-color: var(--brand);
+            color: var(--brand-text);
             font-weight: bold;
             border-radius: 3px;
             padding: 3px 6px 3px 6px;
 
             .remove-tag-button {
-              background-color: cadetblue;
-              color: white;
+              background-color: var(--brand);
+              color: var(--brand-text);
               font-weight: bold;
               border: 1px solid white;
               margin-left: 8px;
@@ -215,7 +224,7 @@
               cursor: pointer;
               &:hover {
                 color: red;
-                background-color: white;
+                background-color: var(--surface-bg);
               }
             }
           }
@@ -231,7 +240,7 @@
         #draft-button,
         #reset-button {
           border-radius: 3px;
-          background-color: white;
+          background-color: var(--surface-bg);
           padding: 5px;
           transition: background-color 0.3s, color 0.3s;
           font-weight: bold;
@@ -243,12 +252,12 @@
           gap: 5px;
 
           span {
-            color: black;
+            color: var(--text);
           }
 
           #custom_rate_field {
-            border: 1px solid #dadada;
-            color: cadetblue;
+            border: 1px solid var(--border);
+            color: var(--brand);
             width: 50px;
             outline: none;
             height: 15px;
@@ -268,7 +277,7 @@
 
           &:hover {
             background-color: red;
-            color: white;
+            color: var(--brand-text);
           }
         }
 
@@ -278,18 +287,18 @@
 
           &:hover {
             background-color: orange;
-            color: white;
+            color: var(--brand-text);
           }
         }
 
         #submit-button {
-          border: 1px solid cadetblue;
-          color: white;
-          background-color: cadetblue;
+          border: 1px solid var(--brand);
+          color: var(--brand-text);
+          background-color: var(--brand);
 
           &:active {
-            background-color: white;
-            color: cadetblue;
+            background-color: var(--surface-bg);
+            color: var(--brand);
           }
         }
       }

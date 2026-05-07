@@ -16,18 +16,18 @@
   top: 15%;
   height: 500px;
   width: 900px;
-  background-color: white;
+  background-color: var(--surface-bg);
   z-index: 2001;
 
-  border: 1px solid cadetblue;
+  border: 1px solid var(--brand);
   border-radius: 3px;
 
   @include flex(column, flex-start, flex-start);
   gap: 10px;
 
   .title-bar {
-    border-bottom: 1px solid cadetblue;
-    background-color: cadetblue;
+    border-bottom: 1px solid var(--brand);
+    background-color: var(--brand);
     width: 100%;
     @include flex(row, flex-start, center);
 
@@ -37,7 +37,7 @@
       gap: 5px;
       width: fit-content;
       flex-grow: 1;
-      color: white;
+      color: var(--brand-text);
 
       .title {
         font-size: 20px;
@@ -55,7 +55,7 @@
       margin: 10px;
       justify-self: end;
       background-color: #d8807d;
-      color: white;
+      color: var(--brand-text);
       width: 40px;
       height: 30px;
       padding: 5px;
@@ -105,9 +105,9 @@
       .questionmark_tooltip {
         visibility: hidden;
         position: relative;
-        border: 1px solid cadetblue;
-        background-color: cadetblue;
-        color: white;
+        border: 1px solid var(--brand);
+        background-color: var(--brand);
+        color: var(--brand-text);
         padding: 5px 8px;
         border-radius: 3px;
         margin-left: 30px;
@@ -120,8 +120,8 @@
       }
 
       .tag {
-        background-color: cadetblue;
-        color: white;
+        background-color: var(--brand);
+        color: var(--brand-text);
         font-weight: bold;
         border-radius: 3px;
         padding: 3px 6px 3px 6px;
@@ -130,34 +130,34 @@
     }
     .options {
       width: 95%;
-      border-top: 1px solid #dadada;
+      border-top: 1px solid var(--border);
       @include flex(row, flex-start, flex-start);
       gap: 15px;
 
       button {
-        color: black;
+        color: var(--text);
         padding: 7px;
         border-radius: 3px;
         transition: color 0.2s, background-color 0.2s;
         outline: none;
 
         &:hover {
-          color: white;
+          color: var(--brand-text);
         }
       }
 
       #editButton {
-        border: 1px solid cadetblue;
-        background-color: white;
+        border: 1px solid var(--brand);
+        background-color: var(--surface-bg);
 
         &:hover {
-          background-color: cadetblue;
+          background-color: var(--brand);
         }
       }
 
       #deleteButton {
         border: 1px solid rgb(208, 65, 65);
-        background-color: white;
+        background-color: var(--surface-bg);
         &:hover {
           background-color: rgb(208, 65, 65);
         }
@@ -165,7 +165,7 @@
 
       #repeatTransactionButton {
         border: 1px solid green;
-        background-color: white;
+        background-color: var(--surface-bg);
 
         &:hover {
           background-color: green;

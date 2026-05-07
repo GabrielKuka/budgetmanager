@@ -9,6 +9,7 @@ import { useToast } from "../context/ToastContext";
 import searchService from "../services/searchService";
 import { useConfirm } from "../context/ConfirmContext";
 import AddTransactionPopup from "./dashboard/addTransactionPopup";
+import { useThemeContext } from "../context/ThemeContext";
 
 const Navbar = () => {
   const global = useGlobalContext();
@@ -23,6 +24,7 @@ export default Navbar;
 
 const LoggedInNavbar = () => {
   const global = useGlobalContext();
+  const { isDarkMode, toggleTheme } = useThemeContext();
   const showToast = useToast();
   const showConfirm = useConfirm();
 
@@ -279,6 +281,16 @@ const LoggedInNavbar = () => {
         alt="currency_convert_icon"
         onClick={() => setConversionTool(true)}
       />
+      <button
+        type="button"
+        id="theme-toggle"
+        className={isDarkMode ? "active" : ""}
+        title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+        aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+        onClick={toggleTheme}
+      >
+        {isDarkMode ? <SunIcon /> : <MoonIcon />}
+      </button>
       {conversionTool && (
         <ConversionTool closePopup={() => setConversionTool(false)} />
       )}
@@ -395,3 +407,43 @@ const LoggedOutNavbar = () => {
     </div>
   );
 };
+
+const SunIcon = () => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2" />
+    <path d="M12 20v2" />
+    <path d="m4.93 4.93 1.41 1.41" />
+    <path d="m17.66 17.66 1.41 1.41" />
+    <path d="M2 12h2" />
+    <path d="M20 12h2" />
+    <path d="m6.34 17.66-1.41 1.41" />
+    <path d="m19.07 4.93-1.41 1.41" />
+  </svg>
+);
+
+const MoonIcon = () => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M20.99 13.08A8 8 0 1 1 10.92 3.01 6 6 0 0 0 20.99 13.08Z" />
+  </svg>
+);

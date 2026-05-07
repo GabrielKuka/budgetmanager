@@ -507,13 +507,13 @@ const AccountItem = ({
   }
 
   function amountColor(amount) {
-    let color = "#000";
+    let color = "var(--text)";
 
     if (parseFloat(amount) == 0.0) {
-      color = "gray";
+      color = "var(--muted-text)";
     }
     if (parseFloat(amount) < 0) {
-      color = "#fff";
+      color = "var(--brand-text)";
     }
 
     return {

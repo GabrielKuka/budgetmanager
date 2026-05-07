@@ -15,7 +15,7 @@ const MonthlyFinancesSankeyChart = (props) => {
             data={chartData}
             linkCurvature={0.5}
             nodePadding={30}
-            link={{ stroke: "gray", opacity: 0.8 }}
+            link={{ stroke: "var(--chart-grid)", opacity: 0.8 }}
             node={<CustomNode />}
             margin={{
               left: 20,
@@ -50,7 +50,7 @@ function CustomNode({ x, y, width, height, index, payload, containerWidth }) {
         x={isOut ? x - 6 : x + width + 6}
         y={y + height / 2}
         fontSize="14"
-        stroke="#333"
+        fill="var(--chart-axis)"
       >
         {payload.name}
       </text>
@@ -59,7 +59,7 @@ function CustomNode({ x, y, width, height, index, payload, containerWidth }) {
         x={isOut ? x - 6 : x + width + 6}
         y={y + height / 2 + 13}
         fontSize="12"
-        stroke="#333"
+        fill="var(--chart-axis)"
         strokeOpacity="0.5"
       >
         {helper.showOrMask(
@@ -85,11 +85,10 @@ const CustomTooltip = ({ active, payload }) => {
   return (
     <div
       style={{
-        backgroundColor: "cadetblue",
+        backgroundColor: "var(--chart-tooltip-bg)",
         padding: "5px",
         borderRadius: "3px",
-        height: "50px",
-        color: "white",
+        color: "var(--chart-tooltip-text)",
         height: "fit-content",
       }}
     >

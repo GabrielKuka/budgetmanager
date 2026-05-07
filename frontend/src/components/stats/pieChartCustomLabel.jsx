@@ -21,7 +21,7 @@ const PieChartCustomizedLabel = ({
           <text
             x={x}
             y={y}
-            fill="#000"
+            fill="var(--chart-axis)"
             textAnchor={x > cx ? "start" : "end"}
             dominantBaseline="central"
             fontWeight="bold"

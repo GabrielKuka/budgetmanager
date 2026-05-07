@@ -9,8 +9,9 @@
   &__sidebar {
     position: fixed;
     width: 70px;
-    border: 1px solid #dadada;
-    box-shadow: 1px 1px 2px #dadada;
+    background-color: var(--surface-bg);
+    border: 1px solid var(--border);
+    box-shadow: 1px 1px 2px var(--shadow);
     @include flex(column, flex-start, center);
     gap: 15px;
     height: 100%;
@@ -25,7 +26,7 @@
       cursor: pointer;
 
       &:hover {
-        background-color: #dcdcdc;
+        background-color: var(--surface-alt-bg);
         transform: scale(1.1);
       }
     }
@@ -37,7 +38,7 @@
       cursor: pointer;
 
       &:hover {
-        background-color: #dcdcdc;
+        background-color: var(--surface-alt-bg);
       }
     }
   }

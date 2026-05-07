@@ -25,9 +25,10 @@
     overflow: -moz-scrollbars-none; /* Firefox */
 
     .enter-transfer {
-      border: 1px solid #dadada;
-      box-shadow: 1px 1px 10px #dadada;
+      border: 1px solid var(--border);
+      box-shadow: 1px 1px 10px var(--shadow);
       border-radius: 3px;
+      background-color: var(--surface-bg);
       width: 270px;
       padding: 30px;
       transition: box-shadow 0.3s, border 0.3s;
@@ -53,8 +54,8 @@
         label {
           text-transform: uppercase;
           font-weight: bold;
-          background-color: cadetblue;
-          color: white;
+          background-color: var(--brand);
+          color: var(--brand-text);
           padding: 5px;
           border-radius: 2px;
           cursor: pointer;
@@ -78,15 +79,15 @@
             align-items: stretch;
 
             .add-tag-button {
-              border: 1px solid cadetblue;
+              border: 1px solid var(--brand);
               border-radius: 3px;
-              background-color: cadetblue;
-              color: white;
+              background-color: var(--brand);
+              color: var(--brand-text);
               font-weight: bold;
             }
 
             #add_tag_textfield {
-              border: 1px solid cadetblue;
+              border: 1px solid var(--brand);
               border-radius: 3px;
               transition: border 0.3s;
               width: 260px;
@@ -108,25 +109,25 @@
             flex-wrap: wrap;
             overflow-x: auto;
             span {
-              background-color: cadetblue;
-              color: white;
+              background-color: var(--brand);
+              color: var(--brand-text);
               font-weight: bold;
               border-radius: 3px;
               padding: 3px 6px 3px 6px;
 
               .remove-tag-button {
-                background-color: cadetblue;
-                color: white;
+                background-color: var(--brand);
+                color: var(--brand-text);
                 font-weight: bold;
-                border: 1px solid white;
+                border: 1px solid var(--brand-text);
                 margin-left: 5px;
                 border-radius: 100%;
                 transition: color 0.2s, background-color 0.2s;
 
                 cursor: pointer;
                 &:hover {
-                  color: cadetblue;
-                  background-color: white;
+                  color: var(--brand);
+                  background-color: var(--surface-bg);
                 }
               }
             }
@@ -137,25 +138,25 @@
           gap: 10px;
 
           #submit-button {
-            border: 1px solid cadetblue;
+            border: 1px solid var(--brand);
             border-radius: 3px;
-            background-color: white;
+            background-color: var(--surface-bg);
             padding: 5px;
-            color: cadetblue;
+            color: var(--brand);
             font-weight: bold;
             transition: background-color 0.3s, color 0.3s;
 
             &:hover {
-              background-color: cadetblue;
-              color: white;
+              background-color: var(--brand);
+              color: var(--brand-text);
             }
           }
         }
       }
     }
     .enter-transfer:hover {
-      border: 1px solid cadetblue;
-      box-shadow: 1px 1px 5px cadetblue;
+      border: 1px solid var(--brand);
+      box-shadow: 1px 1px 5px var(--brand);
       label {
         padding-left: 15px;
       }
@@ -163,9 +164,10 @@
   }
 
   &__transfers-list {
-    border: 1px solid #dadada;
-    box-shadow: 1px 1px 2px #dadada;
+    border: 1px solid var(--border);
+    box-shadow: 1px 1px 2px var(--shadow);
     border-radius: 3px;
+    background-color: var(--surface-bg);
     left: 450px;
     height: 99%;
     width: 900px;
@@ -179,7 +181,7 @@
       grid-gap: 10px;
       width: 800px;
       padding: 20px;
-      border-bottom: 1px solid cadetblue;
+      border-bottom: 1px solid var(--brand);
 
       label {
         cursor: pointer;

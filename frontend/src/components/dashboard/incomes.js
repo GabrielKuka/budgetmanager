@@ -16,6 +16,8 @@ import { validationSchemas } from "../../validationSchemas";
 import BarChartToolTip from "../stats/barChartTooltip";
 import PercentExpensesPieChart from "../stats/percentExpensesPie";
 
+const chartAxisTick = { fill: "var(--chart-axis)" };
+
 const Incomes = () => {
   const global = useGlobalContext();
   const [categories, setCategories] = useState(global.incomeCategories);
@@ -204,8 +206,13 @@ const Chart = (props) => {
       data={props.data}
       barSize={20}
     >
-      <XAxis dataKey="category" />
-      <YAxis type="number" tickSize={2} domain={[0, yMaxValue]} />
+      <XAxis dataKey="category" tick={chartAxisTick} />
+      <YAxis
+        type="number"
+        tickSize={2}
+        domain={[0, yMaxValue]}
+        tick={chartAxisTick}
+      />
       <Tooltip
         content={<BarChartToolTip />}
         wrapperStyle={{ border: "none" }}

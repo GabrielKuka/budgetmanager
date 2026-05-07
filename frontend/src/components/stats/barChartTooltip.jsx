@@ -8,11 +8,11 @@ const BarChartToolTip = ({ active, payload }) => {
     return (
       <div
         style={{
-          backgroundColor: "cadetBlue",
+          backgroundColor: "var(--chart-tooltip-bg)",
           padding: "5px",
           borderRadius: "3px",
           height: "50px",
-          color: "white",
+          color: "var(--chart-tooltip-text)",
         }}
       >
         <p>

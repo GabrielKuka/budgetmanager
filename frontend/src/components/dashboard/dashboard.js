@@ -45,7 +45,7 @@ const Sidebar = ({ page, setPage }) => {
   useEffect(() => {
     if (page) {
       const activeButtonStyle = document.getElementById(page).style;
-      activeButtonStyle.borderRight = "2px solid cadetblue";
+      activeButtonStyle.borderRight = "2px solid var(--brand)";
     }
   }, []);
 
@@ -56,9 +56,9 @@ const Sidebar = ({ page, setPage }) => {
     buttons.forEach((button) => {
       const buttonStyle = document.getElementById(button).style;
       if (selected == button) {
-        buttonStyle.borderRight = "2px solid cadetblue";
+        buttonStyle.borderRight = "2px solid var(--brand)";
       } else {
-        buttonStyle.borderRight = "2px solid white";
+        buttonStyle.borderRight = "2px solid var(--surface-bg)";
       }
     });
   }

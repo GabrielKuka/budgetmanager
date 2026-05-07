@@ -16,9 +16,9 @@
     gap: 15px;
     margin-top: 15%;
     margin-left: 12%;
-    border: 1px solid cadetblue;
-    box-shadow: 2px 2px 7px cadetblue;
-    background-color: white;
+    border: 1px solid var(--brand);
+    box-shadow: 2px 2px 7px var(--brand);
+    background-color: var(--surface-bg);
     width: fit-content;
     border-radius: 3px;
     padding: 20px;
@@ -43,8 +43,8 @@
     label {
       text-transform: uppercase;
       font-weight: bold;
-      background-color: cadetblue;
-      color: white;
+      background-color: var(--brand);
+      color: var(--brand-text);
       padding: 5px;
       border-radius: 2px;
       cursor: pointer;
@@ -59,23 +59,23 @@
     }
 
     #submit-button {
-      border: 1px solid cadetblue;
-      background-color: white;
+      border: 1px solid var(--brand);
+      background-color: var(--surface-bg);
       border-radius: 3px;
-      color: cadetblue;
+      color: var(--brand);
       padding: 5px;
       font-weight: bold;
       transition: background-color 0.3s, color 0.3s;
       font-size: 16px;
 
       &:hover {
-        background-color: cadetblue;
-        color: white;
+        background-color: var(--brand);
+        color: var(--brand-text);
       }
     }
 
     #login-link {
-      color: cadetblue;
+      color: var(--brand);
       font-weight: bold;
       transition: color 0.3s;
       text-decoration: none;
@@ -88,8 +88,8 @@
   }
 
   &__form:hover {
-    border: 1px solid cadetblue;
-    box-shadow: 1px 1px 10px cadetblue;
+    border: 1px solid var(--brand);
+    box-shadow: 1px 1px 10px var(--brand);
     label {
       padding-left: 15px;
     }

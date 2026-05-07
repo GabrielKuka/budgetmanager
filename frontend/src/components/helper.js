@@ -142,7 +142,7 @@ export const helper = {
       case "expense":
         return "red";
       case "transfer":
-        return "cadetblue";
+        return "var(--brand)";
       case "buy":
         return "darkorange";
       case "sell":

@@ -1,25 +1,25 @@
 .account-page-loading {
   margin-top: 96px;
   text-align: center;
-  color: #3b7f8f;
+  color: var(--brand);
   font-weight: 700;
 }
 
 .account-page-wrapper {
   margin-top: 74px;
   padding: 0 24px 32px;
-  color: #1f2a30;
+  color: var(--text);
 
   .positive {
-    color: #2f9e44;
+    color: var(--success);
   }
 
   .negative {
-    color: #c92a2a;
+    color: var(--danger);
   }
 
   .muted {
-    color: #7a8790;
+    color: var(--muted-text);
   }
 
   .badge {
@@ -27,8 +27,8 @@
     margin-left: 6px;
     padding: 2px 6px;
     border-radius: 8px;
-    background: #f1f3f5;
-    color: #6c757d;
+    background: var(--surface-alt-bg);
+    color: var(--muted-text);
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -42,10 +42,10 @@
   align-items: stretch;
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #d9e1e5;
+  border-bottom: 1px solid var(--border);
 
   .account-kind {
-    color: #6c757d;
+    color: var(--muted-text);
     font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
@@ -63,27 +63,27 @@
     padding: 3px 8px;
     border-radius: 8px;
     background: #e9f7ef;
-    color: #2f9e44;
+    color: var(--success);
     font-size: 12px;
     vertical-align: middle;
   }
 
   .status.inactive {
-    background: #fff0f0;
-    color: #c92a2a;
+    background: var(--surface-alt-bg);
+    color: var(--danger);
   }
 }
 
 .metric {
   min-height: 70px;
   padding: 12px;
-  border: 1px solid #d9e1e5;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface-bg);
 
   span {
     display: block;
-    color: #6c757d;
+    color: var(--muted-text);
     font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
@@ -110,16 +110,16 @@
 
   section {
     padding: 14px;
-    border: 1px solid #d9e1e5;
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--surface-bg);
   }
 
   h2 {
     margin: 0 0 10px;
     font-size: 13px;
     text-transform: uppercase;
-    color: #3b7f8f;
+    color: var(--brand);
   }
 }
 
@@ -128,7 +128,7 @@
   grid-template-columns: 0.9fr 1.3fr;
   gap: 10px;
   padding: 8px 0;
-  border-bottom: 1px solid #eef2f4;
+  border-bottom: 1px solid var(--soft-border);
   font-size: 13px;
 
   &:last-child {
@@ -136,7 +136,7 @@
   }
 
   span {
-    color: #6c757d;
+    color: var(--muted-text);
   }
 
   strong {
@@ -153,21 +153,21 @@
   display: flex;
   gap: 6px;
   margin-bottom: 12px;
-  border-bottom: 1px solid #d9e1e5;
+  border-bottom: 1px solid var(--border);
 
   button {
     padding: 10px 12px;
     border: 0;
     border-bottom: 2px solid transparent;
     background: transparent;
-    color: #4f5f68;
+    color: var(--muted-text);
     font-weight: 700;
     cursor: pointer;
   }
 
   button.active {
-    color: #3b7f8f;
-    border-bottom-color: #3b7f8f;
+    color: var(--brand);
+    border-bottom-color: var(--brand);
   }
 }
 
@@ -198,14 +198,14 @@
 .chart-card {
   min-height: 300px;
   padding: 14px;
-  border: 1px solid #d9e1e5;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface-bg);
 
   h2 {
     margin: 0 0 12px;
     font-size: 14px;
-    color: #2f3b43;
+    color: var(--text);
   }
 }
 
@@ -214,15 +214,15 @@
   align-items: center;
   justify-content: center;
   min-height: 180px;
-  color: #7a8790;
+  color: var(--muted-text);
   font-weight: 700;
 }
 
 .data-table {
   overflow-x: auto;
-  border: 1px solid #d9e1e5;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface-bg);
 
   table {
     width: 100%;
@@ -234,14 +234,14 @@
   th,
   td {
     padding: 11px 12px;
-    border-bottom: 1px solid #eef2f4;
+    border-bottom: 1px solid var(--soft-border);
     text-align: left;
     white-space: nowrap;
   }
 
   th {
-    color: #52636d;
-    background: #f8fafb;
+    color: var(--muted-text);
+    background: var(--surface-alt-bg);
     font-size: 12px;
     text-transform: uppercase;
   }
@@ -257,7 +257,7 @@
   }
 
   tbody tr:hover {
-    background: #f8fafb;
+    background: var(--surface-alt-bg);
   }
 }
 
@@ -272,10 +272,10 @@
   input {
     min-height: 36px;
     padding: 7px 10px;
-    border: 1px solid #cfd8dd;
+    border: 1px solid var(--border);
     border-radius: 6px;
-    background: #fff;
-    color: #1f2a30;
+    background: var(--input-bg);
+    color: var(--input-text);
   }
 
   button {
@@ -284,8 +284,8 @@
   }
 
   button.active {
-    border-color: #3b7f8f;
-    color: #3b7f8f;
+    border-color: var(--brand);
+    color: var(--brand);
   }
 
   input {
@@ -301,14 +301,14 @@
 
 .cash-card {
   padding: 14px;
-  border: 1px solid #d9e1e5;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface-bg);
 
   span,
   small {
     display: block;
-    color: #6c757d;
+    color: var(--muted-text);
     font-weight: 700;
   }
 

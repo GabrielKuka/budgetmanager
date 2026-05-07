@@ -1,5 +1,69 @@
+html {
+  background-color: var(--app-bg);
+}
+
+:root {
+  --app-bg: #ffffff;
+  --surface-bg: #ffffff;
+  --surface-alt-bg: #f8fafb;
+  --text: #1f2a30;
+  --muted-text: #6c757d;
+  --border: #dadada;
+  --soft-border: #eef2f4;
+  --shadow: #dadada;
+  --brand: #5f9ea0;
+  --brand-hover: #4682b4;
+  --brand-text: #ffffff;
+  --nav-input-bg: #ffffff;
+  --nav-input-text: #1f2a30;
+  --nav-input-placeholder: #5f6f78;
+  --danger: #c92a2a;
+  --success: #2f9e44;
+  --input-bg: #ffffff;
+  --input-text: #1f2a30;
+  --input-border: #5f9ea0;
+  --chart-axis: #333333;
+  --chart-grid: #dadada;
+  --chart-label-bg: #d3d3d3;
+  --chart-label-text: #000000;
+  --chart-tooltip-bg: #5f9ea0;
+  --chart-tooltip-text: #ffffff;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --app-bg: #111827;
+  --surface-bg: #1f2937;
+  --surface-alt-bg: #263244;
+  --text: #f9fafb;
+  --muted-text: #cbd5e1;
+  --border: #374151;
+  --soft-border: #4b5563;
+  --shadow: rgba(0, 0, 0, 0.35);
+  --brand: #3f7f82;
+  --brand-hover: #4d9497;
+  --brand-text: #ffffff;
+  --nav-input-bg: #4f8f92;
+  --nav-input-text: #ffffff;
+  --nav-input-placeholder: rgba(255, 255, 255, 0.78);
+  --danger: #f87171;
+  --success: #4ade80;
+  --input-bg: #111827;
+  --input-text: #f9fafb;
+  --input-border: #5f9ea0;
+  --chart-axis: #e5e7eb;
+  --chart-grid: #4b5563;
+  --chart-label-bg: #374151;
+  --chart-label-text: #f9fafb;
+  --chart-tooltip-bg: #263244;
+  --chart-tooltip-text: #ffffff;
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
+  background-color: var(--app-bg);
+  color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
@@ -14,4 +78,24 @@ code {
 
 button {
   cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border-color: var(--input-border);
+}
+
+input[type="image"] {
+  background-color: transparent;
+  border: 0;
+}
+
+.recharts-text,
+.recharts-cartesian-axis-tick-value,
+.recharts-legend-item-text {
+  fill: var(--chart-axis);
+  color: var(--chart-axis) !important;
 }

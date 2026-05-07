@@ -22,19 +22,19 @@ div[class^="toast-wrapper"] {
 }
 
 .toast-wrapper-info {
-  box-shadow: 0 2px 4px cadetblue;
-  background-color: cadetblue;
-  color: white;
+  box-shadow: 0 2px 4px var(--brand);
+  background-color: var(--brand);
+  color: var(--brand-text);
 }
 
 .toast-wrapper-success {
   box-shadow: 0 2px 4px green;
   background-color: green;
-  color: white;
+  color: var(--brand-text);
 }
 
 .toast-wrapper-error {
   box-shadow: 0 2px 4px red;
   background-color: red;
-  color: white;
+  color: var(--brand-text);
 }

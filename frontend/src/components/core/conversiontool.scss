@@ -17,29 +17,29 @@
   transform: translate(-50%, 50%);
   height: 240px;
   width: 400px;
-  background-color: white;
+  background-color: var(--surface-bg);
   z-index: 2001;
 
-  border: 1px solid cadetblue;
+  border: 1px solid var(--brand);
   border-radius: 3px;
 
   .title-bar {
     @include flex(row, flex-start, center);
     width: 100%;
     font-size: 20px;
-    background-color: cadetblue;
+    background-color: var(--brand);
     padding: 15px 0;
     .title {
-      border-bottom: 1px solid cadetblue;
+      border-bottom: 1px solid var(--brand);
       width: 100%;
-      color: white;
+      color: var(--brand-text);
       margin-left: 10px;
     }
 
     .close-popup {
       justify-self: end;
       background-color: #d8807d;
-      color: white;
+      color: var(--brand-text);
       width: 40px;
       height: 30px;
       padding: 5px;
@@ -67,7 +67,7 @@
       gap: 10px;
       .textfield,
       .select-currency {
-        border: 1px solid cadetblue;
+        border: 1px solid var(--brand);
         border-radius: 3px;
         height: 30px;
       }
@@ -81,23 +81,23 @@
     .separator {
       border: none;
       height: 0.1px;
-      background-color: cadetblue;
+      background-color: var(--brand);
       margin: 5px 0;
     }
     #submit-button {
       align-self: flex-end;
       padding: 10px;
       margin-right: 20px;
-      border: 1px solid cadetblue;
+      border: 1px solid var(--brand);
       border-radius: 3px;
-      background-color: cadetblue;
-      color: white;
+      background-color: var(--brand);
+      color: var(--brand-text);
       font-weight: bold;
       transition: background-color 0.3s, color 0.3s;
 
       &:active {
-        background-color: white;
-        color: cadetblue;
+        background-color: var(--surface-bg);
+        color: var(--brand);
       }
     }
   }

@@ -23,6 +23,7 @@ import {
 
 const TABS = ["Overview", "Holdings", "Cash", "Transactions", "Analytics"];
 const COLORS = ["#3b7f8f", "#6c8f3b", "#9b6a3b", "#7b6fb0", "#a85f6a"];
+const chartAxisTick = { fill: "var(--chart-axis)", fontSize: 12 };
 const TX_LABELS = {
   income: "Income",
   expense: "Expense",
@@ -756,8 +757,14 @@ const DonutChart = ({ data }) => {
             />
           ))}
         </Pie>
-        <Tooltip />
-        <Legend />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "var(--chart-tooltip-bg)",
+            borderColor: "var(--border)",
+            color: "var(--chart-tooltip-text)",
+          }}
+        />
+        <Legend wrapperStyle={{ color: "var(--chart-axis)" }} />
       </PieChart>
     </ResponsiveContainer>
   );
@@ -777,9 +784,15 @@ const BarListChart = ({ data, dataKey, nameKey, signed = false }) => {
   return (
     <ResponsiveContainer width="100%" height={260}>
       <BarChart data={rows}>
-        <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-        <YAxis tick={{ fontSize: 12 }} />
-        <Tooltip />
+        <XAxis dataKey="label" tick={chartAxisTick} />
+        <YAxis tick={chartAxisTick} />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "var(--chart-tooltip-bg)",
+            borderColor: "var(--border)",
+            color: "var(--chart-tooltip-text)",
+          }}
+        />
         <Bar dataKey="value">
           {rows.map((entry, index) => (
             <Cell
@@ -814,10 +827,16 @@ const MonthlyActivityChart = ({ data }) => {
   return (
     <ResponsiveContainer width="100%" height={260}>
       <BarChart data={rows}>
-        <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-        <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-        <Tooltip />
-        <Legend />
+        <XAxis dataKey="month" tick={chartAxisTick} />
+        <YAxis allowDecimals={false} tick={chartAxisTick} />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "var(--chart-tooltip-bg)",
+            borderColor: "var(--border)",
+            color: "var(--chart-tooltip-text)",
+          }}
+        />
+        <Legend wrapperStyle={{ color: "var(--chart-axis)" }} />
         <Bar dataKey="income" fill="#2f9e44" />
         <Bar dataKey="expense" fill="#c92a2a" />
         <Bar dataKey="transfer" fill="#3b7f8f" />
@@ -835,9 +854,15 @@ const LineSeries = ({ data, dataKey }) => {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <LineChart data={data}>
-        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-        <YAxis tick={{ fontSize: 12 }} />
-        <Tooltip />
+        <XAxis dataKey="date" tick={chartAxisTick} />
+        <YAxis tick={chartAxisTick} />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "var(--chart-tooltip-bg)",
+            borderColor: "var(--border)",
+            color: "var(--chart-tooltip-text)",
+          }}
+        />
         <Line
           type="monotone"
           dataKey={dataKey}

@@ -10,7 +10,7 @@
     border: 0;
     height: 1px;
     width: 100%;
-    background: lightgray;
+    background: var(--border);
   }
 
   &__incomes,
@@ -29,8 +29,8 @@
       .header-label {
         position: absolute;
         font-size: 28px;
-        background-color: cadetblue;
-        color: white;
+        background-color: var(--brand);
+        color: var(--brand-text);
         border-radius: 3px;
         padding: 5px 10px 5px 10px;
       }
@@ -62,15 +62,16 @@
           width: 100%;
           @include flex(column, flex-start, flex-start);
           gap: 10px;
-          border: 1px solid #dadada;
+          border: 1px solid var(--border);
+          background-color: var(--surface-bg);
           padding: 10px 0 10px 10px;
-          box-shadow: 2px 2px 8px #dadada;
+          box-shadow: 2px 2px 8px var(--shadow);
           border-radius: 3px;
           transition: border 0.3s, box-shadow 0.3s;
 
           &:hover {
-            border: 1px solid cadetblue;
-            box-shadow: 2px 2px 4px cadetblue;
+            border: 1px solid var(--brand);
+            box-shadow: 2px 2px 4px var(--brand);
           }
           div {
             @include flex(row, flex-start, flex-start);
@@ -80,13 +81,13 @@
               margin-left: auto;
             }
             label {
-              color: gray;
+              color: var(--muted-text);
             }
           }
           .tags {
             .tag {
-              background-color: cadetblue;
-              color: white;
+              background-color: var(--brand);
+              color: var(--brand-text);
               font-weight: bold;
               border-radius: 3px;
               padding: 3px 6px 3px 6px;
@@ -99,21 +100,21 @@
           gap: 10px;
           #show-all-btn {
             margin-left: auto;
-            color: cadetblue;
-            background-color: white;
+            color: var(--brand);
+            background-color: var(--surface-bg);
             border: none;
             text-decoration: underline;
           }
           .more-less-button {
-            border: 1px solid cadetblue;
-            background-color: white;
+            border: 1px solid var(--brand);
+            background-color: var(--surface-bg);
             padding: 5px;
             border-radius: 3px;
-            color: cadetblue;
+            color: var(--brand);
             transition: background-color 0.3s, color 0.3s;
             &:hover {
-              background-color: cadetblue;
-              color: white;
+              background-color: var(--brand);
+              color: var(--brand-text);
             }
           }
         }
@@ -122,15 +123,16 @@
       .aggs-card {
         @include flex(column, center, flex-start);
         width: 40%;
-        box-shadow: 1px 1px 8px cadetblue;
+        background-color: var(--surface-bg);
+        box-shadow: 1px 1px 8px var(--brand);
         border-radius: 3px;
         gap: 10px;
         padding: 20px 10px 20px 10px;
 
         label {
           font-size: 18px;
-          background-color: cadetblue;
-          color: white;
+          background-color: var(--brand);
+          color: var(--brand-text);
           border-radius: 3px;
           padding: 5px 5px;
           transition: padding-left 0.3s;
@@ -147,10 +149,10 @@
         .aggs-table {
           border-collapse: collapse;
           .measurement {
-            color: gray;
+            color: var(--muted-text);
           }
           tr {
-            border: 1px solid cadetblue;
+            border: 1px solid var(--brand);
             text-align: left;
             td {
               padding: 10px;
@@ -169,8 +171,8 @@
 
     label {
       padding: 10px 10px 10px 10px;
-      background-color: cadetblue;
-      color: white;
+      background-color: var(--brand);
+      color: var(--brand-text);
       font-size: 33px;
       font-weight: bold;
       transition: padding-left 0.4s;
@@ -181,7 +183,7 @@
       }
     }
     p {
-      color: gray;
+      color: var(--muted-text);
     }
   }
 }
