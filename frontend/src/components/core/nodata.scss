@@ -1,11 +1,11 @@
 .no-data {
-  left: 520px;
-  position: absolute;
+  margin: 20px auto;
+  position: static;
   border: 1px solid var(--border);
   box-shadow: 1px 1px 2px var(--shadow);
   border-radius: 3px;
   padding-bottom: 20px;
-  width: 500px;
+  width: min(500px, calc(100vw - (var(--page-gutter) * 2)));
   padding: 20px 30px;
 
   label {

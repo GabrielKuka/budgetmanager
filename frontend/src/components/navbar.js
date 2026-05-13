@@ -239,69 +239,76 @@ const LoggedInNavbar = () => {
           </div>
         )}
       </div>
-      <button id="dashboard" onClick={(e) => handlePage(e)}>
-        Dashboard
-      </button>
-      <button id="accounts" onClick={(e) => handlePage(e)}>
-        Accounts
-      </button>
-      <select
-        id="global_currency"
-        value={global.globalCurrency}
-        onChange={changeGlobalCurrency}
-      >
-        <option value="EUR">EUR</option>
-        <option value="USD">USD</option>
-        <option value="ALL">ALL</option>
-        <option value="BGN">BGN</option>
-      </select>
-      <input
-        type="button"
-        id="add_transaction_btn"
-        value="+"
-        title="Add a transaction"
-        onClick={() => setAddTransactionPopup(true)}
-      />
-      <input
-        id={"privacy_btn"}
-        title="Toggle Privacy Mode"
-        type="image"
-        src={
-          process.env.PUBLIC_URL +
-          (global.privacyMode ? "/locker_closed.png" : "/locker_open.png")
-        }
-        alt="privacy_mode_icon"
-        onClick={global.togglePrivacyMode}
-      />
-      <input
-        id={"converter"}
-        title="Convert Currencies"
-        type="image"
-        src={process.env.PUBLIC_URL + "/currency_convert_icon.png"}
-        alt="currency_convert_icon"
-        onClick={() => setConversionTool(true)}
-      />
-      <button
-        type="button"
-        id="theme-toggle"
-        className={isDarkMode ? "active" : ""}
-        title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-        aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-        onClick={toggleTheme}
-      >
-        {isDarkMode ? <SunIcon /> : <MoonIcon />}
-      </button>
+      <div className="primary-nav">
+        <button id="dashboard" onClick={(e) => handlePage(e)}>
+          Dashboard
+        </button>
+        <button id="accounts" onClick={(e) => handlePage(e)}>
+          Accounts
+        </button>
+      </div>
+      <div className="navbar-actions">
+        <select
+          id="global_currency"
+          value={global.globalCurrency}
+          onChange={changeGlobalCurrency}
+          title="Global currency"
+        >
+          <option value="EUR">EUR</option>
+          <option value="USD">USD</option>
+          <option value="ALL">ALL</option>
+          <option value="BGN">BGN</option>
+        </select>
+        <input
+          type="button"
+          id="add_transaction_btn"
+          value="+"
+          title="Add a transaction"
+          onClick={() => setAddTransactionPopup(true)}
+        />
+        <input
+          id={"privacy_btn"}
+          title="Toggle Privacy Mode"
+          type="image"
+          src={
+            process.env.PUBLIC_URL +
+            (global.privacyMode ? "/locker_closed.png" : "/locker_open.png")
+          }
+          alt="privacy_mode_icon"
+          onClick={global.togglePrivacyMode}
+        />
+        <input
+          id={"converter"}
+          title="Convert Currencies"
+          type="image"
+          src={process.env.PUBLIC_URL + "/currency_convert_icon.png"}
+          alt="currency_convert_icon"
+          onClick={() => setConversionTool(true)}
+        />
+        <button
+          type="button"
+          id="theme-toggle"
+          className={isDarkMode ? "active" : ""}
+          title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label={
+            isDarkMode ? "Switch to light mode" : "Switch to dark mode"
+          }
+          onClick={toggleTheme}
+        >
+          {isDarkMode ? <SunIcon /> : <MoonIcon />}
+        </button>
+        <input
+          className={"logout-button"}
+          id={"logout-button"}
+          type="image"
+          src={process.env.PUBLIC_URL + "/logout_icon.png"}
+          alt="logout_icon"
+          onClick={handleLogout}
+        />
+      </div>
       {conversionTool && (
         <ConversionTool closePopup={() => setConversionTool(false)} />
       )}
-      <input
-        className={"logout-button"}
-        id={"logout-button"}
-        type="image"
-        src={process.env.PUBLIC_URL + "/logout_icon.png"}
-        alt="logout_icon"
-        onClick={handleLogout}
-      />
       {transactionPopup && (
         <TransactionPopup
           transaction={transactionPopup}

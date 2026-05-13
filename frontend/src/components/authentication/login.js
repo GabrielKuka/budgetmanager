@@ -95,7 +95,11 @@ const AutoScrollContainer = () => {
 
   useEffect(() => {
     if (sentencesRef.current) {
-      sentencesRef.current.style.transform = `translateY(-${index * 600}px)`;
+      const sentenceHeight =
+        sentencesRef.current.firstElementChild?.clientHeight || 600;
+      sentencesRef.current.style.transform = `translateY(-${
+        index * sentenceHeight
+      }px)`;
     }
   }, [index]);
 

@@ -154,11 +154,18 @@ const TransactionItem = (props) => {
       {helper.isRecent(props.transaction.created_on) && (
         <label className="new-transaction">NEW!</label>
       )}
-      <label id="date">{props.transaction.date}</label>
-      <label id="description">{props.transaction.description}</label>
+      <label id="date" data-label="Date">
+        <span className="transaction-value">{props.transaction.date}</span>
+      </label>
+      <label id="description" data-label="Description">
+        <span className="transaction-value">
+          {props.transaction.description}
+        </span>
+      </label>
       {(transactionType === "income" || transactionType === "expense") && (
         <label
           id="account"
+          data-label="Account"
           style={helper.accountLabelStyle(
             global.accounts,
             transactionType === "income"
@@ -166,58 +173,73 @@ const TransactionItem = (props) => {
               : props.transaction.from_account
           )}
         >
-          {helper.getAccountName(
-            global.accounts,
-            transactionType === "income"
-              ? props.transaction.to_account
-              : props.transaction.from_account
-          )}
+          <span className="transaction-value">
+            {helper.getAccountName(
+              global.accounts,
+              transactionType === "income"
+                ? props.transaction.to_account
+                : props.transaction.from_account
+            )}
+          </span>
         </label>
       )}
       {transactionType === "transfer" && (
         <>
           <label
             id="from_account"
+            data-label="From"
             style={helper.accountLabelStyle(
               global.accounts,
               props.transaction.from_account
             )}
           >
-            {helper.getAccountName(
-              global.accounts,
-              props.transaction.from_account
-            )}
+            <span className="transaction-value">
+              {helper.getAccountName(
+                global.accounts,
+                props.transaction.from_account
+              )}
+            </span>
           </label>
           <label
             id="to_account"
+            data-label="To"
             style={helper.accountLabelStyle(
               global.accounts,
               props.transaction.to_account
             )}
           >
-            {helper.getAccountName(
-              global.accounts,
-              props.transaction.to_account
-            )}
+            <span className="transaction-value">
+              {helper.getAccountName(
+                global.accounts,
+                props.transaction.to_account
+              )}
+            </span>
           </label>
         </>
       )}
       <label
         id="amount"
+        data-label="Amount"
         style={{ color: helper.amountLabelColor(transactionType) }}
       >
-        {transactionType === "income" && <span>+ </span>}
-        {transactionType === "expense" && <span>- </span>}
-        {helper.showOrMask(
-          global.privacyMode,
-          helper.formatNumber(props.transaction?.amount)
-        )}{" "}
-        {props.currency}
+        <span className="transaction-value amount-value">
+          {transactionType === "income" && <span>+ </span>}
+          {transactionType === "expense" && <span>- </span>}
+          {helper.showOrMask(
+            global.privacyMode,
+            helper.formatNumber(props.transaction?.amount)
+          )}{" "}
+          {props.currency}
+        </span>
       </label>
       {(transactionType === "income" || transactionType === "expense") && (
-        <label id="category">
-          <span>{helper.categoryIcon(props.transaction.category)}</span>
-          {getCategory(props.transaction.category)}
+        <label id="category" data-label="Category">
+          <span className="transaction-value category-value">
+            <span className="category-icon">
+              {helper.categoryIcon(props.transaction.category)}
+            </span>
+            <span>{getCategory(props.transaction.category)}</span>
+          </span>
         </label>
       )}
       <button className={"kebab-button"} onClick={toggleKebab}>

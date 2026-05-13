@@ -1,10 +1,11 @@
 @import "../../mixins";
 
 .dashboard-wrapper {
-  margin-top: 68px;
+  margin-top: var(--navbar-height);
   position: fixed;
   width: 100%;
-  height: 100%;
+  height: calc(100vh - var(--navbar-height));
+  overflow: hidden;
 
   &__sidebar {
     position: fixed;
@@ -20,6 +21,9 @@
     z-index: 2000;
 
     input[type="image"] {
+      box-sizing: content-box;
+      width: 30px;
+      height: 30px;
       padding: 10px;
       border-radius: 5px;
       transition: background-color ease-in 0.1s, transform 0.3s ease-in-out;
@@ -32,6 +36,9 @@
     }
 
     .datepicker {
+      box-sizing: content-box;
+      width: 30px;
+      height: 30px;
       padding: 10px;
       border-radius: 5px;
       transition: background-color ease-in 0.1s;
@@ -39,6 +46,43 @@
 
       &:hover {
         background-color: var(--surface-alt-bg);
+      }
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-wrapper {
+    position: static;
+    min-height: calc(100vh - var(--navbar-height));
+    height: auto;
+    margin-top: var(--navbar-height);
+    overflow: visible;
+    padding-top: 64px;
+
+    &__sidebar {
+      position: fixed;
+      top: var(--navbar-height);
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 56px;
+      min-height: 56px;
+      padding: 8px var(--page-gutter);
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: 10px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      border-left: 0;
+      border-right: 0;
+
+      input[type="image"],
+      .datepicker {
+        flex: 0 0 auto;
+        width: 30px;
+        height: 30px;
+        padding: 8px;
       }
     }
   }

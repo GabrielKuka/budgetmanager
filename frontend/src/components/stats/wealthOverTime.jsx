@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
   ComposedChart,
+  ResponsiveContainer,
 } from "recharts";
 import statService from "../../services/transactionService/statService";
 
@@ -115,58 +116,58 @@ const WealthOverTime = (props) => {
   };
 
   return (
-    <ComposedChart
-      width={props.width}
-      height={props.height}
-      data={filteredData?.sort((a, b) => new Date(a.date) - new Date(b.date))}
-      margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-      id="wealth_over_time_chart"
-    >
-      <defs>
-        <linearGradient id="colorLine" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="5%" stopColor="#5F9EA0" stopOpacity={0.8} />{" "}
-          <stop offset="50%" stopColor="#7FB5B5" stopOpacity={0.5} />{" "}
-          <stop offset="95%" stopColor="#2F4F4F" stopOpacity={0} />{" "}
-        </linearGradient>
-      </defs>
+    <ResponsiveContainer width="100%" height={props.height || 480}>
+      <ComposedChart
+        data={filteredData?.sort((a, b) => new Date(a.date) - new Date(b.date))}
+        margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+        id="wealth_over_time_chart"
+      >
+        <defs>
+          <linearGradient id="colorLine" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#5F9EA0" stopOpacity={0.8} />{" "}
+            <stop offset="50%" stopColor="#7FB5B5" stopOpacity={0.5} />{" "}
+            <stop offset="95%" stopColor="#2F4F4F" stopOpacity={0} />{" "}
+          </linearGradient>
+        </defs>
 
-      <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="6 6" />
-      <XAxis dataKey="date" tick={chartAxisTick} />
-      <YAxis
-        yAxisId={"left"}
-        orientation="left"
-        domain={[0, "auto"]}
-        tick={chartAxisTick}
-      />
-      <YAxis yAxisId={"right"} orientation="right" tick={chartAxisTick} />
-      <Tooltip content={<AreaChartChartToolTip />} />
-      <Legend
-        content={(props) => (
-          <CustomLegend
-            selectedYear={selectedYear}
-            handleYearChange={handleYearChange}
-            years={years}
-            aggs={aggs}
-          />
-        )}
-      />
-      <Area
-        type="monotone"
-        dataKey="monthly_wealth"
-        stroke="var(--brand)"
-        fillOpacity={1}
-        fill="url(#colorLine)"
-        yAxisId={"left"}
-      />
-      <Bar
-        dataKey="net_difference"
-        fill="#90EE90"
-        barSize={20}
-        name="Net Difference"
-        yAxisId={"right"}
-        shape={<NetSavingsBar />}
-      />
-    </ComposedChart>
+        <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="6 6" />
+        <XAxis dataKey="date" tick={chartAxisTick} />
+        <YAxis
+          yAxisId={"left"}
+          orientation="left"
+          domain={[0, "auto"]}
+          tick={chartAxisTick}
+        />
+        <YAxis yAxisId={"right"} orientation="right" tick={chartAxisTick} />
+        <Tooltip content={<AreaChartChartToolTip />} />
+        <Legend
+          content={(props) => (
+            <CustomLegend
+              selectedYear={selectedYear}
+              handleYearChange={handleYearChange}
+              years={years}
+              aggs={aggs}
+            />
+          )}
+        />
+        <Area
+          type="monotone"
+          dataKey="monthly_wealth"
+          stroke="var(--brand)"
+          fillOpacity={1}
+          fill="url(#colorLine)"
+          yAxisId={"left"}
+        />
+        <Bar
+          dataKey="net_difference"
+          fill="#90EE90"
+          barSize={20}
+          name="Net Difference"
+          yAxisId={"right"}
+          shape={<NetSavingsBar />}
+        />
+      </ComposedChart>
+    </ResponsiveContainer>
   );
 };
 

@@ -19,7 +19,7 @@ div[class^="confirm-dialog"] {
   left: 50%;
   position: fixed;
   width: fit-content;
-  max-width: 450px;
+  max-width: min(450px, calc(100vw - 24px));
   height: fit-content;
   padding: 10px 20px;
   transform: translate(-50%, -50%);
@@ -73,7 +73,7 @@ div[class$="show"] {
   }
 
   .action-buttons {
-    @include flex(row, flex-start, center);
+    @include flex(row, flex-start, center, wrap);
     gap: 20px;
 
     button {

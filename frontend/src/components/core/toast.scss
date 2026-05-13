@@ -3,21 +3,24 @@
 div[class^="toast-wrapper"] {
   position: fixed;
   width: fit-content;
+  max-width: calc(100vw - 24px);
   padding: 10px 20px;
-  transform: translateY(30px);
-  right: 48%;
+  transform: translateX(-50%);
+  left: 50%;
   border-radius: 5px;
-  top: 40px;
+  top: calc(var(--navbar-height) + 8px);
   opacity: 1;
   animation: fadein 0.3s ease-in;
+  z-index: 2200;
+  text-align: center;
 }
 
 @keyframes fadein {
   0% {
-    top: 30px;
+    opacity: 0;
   }
   50% {
-    top: 40px;
+    opacity: 1;
   }
 }
 

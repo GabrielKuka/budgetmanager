@@ -1,14 +1,16 @@
 @import "../../mixins";
 
 .incomes-wrapper {
-  height: 88%;
-  width: 90%;
+  height: 100%;
+  width: calc(100vw - 100px);
   margin-left: 100px;
   @include flex(row, flex-start, flex-start);
   gap: 30px;
   padding-top: 20px;
+  padding-right: 20px;
 
   &__sidebar {
+    flex: 0 0 350px;
     width: 350px;
     padding: 0px 20px 20px 20px;
     @include flex(column, flex-start, center);
@@ -37,15 +39,15 @@
         @include flex(column, flex-start, flex-start);
         gap: 10px;
         input {
-          width: 270px;
+          width: 100%;
           height: 20px;
         }
         select {
-          width: 277.5px;
+          width: 100%;
           height: 27px;
         }
         #description {
-          width: 270px;
+          width: 100%;
           min-height: 25px;
           resize: vertical;
           overflow: hidden;
@@ -72,7 +74,7 @@
         .tags_container {
           @include flex(column, flex-start, flex-start);
           gap: 5px;
-          width: 277px;
+          width: 100%;
           &__input {
             @include flex(row, flex-start, flex-start);
             gap: 15px;
@@ -91,7 +93,9 @@
               border: 1px solid var(--brand);
               border-radius: 3px;
               transition: border 0.3s;
-              width: 260px;
+              flex: 1 1 auto;
+              min-width: 0;
+              width: auto;
               height: 33px;
 
               &:hover {
@@ -167,8 +171,11 @@
       box-shadow: 1px 1px 10px var(--shadow);
       border-radius: 3px;
       background-color: var(--surface-bg);
+      width: 330px;
+      min-height: 292px;
       padding-top: 20px;
       padding-bottom: 20px;
+      max-width: 100%;
     }
 
     .pie-chart-card {
@@ -222,9 +229,11 @@
     box-shadow: 1px 1px 2px var(--shadow);
     border-radius: 3px;
     background-color: var(--surface-bg);
-    left: 450px;
+    flex: 1 1 auto;
+    min-width: 0;
     height: 99%;
-    width: 900px;
+    width: 100%;
+    max-width: 980px;
 
     @include flex(column, flex-start, center);
     .header {
@@ -233,7 +242,7 @@
       display: grid;
       grid-template-columns: 0.6fr 1.5fr 0.9fr 0.8fr 1.1fr;
       grid-gap: 10px;
-      width: 800px;
+      width: 100%;
       padding: 20px;
       border-bottom: 1px solid var(--brand);
 
@@ -254,6 +263,7 @@
       overflow-y: scroll;
       padding-bottom: 10px;
       min-height: 87%;
+      align-items: stretch;
 
       /* hide scrollbar */
       &::-webkit-scrollbar {
@@ -262,6 +272,196 @@
       -ms-overflow-style: none; /* IE and Edge */
       scrollbar-width: none; /* Firefox */
       overflow: -moz-scrollbars-none; /* Firefox */
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .incomes-wrapper {
+    gap: 16px;
+    padding-right: var(--page-gutter);
+
+    &__sidebar {
+      flex-basis: 330px;
+      padding: 0 8px 20px;
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .incomes-wrapper {
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    margin-left: 0;
+    padding: 12px var(--page-gutter) 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    &__incomes-list {
+      order: 1;
+      max-width: 100%;
+      height: auto;
+      min-height: 0;
+
+      .header {
+        grid-template-columns: repeat(5, minmax(120px, 1fr));
+        overflow-x: auto;
+      }
+
+      .incomes {
+        min-height: 0;
+        max-height: none;
+        overflow: visible;
+        gap: 10px;
+        padding: 10px;
+      }
+    }
+
+    &__sidebar {
+      order: 2;
+      width: 100%;
+      flex: none;
+      height: auto;
+      padding: 0;
+      overflow: visible;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      align-items: start;
+
+      .enter-income,
+      .summary,
+      .pie-chart-card {
+        width: 100%;
+      }
+
+      .enter-income {
+        padding: 18px;
+      }
+
+      .bar-chart,
+      .pie-chart {
+        width: 100% !important;
+        max-width: 100%;
+      }
+    }
+  }
+}
+
+@media (max-width: 760px) {
+  .incomes-wrapper {
+    &__sidebar {
+      display: contents;
+
+      .summary {
+        order: 0;
+        width: calc(100% - 20px);
+        margin: 0 10px 0;
+      }
+
+      .bar-chart,
+      .pie-chart-card {
+        order: 2;
+        width: calc(100% - 20px);
+        max-width: calc(100% - 20px);
+        box-sizing: border-box;
+        margin: 0 10px;
+      }
+    }
+
+    &__incomes-list {
+      order: 1;
+      border: 0;
+      box-shadow: none;
+      background: transparent;
+      padding: 0;
+
+      .header {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        width: calc(100% - 20px);
+        margin: 0 10px 10px;
+        padding: 12px;
+        background: var(--surface-bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: visible;
+        box-shadow: 1px 1px 2px var(--shadow);
+
+        > :nth-child(1),
+        > :nth-child(2) {
+          display: none;
+        }
+
+        > * {
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          padding: 8px;
+          border: 1px solid var(--soft-border);
+          border-radius: 5px;
+          background: var(--surface-alt-bg);
+        }
+
+        label {
+          color: var(--muted-text);
+          font-size: 11px;
+          letter-spacing: 0;
+          text-transform: uppercase;
+        }
+
+        select {
+          width: 100%;
+          min-height: 34px;
+          border: 1px solid var(--brand);
+          border-radius: 4px;
+          padding: 5px 8px;
+          font-weight: 700;
+        }
+
+        > :nth-child(4) {
+          justify-content: center;
+          position: relative;
+
+          label {
+            width: 100%;
+            min-height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--brand);
+            border-radius: 4px;
+            padding: 5px 30px 5px 8px;
+            color: var(--brand);
+            background: var(--surface-bg);
+            font-size: 12px;
+            font-weight: 700;
+          }
+
+          img {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .incomes-wrapper {
+    &__sidebar {
+      grid-template-columns: 1fr;
+
+      .tags_container__input {
+        gap: 8px;
+      }
     }
   }
 }

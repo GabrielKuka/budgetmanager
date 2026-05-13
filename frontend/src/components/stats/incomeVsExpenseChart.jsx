@@ -3,6 +3,7 @@ import {
   CartesianGrid,
   Legend,
   Area,
+  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -23,45 +24,45 @@ const IncomeVsExpenseChart = (props) => {
   });
 
   return (
-    <AreaChart
-      width={props.width}
-      height={props.height}
-      data={[...filteredData].sort(
-        (a, b) => new Date(a.date) - new Date(b.date)
-      )}
-      margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-    >
-      <defs>
-        <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="5%" stopColor="#00FF00" stopOpacity={0.8} />
-          <stop offset="95%" stopColor="#00FF00" stopOpacity={0} />
-        </linearGradient>
-        <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="5%" stopColor="#DC143C" stopOpacity={0.8} />
-          <stop offset="95%" stopColor="#DC143C" stopOpacity={0} />
-        </linearGradient>
-      </defs>
+    <ResponsiveContainer width="100%" height={props.height || 300}>
+      <AreaChart
+        data={[...filteredData].sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
+        )}
+        margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+      >
+        <defs>
+          <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#00FF00" stopOpacity={0.8} />
+            <stop offset="95%" stopColor="#00FF00" stopOpacity={0} />
+          </linearGradient>
+          <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#DC143C" stopOpacity={0.8} />
+            <stop offset="95%" stopColor="#DC143C" stopOpacity={0} />
+          </linearGradient>
+        </defs>
 
-      <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="6 6" />
-      <XAxis dataKey="date" tick={chartAxisTick} />
-      <YAxis tick={chartAxisTick} />
-      <Tooltip content={<AreaChartChartToolTip />} />
-      <Area
-        type="monotone"
-        dataKey="income"
-        stroke="#00FF00"
-        fillOpacity={1}
-        fill="url(#colorIncome)"
-      />
-      <Area
-        type="monotone"
-        dataKey="expense"
-        stroke="#DC143C"
-        fillOpacity={1}
-        fill="url(#colorExpense)"
-      />
-      <Legend content={<CustomLegend />} />
-    </AreaChart>
+        <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="6 6" />
+        <XAxis dataKey="date" tick={chartAxisTick} />
+        <YAxis tick={chartAxisTick} />
+        <Tooltip content={<AreaChartChartToolTip />} />
+        <Area
+          type="monotone"
+          dataKey="income"
+          stroke="#00FF00"
+          fillOpacity={1}
+          fill="url(#colorIncome)"
+        />
+        <Area
+          type="monotone"
+          dataKey="expense"
+          stroke="#DC143C"
+          fillOpacity={1}
+          fill="url(#colorExpense)"
+        />
+        <Legend content={<CustomLegend />} />
+      </AreaChart>
+    </ResponsiveContainer>
   );
 };
 

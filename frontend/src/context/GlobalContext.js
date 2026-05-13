@@ -7,6 +7,19 @@ import transactionService from "../services/transactionService/transactionServic
 import expenseService from "../services/transactionService/expenseService";
 
 const GlobalContext = createContext();
+const supportedCurrencies = ["EUR", "USD", "ALL", "BGN", "GBP"];
+
+function getStoredGlobalCurrency() {
+  try {
+    const storedCurrency = localStorage.getItem("globalCurrency");
+    const parsedCurrency = storedCurrency ? JSON.parse(storedCurrency) : null;
+    return supportedCurrencies.includes(parsedCurrency)
+      ? parsedCurrency
+      : "EUR";
+  } catch {
+    return "EUR";
+  }
+}
 
 const GlobalProvider = ({ children }) => {
   const userURL = `${BASE_URL}:${BACKEND_PORT}/users`;
@@ -21,11 +34,7 @@ const GlobalProvider = ({ children }) => {
   const [expenseCategories, setExpenseCategories] = useState(null);
 
   const [privacyMode, setPrivacyMode] = useState(false);
-  const [globalCurrency, setGlobalCurrency] = useState(
-    localStorage.getItem("globalCurrency")
-      ? JSON.parse(localStorage.getItem("globalCurrency"))
-      : "EUR"
-  );
+  const [globalCurrency, setGlobalCurrency] = useState(getStoredGlobalCurrency);
 
   const [dateRange, setDateRange] = useState({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -69,8 +78,11 @@ const GlobalProvider = ({ children }) => {
   };
 
   function changeGlobalCurrency(currency) {
-    setGlobalCurrency(currency);
-    localStorage.setItem("globalCurrency", JSON.stringify(currency));
+    const nextCurrency = supportedCurrencies.includes(currency)
+      ? currency
+      : "EUR";
+    setGlobalCurrency(nextCurrency);
+    localStorage.setItem("globalCurrency", JSON.stringify(nextCurrency));
   }
 
   async function updateAccounts() {

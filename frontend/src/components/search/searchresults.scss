@@ -1,8 +1,8 @@
 @import "../../mixins";
 
 .searchresults-wrapper {
-  margin-top: 90px;
-  padding: 0 20px 20px 20px;
+  margin-top: var(--page-top-offset);
+  padding: 0 var(--page-gutter) 20px;
   @include flex(column, flex-start, flex-start);
   gap: 30px;
 
@@ -22,13 +22,17 @@
 
     .header {
       width: 100%;
-      height: 40px;
+      min-height: 40px;
+      height: auto;
       font-weight: bold;
-      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
 
       .header-label {
-        position: absolute;
-        font-size: 28px;
+        position: static;
+        font-size: clamp(20px, 4vw, 28px);
         background-color: var(--brand);
         color: var(--brand-text);
         border-radius: 3px;
@@ -36,7 +40,7 @@
       }
 
       .sort-label {
-        margin-left: 13%;
+        margin-left: 0;
         font-weight: normal;
       }
 
@@ -57,7 +61,8 @@
         flex-wrap: wrap;
         gap: 20px;
         margin-bottom: 20px;
-        width: 50%;
+        flex: 1 1 520px;
+        min-width: 0;
         .transaction-item {
           width: 100%;
           @include flex(column, flex-start, flex-start);
@@ -122,7 +127,8 @@
 
       .aggs-card {
         @include flex(column, center, flex-start);
-        width: 40%;
+        flex: 1 1 360px;
+        min-width: 0;
         background-color: var(--surface-bg);
         box-shadow: 1px 1px 8px var(--brand);
         border-radius: 3px;
@@ -147,6 +153,7 @@
         }
 
         .aggs-table {
+          width: 100%;
           border-collapse: collapse;
           .measurement {
             color: var(--muted-text);
@@ -173,7 +180,7 @@
       padding: 10px 10px 10px 10px;
       background-color: var(--brand);
       color: var(--brand-text);
-      font-size: 33px;
+      font-size: clamp(24px, 6vw, 33px);
       font-weight: bold;
       transition: padding-left 0.4s;
       border-radius: 3px;
@@ -184,6 +191,47 @@
     }
     p {
       color: var(--muted-text);
+    }
+  }
+}
+
+@media (max-width: 760px) {
+  .searchresults-wrapper {
+    gap: 22px;
+
+    &__incomes,
+    &__expenses,
+    &__transfers {
+      .content {
+        flex-direction: column;
+        gap: 14px;
+
+        .items,
+        .aggs-card {
+          width: 100%;
+          flex-basis: auto;
+        }
+
+        .items {
+          .transaction-item {
+            padding: 12px;
+
+            div {
+              width: 100%;
+              flex-wrap: wrap;
+
+              span {
+                margin-left: 0;
+                overflow-wrap: anywhere;
+              }
+            }
+          }
+        }
+
+        .aggs-card {
+          overflow-x: auto;
+        }
+      }
     }
   }
 }

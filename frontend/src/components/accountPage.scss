@@ -1,13 +1,13 @@
 .account-page-loading {
-  margin-top: 96px;
+  margin-top: var(--page-top-offset);
   text-align: center;
   color: var(--brand);
   font-weight: 700;
 }
 
 .account-page-wrapper {
-  margin-top: 74px;
-  padding: 0 24px 32px;
+  margin-top: var(--page-top-offset);
+  padding: 0 var(--page-gutter) 32px;
   color: var(--text);
 
   .positive {
@@ -37,7 +37,10 @@
 
 .account-hero {
   display: grid;
-  grid-template-columns: minmax(220px, 1.5fr) repeat(4, minmax(130px, 1fr));
+  grid-template-columns: minmax(220px, 1.5fr) repeat(
+      auto-fit,
+      minmax(130px, 1fr)
+    );
   gap: 12px;
   align-items: stretch;
   margin-bottom: 16px;
@@ -179,7 +182,7 @@
 
 .metric-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
 }
 
@@ -219,6 +222,7 @@
 }
 
 .data-table {
+  max-width: calc(100vw - (var(--page-gutter) * 2));
   overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -336,7 +340,7 @@
 
 @media (max-width: 760px) {
   .account-page-wrapper {
-    padding: 0 12px 24px;
+    padding-bottom: 24px;
   }
 
   .account-hero,
@@ -349,5 +353,30 @@
 
   .account-tabs {
     overflow-x: auto;
+    scrollbar-width: thin;
+
+    button {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+  }
+
+  .chart-card {
+    min-height: 260px;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 560px) {
+  .table-toolbar,
+  .filters {
+    flex-direction: column;
+
+    button,
+    select,
+    input {
+      width: 100%;
+      min-width: 0;
+    }
   }
 }

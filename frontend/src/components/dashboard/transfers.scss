@@ -1,12 +1,13 @@
 @import "../../mixins";
 
 .transfers-wrapper {
-  height: 88%;
-  width: 90%;
+  height: 100%;
+  width: calc(100vw - 100px);
   margin-left: 100px;
   @include flex(row, flex-start, flex-start);
   gap: 30px;
   padding-top: 20px;
+  padding-right: 20px;
 
   &__sidebar {
     width: 350px;
@@ -38,15 +39,15 @@
         gap: 10px;
 
         input {
-          width: 270px;
+          width: 100%;
           height: 20px;
         }
         select {
-          width: 277.5px;
+          width: 100%;
           height: 27px;
         }
         #description {
-          width: 270px;
+          width: 100%;
           min-height: 25px;
           resize: vertical;
           overflow: hidden;
@@ -71,7 +72,7 @@
         .tags_container {
           @include flex(column, flex-start, flex-start);
           gap: 5px;
-          width: 277px;
+          width: 100%;
           &__input {
             @include flex(row, flex-start, flex-start);
             gap: 15px;
@@ -90,7 +91,9 @@
               border: 1px solid var(--brand);
               border-radius: 3px;
               transition: border 0.3s;
-              width: 260px;
+              flex: 1 1 auto;
+              min-width: 0;
+              width: auto;
               height: 33px;
               margin-left: auto;
 
@@ -168,9 +171,11 @@
     box-shadow: 1px 1px 2px var(--shadow);
     border-radius: 3px;
     background-color: var(--surface-bg);
-    left: 450px;
+    flex: 1 1 auto;
+    min-width: 0;
     height: 99%;
-    width: 900px;
+    width: 100%;
+    max-width: 980px;
 
     @include flex(column, flex-start, center);
     .header {
@@ -179,7 +184,7 @@
       display: grid;
       grid-template-columns: 0.7fr 1.5fr 1fr 1fr 1fr;
       grid-gap: 10px;
-      width: 800px;
+      width: 100%;
       padding: 20px;
       border-bottom: 1px solid var(--brand);
 
@@ -208,6 +213,136 @@
       -ms-overflow-style: none; /* IE and Edge */
       scrollbar-width: none; /* Firefox */
       overflow: -moz-scrollbars-none; /* Firefox */
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .transfers-wrapper {
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    margin-left: 0;
+    padding: 12px var(--page-gutter) 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    &__transfers-list {
+      max-width: 100%;
+      height: auto;
+      min-height: 0;
+
+      .header {
+        grid-template-columns: repeat(5, minmax(120px, 1fr));
+        overflow-x: auto;
+      }
+
+      .transfers {
+        min-height: 0;
+        max-height: none;
+        overflow: visible;
+        gap: 10px;
+        padding: 10px;
+      }
+    }
+
+    &__sidebar {
+      width: 100%;
+      flex: none;
+      height: auto;
+      padding: 0;
+      overflow: visible;
+
+      .enter-transfer {
+        width: 100%;
+        padding: 18px;
+      }
+    }
+  }
+}
+
+@media (max-width: 760px) {
+  .transfers-wrapper {
+    &__transfers-list {
+      border: 0;
+      box-shadow: none;
+      background: transparent;
+      padding: 0;
+
+      .header {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        width: calc(100% - 20px);
+        margin: 0 10px 10px;
+        padding: 12px;
+        background: var(--surface-bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: visible;
+        box-shadow: 1px 1px 2px var(--shadow);
+
+        > :nth-child(1),
+        > :nth-child(2) {
+          display: none;
+        }
+
+        > * {
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          padding: 8px;
+          border: 1px solid var(--soft-border);
+          border-radius: 5px;
+          background: var(--surface-alt-bg);
+        }
+
+        label {
+          color: var(--muted-text);
+          font-size: 11px;
+          letter-spacing: 0;
+          text-transform: uppercase;
+        }
+
+        select {
+          width: 100%;
+          min-height: 34px;
+          border: 1px solid var(--brand);
+          border-radius: 4px;
+          padding: 5px 8px;
+          font-weight: 700;
+        }
+
+        > :nth-child(5) {
+          justify-content: center;
+          position: relative;
+
+          label {
+            width: 100%;
+            min-height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--brand);
+            border-radius: 4px;
+            padding: 5px 30px 5px 8px;
+            color: var(--brand);
+            background: var(--surface-bg);
+            font-size: 12px;
+            font-weight: 700;
+          }
+
+          img {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+          }
+        }
+      }
     }
   }
 }

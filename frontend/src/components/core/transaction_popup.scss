@@ -12,10 +12,11 @@
 
 .transaction-popup-wrapper {
   position: fixed;
-  left: 20%;
-  top: 15%;
-  height: 500px;
-  width: 900px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-height: calc(100dvh - 24px);
+  width: min(900px, calc(100vw - 24px));
   background-color: var(--surface-bg);
   z-index: 2001;
 
@@ -76,8 +77,11 @@
 
   .content {
     margin: 10px;
-    width: 100%;
+    width: calc(100% - 20px);
     flex-grow: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
     @include flex(column, flex-start, flex-start);
     gap: 10px;
 
@@ -131,7 +135,7 @@
     .options {
       width: 95%;
       border-top: 1px solid var(--border);
-      @include flex(row, flex-start, flex-start);
+      @include flex(row, flex-start, flex-start, wrap);
       gap: 15px;
 
       button {
@@ -169,6 +173,41 @@
 
         &:hover {
           background-color: green;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 560px) {
+  .transaction-popup-wrapper {
+    gap: 0;
+
+    .title-bar {
+      .main {
+        min-width: 0;
+
+        .title,
+        .date {
+          overflow-wrap: anywhere;
+        }
+      }
+    }
+
+    .content {
+      margin: 0;
+      width: 100%;
+      padding: 10px;
+
+      div {
+        padding-right: 0;
+      }
+
+      .options {
+        width: 100%;
+
+        button {
+          flex: 1 1 140px;
         }
       }
     }

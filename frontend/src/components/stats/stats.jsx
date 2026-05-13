@@ -61,13 +61,12 @@ const Stats = () => {
               ) : (
                 <IncomeVsExpenseChart
                   height={300}
-                  width={1000}
                   data={profileStats?.income_vs_expense}
                 />
               )}
             </div>
             <div className={"chart-container"} id="wealthOverTimeContainer">
-              <WealthOverTime height={600} width={1000} />
+              <WealthOverTime height={520} />
             </div>
           </>
         )}

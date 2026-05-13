@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PieChart, Tooltip, Pie, Cell } from "recharts";
+import { PieChart, Tooltip, Pie, Cell, ResponsiveContainer } from "recharts";
 import PieChartToolTip from "./pieChartToolTip";
 
 const COLORS = [
@@ -68,31 +68,37 @@ const PercentExpensesPieChart = (props) => {
   }
 
   return (
-    <PieChart
-      width={props.width || 460}
-      height={props.height || 310}
+    <div
       className={`pie-chart chart ${props.className || ""}`}
+      style={{ width: "100%", height: props.height || 310 }}
     >
-      <Pie
-        data={expensesPerCategory}
-        dataKey="value"
-        cx="50%"
-        cy="50%"
-        outerRadius={props.outerRadius || 95}
-        labelLine={false}
-        label={renderCustomizedLabel}
-      >
-        {expensesPerCategory?.map((entry, index) => {
-          return (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          );
-        })}
-      </Pie>
-      <Tooltip
-        content={<PieChartToolTip />}
-        wrapperStyle={{ border: "none" }}
-      />
-    </PieChart>
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={expensesPerCategory}
+            dataKey="value"
+            cx="50%"
+            cy="50%"
+            outerRadius={props.outerRadius || 95}
+            labelLine={false}
+            label={renderCustomizedLabel}
+          >
+            {expensesPerCategory?.map((entry, index) => {
+              return (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS[index % COLORS.length]}
+                />
+              );
+            })}
+          </Pie>
+          <Tooltip
+            content={<PieChartToolTip />}
+            wrapperStyle={{ border: "none" }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
 

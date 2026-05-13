@@ -11,12 +11,13 @@
 }
 
 .conversion-popup-wrapper {
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, 50%);
-  height: 240px;
-  width: 400px;
+  transform: translate(-50%, -50%);
+  width: min(400px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: hidden;
   background-color: var(--surface-bg);
   z-index: 2001;
 
@@ -62,7 +63,7 @@
     margin: 15px 0 0 0;
     padding: 10px 0px 10px 10px;
     div {
-      width: 370px;
+      width: 100%;
       @include flex(row, flex-start, center);
       gap: 10px;
       .textfield,
@@ -98,6 +99,32 @@
       &:active {
         background-color: var(--surface-bg);
         color: var(--brand);
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .conversion-popup-wrapper {
+    .currency-converter-form {
+      padding: 10px;
+
+      div {
+        flex-wrap: wrap;
+
+        .textfield,
+        .select-currency {
+          flex: 1 1 120px;
+        }
+
+        .to-currency {
+          margin-left: 0;
+        }
+      }
+
+      #submit-button {
+        width: 100%;
+        margin-right: 0;
       }
     }
   }

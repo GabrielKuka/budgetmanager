@@ -3,7 +3,14 @@ import TransactionItem from "./transactionItem";
 import transactionService from "../../services/transactionService/transactionService";
 import "react-datepicker/dist/react-datepicker.css";
 import { Formik, Form, Field } from "formik";
-import { Bar, BarChart, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import "./incomes.scss";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
@@ -25,7 +32,7 @@ const Incomes = () => {
   const accountsLoaded =
     Array.isArray(global.accounts) && Array.isArray(global.activeAccounts);
 
-  const [shownIncomes = global.incomes, setShownIncomes] = useState();
+  const [shownIncomes, setShownIncomes] = useState([]);
   const [transactionPopup, setTransactionPopup] = useState(false);
 
   useEffect(() => {
@@ -101,14 +108,14 @@ const Incomes = () => {
 const Sidebar = (props) => {
   const global = useGlobalContext();
   const [totalShownIncomes, setShownIncomes] = useState(0);
-  const [incomesPerCategory, setIncomesPerCategory] = useState("");
+  const [incomesPerCategory, setIncomesPerCategory] = useState([]);
 
   useEffect(() => {
+    let active = true;
+    const shownIncomes = props.shownIncomes || [];
+
     async function getTotal() {
-      if (!props.shownIncomes) {
-        return;
-      }
-      let promises = props.shownIncomes?.map(async (e) => {
+      let promises = shownIncomes.map(async (e) => {
         return await currencyService.convert(
           props.getTransactionCurrency(e),
           global.globalCurrency,
@@ -117,6 +124,9 @@ const Sidebar = (props) => {
       });
 
       const results = await Promise.all(promises);
+      if (!active) {
+        return;
+      }
       let total = results.reduce((acc, curr) => acc + parseFloat(curr), 0);
 
       setShownIncomes(parseFloat(total).toFixed(2));
@@ -124,13 +134,14 @@ const Sidebar = (props) => {
 
     async function getIncomesPerCategory() {
       if (!props.categories) {
+        setIncomesPerCategory([]);
         return;
       }
       const data = [];
       for (const c of props.categories) {
-        let promises = props.shownIncomes
-          ?.filter((e) => e.category == c.id)
-          ?.map(async (e) => {
+        let promises = shownIncomes
+          .filter((e) => e.category == c.id)
+          .map(async (e) => {
             return await currencyService.convert(
               props.getTransactionCurrency(e),
               global.globalCurrency,
@@ -142,17 +153,22 @@ const Sidebar = (props) => {
           const total = results.reduce((t, curr) => (t += parseFloat(curr)), 0);
           data.push({
             category: c.category,
-            amount: parseFloat(total).toFixed(2),
+            amount: parseFloat(parseFloat(total).toFixed(2)),
           });
         }
       }
 
-      setIncomesPerCategory(data);
+      if (active) {
+        setIncomesPerCategory(data);
+      }
     }
 
     getIncomesPerCategory();
     getTotal();
-  }, [props.shownIncomes, global.globalCurrency]);
+    return () => {
+      active = false;
+    };
+  }, [props.shownIncomes, props.categories, global.globalCurrency]);
 
   return (
     <div className={"incomes-wrapper__sidebar"}>
@@ -189,36 +205,35 @@ const Sidebar = (props) => {
 };
 
 const Chart = (props) => {
-  const [yMaxValue, setYMaxValue] = useState({});
+  const [yMaxValue, setYMaxValue] = useState(0);
 
   useEffect(() => {
-    if (props.data) {
-      setYMaxValue(Math.max(...props.data.map((o) => o.amount)));
+    if (props.data?.length) {
+      setYMaxValue(Math.max(...props.data.map((o) => Number(o.amount) || 0)));
+    } else {
+      setYMaxValue(0);
     }
   }, [props.data]);
 
   return (
-    <BarChart
-      className={"bar-chart"}
-      margin={{ left: 0, right: 0 }}
-      width={330}
-      height={250}
-      data={props.data}
-      barSize={20}
-    >
-      <XAxis dataKey="category" tick={chartAxisTick} />
-      <YAxis
-        type="number"
-        tickSize={2}
-        domain={[0, yMaxValue]}
-        tick={chartAxisTick}
-      />
-      <Tooltip
-        content={<BarChartToolTip />}
-        wrapperStyle={{ border: "none" }}
-      />
-      <Bar dataKey="amount" fill="#8884d8" />
-    </BarChart>
+    <div className={"bar-chart"}>
+      <ResponsiveContainer width="100%" height={250}>
+        <BarChart margin={{ left: 0, right: 0 }} data={props.data} barSize={20}>
+          <XAxis dataKey="category" tick={chartAxisTick} />
+          <YAxis
+            type="number"
+            tickSize={2}
+            domain={[0, yMaxValue]}
+            tick={chartAxisTick}
+          />
+          <Tooltip
+            content={<BarChartToolTip />}
+            wrapperStyle={{ border: "none" }}
+          />
+          <Bar dataKey="amount" fill="#8884d8" />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
 

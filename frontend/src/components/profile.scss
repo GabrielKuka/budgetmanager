@@ -1,12 +1,16 @@
 @import "../mixins";
 
 .profile-wrapper {
-  padding-top: 80px;
-  padding-left: 20px;
+  padding: var(--page-top-offset) var(--page-gutter) 24px;
+  display: grid;
+  grid-template-columns: 392px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
 
   &__sidebar {
-    position: fixed;
-    width: 350px;
+    position: sticky;
+    top: var(--page-top-offset);
+    width: 100%;
     border: 1px solid var(--border);
     box-shadow: 1px 1px 2px var(--shadow);
     border-radius: 3px;
@@ -17,7 +21,7 @@
     .user-data {
       @include flex(column, center, center);
       gap: 5px;
-      width: 350px;
+      width: 100%;
 
       img {
         height: 100px;
@@ -69,7 +73,7 @@
     .accounts-glimpse {
       @include flex(column, center, center);
       gap: 10px;
-      width: 350px;
+      width: 100%;
 
       .header {
         @include flex(row, flex-start, center);
@@ -98,7 +102,7 @@
 
         .account-item {
           @include flex(row, flex-start, center);
-          width: 330px;
+          width: 100%;
           //position: relative;
           cursor: pointer;
           border: 1px solid var(--border);
@@ -129,7 +133,7 @@
       @include flex(row, center, center);
       border: 1px solid #00a862;
       gap: 10px;
-      width: 350px;
+      width: 100%;
       padding: 7px 0 7px 0;
       background-color: var(--surface-bg);
       color: #00a862;
@@ -160,7 +164,7 @@
       gap: 10px;
       border: 1px solid var(--brand);
       border-radius: 3px;
-      width: 350px;
+      width: 100%;
 
       text-align: center;
       padding: 6px 0px;
@@ -176,7 +180,7 @@
     }
 
     #delete-account-btn {
-      width: 350px;
+      width: 100%;
       border: 1px solid red;
       border-radius: 3px;
       background-color: var(--surface-bg);
@@ -193,9 +197,9 @@
   }
 
   &__board {
-    position: absolute;
-    left: 450px;
-    width: 1000px;
+    position: static;
+    width: 100%;
+    min-width: 0;
     padding: 0px 10px 10px 0px;
 
     overflow-x: hidden;
@@ -409,6 +413,63 @@
       padding: 15px 0;
       margin: 15px 0;
       text-align: center;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .profile-wrapper {
+    grid-template-columns: 1fr;
+
+    &__sidebar {
+      position: static;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      align-items: start;
+
+      .user-data,
+      .accounts-glimpse,
+      .download-data,
+      .stats-button,
+      #delete-account-btn {
+        width: 100%;
+      }
+    }
+
+    &__board {
+      padding-right: 0;
+    }
+  }
+}
+
+@media (max-width: 760px) {
+  .profile-wrapper {
+    padding-bottom: 20px;
+
+    &__sidebar {
+      display: flex;
+      padding: 16px;
+    }
+
+    &__board {
+      .expenses > .expense-item,
+      .incomes > .income-item,
+      .transfers > .transfer-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 14px;
+
+        label {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          overflow-wrap: anywhere;
+        }
+
+        #date {
+          margin-left: 0;
+        }
+      }
     }
   }
 }

@@ -1,11 +1,10 @@
 #notfound-wrapper {
-  margin-top: 100px;
+  margin: var(--page-top-offset) auto 0;
   border: 1px solid var(--border);
   box-shadow: 3px 3px 8px var(--border);
   border-radius: 3px;
-  width: 500px;
+  width: min(500px, calc(100vw - (var(--page-gutter) * 2)));
   padding: 20px;
-  margin-left: 33%;
   color: var(--brand);
   font-weight: bold;
   text-align: center;

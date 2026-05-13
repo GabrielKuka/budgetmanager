@@ -1,9 +1,10 @@
 @import "../../mixins";
 
 .login-wrapper {
-  position: fixed;
+  min-height: 100dvh;
   width: 100%;
-  height: 100%;
+  padding: var(--page-gutter);
+  overflow-y: auto;
 
   @include flex(row, center, center);
   #left-side-wrapper,
@@ -46,7 +47,7 @@
 
       .field_email,
       .field_password {
-        width: 450px;
+        width: min(450px, calc(100vw - 32px));
         height: 55px;
         border: 1px solid var(--border);
         border-radius: 3px;
@@ -96,6 +97,31 @@
         &:hover {
           text-decoration: underline;
         }
+      }
+    }
+  }
+}
+
+@media (max-width: 760px) {
+  .login-wrapper {
+    flex-direction: column;
+    padding-top: calc(var(--navbar-height) + 16px);
+
+    #left-side-wrapper,
+    #login-wrapper {
+      max-width: 100%;
+      width: 100%;
+      flex: none;
+    }
+
+    #left-side-wrapper {
+      display: none;
+    }
+
+    #login-wrapper {
+      .form {
+        width: 100%;
+        align-items: stretch;
       }
     }
   }

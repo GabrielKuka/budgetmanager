@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { Bar, BarChart, Legend, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import BarChartToolTip from "./barChartTooltip";
 
 const chartAxisTick = { fill: "var(--chart-axis)" };
@@ -44,28 +52,29 @@ const CurrentExpensesBarChart = (props) => {
   }, [expensesPerCategory]);
 
   return (
-    <BarChart
-      className={"bar-chart chart"}
-      margin={{ left: 0, right: 0 }}
-      width={props.width}
-      height={props.height}
-      data={expensesPerCategory}
-      barSize={20}
-    >
-      <XAxis dataKey="category" tick={chartAxisTick} />
-      <YAxis
-        type="number"
-        tickSize={2}
-        domain={[0, yMaxValue]}
-        tick={chartAxisTick}
-      />
-      <Tooltip
-        content={<BarChartToolTip />}
-        wrapperStyle={{ border: "none" }}
-      />
-      <Bar dataKey="amount" fill="#8884d8" />
-      {props.stats && <Legend content={<CustomLenged />} />}
-    </BarChart>
+    <div className={"bar-chart chart"}>
+      <ResponsiveContainer width="100%" height={props.height || 250}>
+        <BarChart
+          margin={{ left: 0, right: 0 }}
+          data={expensesPerCategory}
+          barSize={20}
+        >
+          <XAxis dataKey="category" tick={chartAxisTick} />
+          <YAxis
+            type="number"
+            tickSize={2}
+            domain={[0, yMaxValue]}
+            tick={chartAxisTick}
+          />
+          <Tooltip
+            content={<BarChartToolTip />}
+            wrapperStyle={{ border: "none" }}
+          />
+          <Bar dataKey="amount" fill="#8884d8" />
+          {props.stats && <Legend content={<CustomLenged />} />}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
 
