@@ -1,34 +1,42 @@
-import { Sankey, Tooltip, Rectangle, Layer } from "recharts";
+import {
+  Sankey,
+  Tooltip,
+  Rectangle,
+  Layer,
+  ResponsiveContainer,
+} from "recharts";
 import { helper } from "../helper";
 import { useGlobalContext } from "../../context/GlobalContext";
 
 const MonthlyFinancesSankeyChart = (props) => {
   const chartData = props.data;
 
+  if (!chartData) {
+    return (
+      <div className="chart-loading">
+        <span>No data available for the current month</span>
+      </div>
+    );
+  }
+
   return (
-    <>
-      {chartData && (
-        <>
-          <Sankey
-            height={450}
-            width={960}
-            data={chartData}
-            linkCurvature={0.5}
-            nodePadding={30}
-            link={{ stroke: "var(--chart-grid)", opacity: 0.8 }}
-            node={<CustomNode />}
-            margin={{
-              left: 20,
-              right: 80,
-              top: 10,
-              bottom: 20,
-            }}
-          >
-            <Tooltip content={<CustomTooltip />} />
-          </Sankey>
-        </>
-      )}
-    </>
+    <ResponsiveContainer width="100%" height={450}>
+      <Sankey
+        data={chartData}
+        linkCurvature={0.5}
+        nodePadding={30}
+        link={{ stroke: "var(--chart-grid)", opacity: 0.8 }}
+        node={<CustomNode />}
+        margin={{
+          left: 20,
+          right: 80,
+          top: 10,
+          bottom: 20,
+        }}
+      >
+        <Tooltip content={<CustomTooltip />} />
+      </Sankey>
+    </ResponsiveContainer>
   );
 };
 
