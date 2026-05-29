@@ -76,6 +76,7 @@
       overflow-y: hidden;
       border-left: 0;
       border-right: 0;
+      z-index: 1001;
 
       input[type="image"],
       .datepicker {
