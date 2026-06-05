@@ -52,6 +52,7 @@ class TransactionReadSerializer(serializers.ModelSerializer):
             "quantity",
             "price_per_unit",
             "fx_rate",
+            "pinned",
         )
 
     def _income_detail(self, obj):

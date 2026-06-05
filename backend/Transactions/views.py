@@ -139,7 +139,7 @@ def _transaction_queryset(
             "security_trade_detail__cash_balance__currency",
         )
         .prefetch_related("tags")
-        .order_by("-date", "-id")
+        .order_by("-pinned", "-date", "-id")
     )
 
     if transaction_type:
@@ -291,6 +291,32 @@ def convert_currency(source, targets, target_date=None):
     if not rates:
         raise ValueError("No rates returned.")
     return rates
+
+
+@api_view(["POST"])
+@authentication_classes([FlexibleTokenAuthentication])
+@permission_classes([IsAuthenticated])
+def toggle_pin(request):
+    tx_id = request.data.get("id")
+    if tx_id in (None, ""):
+        return Response(
+            {"error": "Field 'id' is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
+        txn = Transaction.objects.get(pk=int(tx_id), user=request.user)
+    except (ValueError, Transaction.DoesNotExist):
+        return Response(
+            {"error": "Transaction not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    txn.pinned = not txn.pinned
+    txn.save(update_fields=["pinned"])
+    return Response(
+        TransactionReadSerializer(txn).data,
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(["POST"])
@@ -695,6 +721,7 @@ def search(request):
             | Q(tags__name__iexact=query)
         )
         .distinct()
+        .order_by("-pinned", "-date", "-id")
     )
     rows = TransactionReadSerializer(transactions, many=True).data
     return Response(

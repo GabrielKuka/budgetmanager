@@ -39,7 +39,7 @@ const SearchResults = () => {
       const convertedAmount = await currencyService.convert(
         getAccountCurrency("account" in c ? c.account : c.from_account),
         global.globalCurrency,
-        c.amount
+        c.amount,
       );
       c["converted_amount"] = convertedAmount;
     }
@@ -55,16 +55,18 @@ const SearchResults = () => {
       if (expensesSorting === "amount") {
         const convertedExpenses = await addConvertedAmounts(expenses);
         sortedExpenses = [...convertedExpenses].sort(
-          (a, b) => b.converted_amount - a.converted_amount
+          (a, b) => b.converted_amount - a.converted_amount,
         );
       }
 
       if (expensesSorting === "date") {
         sortedExpenses = [...expenses].sort(
-          (a, b) => new Date(b.created_on) - new Date(a.created_on)
+          (a, b) => new Date(b.created_on) - new Date(a.created_on),
         );
       }
 
+      // Pinned transactions always first
+      sortedExpenses.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
       setExpenses(sortedExpenses);
     };
 
@@ -80,16 +82,18 @@ const SearchResults = () => {
       if (incomesSorting === "amount") {
         const convertedincomes = await addConvertedAmounts(incomes);
         sortedIncomes = [...convertedincomes].sort(
-          (a, b) => b.converted_amount - a.converted_amount
+          (a, b) => b.converted_amount - a.converted_amount,
         );
       }
 
       if (incomesSorting === "date") {
         sortedIncomes = [...incomes].sort(
-          (a, b) => new Date(b.created_on) - new Date(a.created_on)
+          (a, b) => new Date(b.created_on) - new Date(a.created_on),
         );
       }
 
+      // Pinned transactions always first
+      sortedIncomes.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
       setIncomes(sortedIncomes);
     };
 
@@ -105,16 +109,18 @@ const SearchResults = () => {
       if (transfersSorting === "amount") {
         const convertedTransfers = await addConvertedAmounts(transfers);
         sortedTransfers = [...convertedTransfers].sort(
-          (a, b) => b.converted_amount - a.converted_amount
+          (a, b) => b.converted_amount - a.converted_amount,
         );
       }
 
       if (transfersSorting === "date") {
         sortedTransfers = [...transfers].sort(
-          (a, b) => new Date(b.created_on) - new Date(a.created_on)
+          (a, b) => new Date(b.created_on) - new Date(a.created_on),
         );
       }
 
+      // Pinned transactions always first
+      sortedTransfers.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
       setTransfers(sortedTransfers);
     };
 
@@ -173,6 +179,11 @@ const SearchResults = () => {
       .filter((t) => t["transaction_type"] === "transfer")
       .sort((a, b) => (a.date > b.date ? -1 : 1));
 
+    // Pinned transactions always first
+    inc.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+    exp.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+    tran.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+
     setIncomes(inc);
     setExpenses(exp);
     setTransfers(tran);
@@ -201,7 +212,7 @@ const SearchResults = () => {
         0,
         showOrHide === "show"
           ? shownIncomes.length + 5
-          : Math.max(5, shownIncomes.length - 5)
+          : Math.max(5, shownIncomes.length - 5),
       );
       setShownIncomes(inc);
     }
@@ -211,7 +222,7 @@ const SearchResults = () => {
         0,
         showOrHide === "show"
           ? shownExpenses.length + 5
-          : Math.max(5, shownExpenses.length - 5)
+          : Math.max(5, shownExpenses.length - 5),
       );
       setShownExpenses(exp);
     }
@@ -221,7 +232,7 @@ const SearchResults = () => {
         0,
         showOrHide === "show"
           ? shownTransfers.length + 5
-          : Math.max(5, shownTransfers.length - 5)
+          : Math.max(5, shownTransfers.length - 5),
       );
       setShownTransfers(tran);
     }
@@ -532,7 +543,7 @@ const AggregationTable = ({ transactions, getAccountCurrency }) => {
         return await currencyService.convert(
           getAccountCurrency("account" in t ? t.account : t.from_account),
           global.globalCurrency,
-          t.amount
+          t.amount,
         );
       });
       if (!promises) {
@@ -616,7 +627,7 @@ const AggregationTable = ({ transactions, getAccountCurrency }) => {
               {" "}
               {helper.showOrMask(
                 global.privacyMode,
-                helper.formatNumber(aggs["sum"])
+                helper.formatNumber(aggs["sum"]),
               )}{" "}
               {helper.getCurrency(global.globalCurrency)}{" "}
             </td>
@@ -627,7 +638,7 @@ const AggregationTable = ({ transactions, getAccountCurrency }) => {
               {" "}
               {helper.showOrMask(
                 global.privacyMode,
-                helper.formatNumber(aggs["mean"])
+                helper.formatNumber(aggs["mean"]),
               )}{" "}
               {helper.getCurrency(global.globalCurrency)}{" "}
             </td>
@@ -638,7 +649,7 @@ const AggregationTable = ({ transactions, getAccountCurrency }) => {
               {" "}
               {helper.showOrMask(
                 global.privacyMode,
-                helper.formatNumber(aggs["median"])
+                helper.formatNumber(aggs["median"]),
               )}{" "}
               {helper.getCurrency(global.globalCurrency)}{" "}
             </td>
@@ -649,13 +660,13 @@ const AggregationTable = ({ transactions, getAccountCurrency }) => {
               {" "}
               {helper.showOrMask(
                 global.privacyMode,
-                helper.formatNumber(aggs["minAmount"])
+                helper.formatNumber(aggs["minAmount"]),
               )}{" "}
               {helper.getCurrency(global.globalCurrency)}
               {" | "}
               {helper.showOrMask(
                 global.privacyMode,
-                helper.formatNumber(aggs["maxAmount"])
+                helper.formatNumber(aggs["maxAmount"]),
               )}{" "}
               {helper.getCurrency(global.globalCurrency)}{" "}
             </td>
@@ -702,6 +713,7 @@ const TransactionItem = ({
       className={"transaction-item"}
       onClick={() => setTransactionPopup(transaction)}
     >
+      {transaction?.pinned && <span className="pinned-indicator">📌</span>}
       <div>
         {type === "expense" && (
           <>
@@ -714,7 +726,7 @@ const TransactionItem = ({
             Spent{" "}
             {helper.showOrMask(
               global.privacyMode,
-              helper.formatNumber(transaction.amount)
+              helper.formatNumber(transaction.amount),
             )}{" "}
             {helper.getCurrency(getAccountCurrency(transaction.from_account))}{" "}
             on {transaction.date} from{" "}
@@ -733,7 +745,7 @@ const TransactionItem = ({
             Earned{" "}
             {helper.showOrMask(
               global.privacyMode,
-              helper.formatNumber(transaction.amount)
+              helper.formatNumber(transaction.amount),
             )}{" "}
             {helper.getCurrency(getAccountCurrency(transaction.to_account))} on{" "}
             {transaction.date} into{" "}
@@ -751,7 +763,7 @@ const TransactionItem = ({
             Transfered{" "}
             {helper.showOrMask(
               global.privacyMode,
-              helper.formatNumber(transaction.amount)
+              helper.formatNumber(transaction.amount),
             )}{" "}
             {helper.getCurrency(getAccountCurrency(transaction.from_account))}{" "}
             from{" "}

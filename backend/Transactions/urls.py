@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path("pin", views.toggle_pin, name="toggle-pin"),
     path("add", views.add_transaction, name="add-transaction"),
     path("delete", views.delete_transaction, name="delete-transaction"),
     path(

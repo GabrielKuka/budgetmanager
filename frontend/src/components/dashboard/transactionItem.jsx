@@ -54,13 +54,17 @@ const TransactionItem = (props) => {
 
     const repeatTransactionButtonClicked =
       !!event.target?.attributes?.id?.value?.includes(
-        "repeatTransactionButton"
+        "repeatTransactionButton",
       );
+
+    const pinToggleButtonClicked =
+      !!event.target?.attributes?.id?.value?.includes("pinToggleButton");
 
     if (
       !kebabClicked &&
       !deleteButtonClicked &&
-      !repeatTransactionButtonClicked
+      !repeatTransactionButtonClicked &&
+      !pinToggleButtonClicked
     ) {
       props.setTransactionPopup(props.transaction);
     }
@@ -115,6 +119,11 @@ const TransactionItem = (props) => {
     });
   }
 
+  function handlePinToggle() {
+    global.toggleTransactionPin(props.transaction.id);
+    setShowKebab(false);
+  }
+
   function handleDelete() {
     showConfirm(`Delete ${transactionType}?`, async () => {
       const payload = {
@@ -133,7 +142,7 @@ const TransactionItem = (props) => {
       showToast(
         `${
           transactionType[0].toUpperCase() + transactionType.substring(1)
-        } deleted.`
+        } deleted.`,
       );
     });
   }
@@ -150,7 +159,10 @@ const TransactionItem = (props) => {
   }
 
   return (
-    <div className="transaction-item" onClick={handleShowMore}>
+    <div
+      className={`transaction-item${props.transaction.pinned ? " pinned" : ""}`}
+      onClick={handleShowMore}
+    >
       {helper.isRecent(props.transaction.created_on) && (
         <label className="new-transaction">NEW!</label>
       )}
@@ -170,7 +182,7 @@ const TransactionItem = (props) => {
             global.accounts,
             transactionType === "income"
               ? props.transaction.to_account
-              : props.transaction.from_account
+              : props.transaction.from_account,
           )}
         >
           <span className="transaction-value">
@@ -178,7 +190,7 @@ const TransactionItem = (props) => {
               global.accounts,
               transactionType === "income"
                 ? props.transaction.to_account
-                : props.transaction.from_account
+                : props.transaction.from_account,
             )}
           </span>
         </label>
@@ -190,13 +202,13 @@ const TransactionItem = (props) => {
             data-label="From"
             style={helper.accountLabelStyle(
               global.accounts,
-              props.transaction.from_account
+              props.transaction.from_account,
             )}
           >
             <span className="transaction-value">
               {helper.getAccountName(
                 global.accounts,
-                props.transaction.from_account
+                props.transaction.from_account,
               )}
             </span>
           </label>
@@ -205,13 +217,13 @@ const TransactionItem = (props) => {
             data-label="To"
             style={helper.accountLabelStyle(
               global.accounts,
-              props.transaction.to_account
+              props.transaction.to_account,
             )}
           >
             <span className="transaction-value">
               {helper.getAccountName(
                 global.accounts,
-                props.transaction.to_account
+                props.transaction.to_account,
               )}
             </span>
           </label>
@@ -227,7 +239,7 @@ const TransactionItem = (props) => {
           {transactionType === "expense" && <span>- </span>}
           {helper.showOrMask(
             global.privacyMode,
-            helper.formatNumber(props.transaction?.amount)
+            helper.formatNumber(props.transaction?.amount),
           )}{" "}
           {props.currency}
         </span>
@@ -254,6 +266,9 @@ const TransactionItem = (props) => {
           className={"kebab-menu"}
           id={`kebab-menu-${props.transaction.id}`}
         >
+          <button onClick={handlePinToggle} id="pinToggleButton">
+            {props.transaction.pinned ? "Unpin" : "Pin"}
+          </button>
           <button onClick={handleDelete} id="deleteButton">
             Delete
           </button>

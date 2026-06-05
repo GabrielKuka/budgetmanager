@@ -43,6 +43,7 @@ class Transaction(models.Model):
     description = models.CharField(max_length=200, null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
     created_on = models.DateTimeField(auto_now_add=True)
+    pinned = models.BooleanField(default=False)
 
     # Legacy flat fields kept for backward compatibility during staged migration.
     amount = models.DecimalField(

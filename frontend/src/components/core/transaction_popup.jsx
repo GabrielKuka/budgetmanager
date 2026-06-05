@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../../context/ConfirmContext";
 import { useGlobalContext } from "../../context/GlobalContext";
@@ -18,6 +19,17 @@ const TransactionPopup = ({
   const showToast = useToast();
   const navigate = useNavigate();
   const transactionType = transaction.transaction_type;
+  const [isPinned, setIsPinned] = useState(transaction.pinned);
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === "Escape") {
+        closePopup();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   let categories = [];
   if (transactionType === "income") {
@@ -49,7 +61,7 @@ const TransactionPopup = ({
     return helper.getTransactionCurrency(
       global.accounts,
       transaction,
-      getAccountCurrency
+      getAccountCurrency,
     );
   }
 
@@ -57,56 +69,56 @@ const TransactionPopup = ({
     if (transactionType === "expense") {
       return `Spent ${helper.showOrMask(
         global.privacyMode,
-        helper.formatNumber(transaction.amount)
+        helper.formatNumber(transaction.amount),
       )} ${helper.getCurrency(getTransactionCurrency())} ${getCategoryPhrase(
-        transaction.category
+        transaction.category,
       )} from ${helper.getAccountName(
         global.accounts,
-        transaction.from_account
+        transaction.from_account,
       )} account.`;
     }
 
     if (transactionType === "income") {
       return `Earned ${helper.showOrMask(
         global.privacyMode,
-        helper.formatNumber(transaction.amount)
+        helper.formatNumber(transaction.amount),
       )} ${helper.getCurrency(getTransactionCurrency())} ${getCategoryPhrase(
-        transaction.category
+        transaction.category,
       )} to ${helper.getAccountName(
         global.accounts,
-        transaction.to_account
+        transaction.to_account,
       )} account.`;
     }
 
     if (transactionType === "transfer") {
       return `Transfered ${helper.showOrMask(
         global.privacyMode,
-        helper.formatNumber(transaction.amount)
+        helper.formatNumber(transaction.amount),
       )} ${helper.getCurrency(
-        getTransactionCurrency()
+        getTransactionCurrency(),
       )} from ${helper.getAccountName(
         global.accounts,
-        transaction.from_account
+        transaction.from_account,
       )} to ${helper.getAccountName(global.accounts, transaction.to_account)}.`;
     }
 
     if (transactionType === "buy") {
       return `Bought ${helper.showOrMask(
         global.privacyMode,
-        helper.formatNumber(transaction.quantity, 4)
+        helper.formatNumber(transaction.quantity, 4),
       )} units at ${helper.showOrMask(
         global.privacyMode,
-        helper.formatNumber(transaction.price_per_unit)
+        helper.formatNumber(transaction.price_per_unit),
       )}.`;
     }
 
     if (transactionType === "sell") {
       return `Sold ${helper.showOrMask(
         global.privacyMode,
-        helper.formatNumber(transaction.quantity, 4)
+        helper.formatNumber(transaction.quantity, 4),
       )} units at ${helper.showOrMask(
         global.privacyMode,
-        helper.formatNumber(transaction.price_per_unit)
+        helper.formatNumber(transaction.price_per_unit),
       )}.`;
     }
 
@@ -115,6 +127,11 @@ const TransactionPopup = ({
 
   function closePopup() {
     showPopup(false);
+  }
+
+  function handlePinToggle() {
+    setIsPinned((prev) => !prev);
+    global.toggleTransactionPin(transaction.id);
   }
 
   function handleDelete() {
@@ -141,7 +158,7 @@ const TransactionPopup = ({
       showToast(
         `${
           transactionType[0].toUpperCase() + transactionType.substring(1)
-        } deleted.`
+        } deleted.`,
       );
     });
   }
@@ -236,7 +253,7 @@ const TransactionPopup = ({
                 <span>
                   {helper.showOrMask(
                     global.privacyMode,
-                    helper.formatNumber(transaction.amount)
+                    helper.formatNumber(transaction.amount),
                   )}{" "}
                   {helper.getCurrency(getTransactionCurrency())}
                 </span>
@@ -247,7 +264,7 @@ const TransactionPopup = ({
                   className={"account_name"}
                   style={helper.accountLabelStyle(
                     global.accounts,
-                    transaction.from_account
+                    transaction.from_account,
                   )}
                   onClick={() =>
                     navigate(`/accounts/${transaction.from_account}`)
@@ -256,7 +273,7 @@ const TransactionPopup = ({
                   {" "}
                   {helper.getAccountName(
                     global.accounts,
-                    transaction.from_account
+                    transaction.from_account,
                   )}
                 </span>
               </div>
@@ -271,7 +288,7 @@ const TransactionPopup = ({
                   {" "}
                   {helper.getAccountName(
                     global.accounts,
-                    transaction.to_account
+                    transaction.to_account,
                   )}
                 </span>
               </div>
@@ -284,7 +301,7 @@ const TransactionPopup = ({
                 <span>
                   {helper.showOrMask(
                     global.privacyMode,
-                    helper.formatNumber(transaction.amount)
+                    helper.formatNumber(transaction.amount),
                   )}{" "}
                   {helper.getCurrency(getTransactionCurrency())}
                 </span>
@@ -301,12 +318,12 @@ const TransactionPopup = ({
                           : transactionType === "sell"
                           ? transaction.to_account
                           : transaction.from_account
-                      }`
+                      }`,
                     )
                   }
                   style={helper.accountLabelStyle(
                     global.accounts,
-                    transaction.account
+                    transaction.account,
                   )}
                 >
                   {" "}
@@ -316,7 +333,7 @@ const TransactionPopup = ({
                       ? transaction.to_account
                       : transactionType === "sell"
                       ? transaction.to_account
-                      : transaction.from_account
+                      : transaction.from_account,
                   )}
                 </span>
               </div>
@@ -348,8 +365,8 @@ const TransactionPopup = ({
                     getAccountCurrency(
                       transactionType === "buy"
                         ? transaction.from_account
-                        : transaction.to_account
-                    )
+                        : transaction.to_account,
+                    ),
                   )}
                 </span>
               </div>
@@ -401,6 +418,13 @@ const TransactionPopup = ({
             </div>
           )}
           <div className={"options"}>
+            <button
+              onClick={handlePinToggle}
+              id="pinToggleButton"
+              className={isPinned ? "pinned" : ""}
+            >
+              {isPinned ? "📌 Unpin" : "📌 Pin"}
+            </button>
             <button onClick={handleDelete} id="deleteButton">
               Delete {transactionType}
             </button>

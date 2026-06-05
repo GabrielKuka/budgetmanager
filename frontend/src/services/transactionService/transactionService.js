@@ -91,6 +91,17 @@ async function deleteTransfer(payload) {
   return await transferService.deleteTransfer(payload);
 }
 
+async function togglePin(id) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+  const response = await axios.post(`${ENDPOINT}/pin`, { id }, config);
+  return response.data;
+}
+
 async function addTransaction(payload) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
@@ -103,6 +114,7 @@ async function addTransaction(payload) {
 }
 
 const transactionService = {
+  togglePin,
   getAllIncomeCategories,
   getAllExpenseCategories,
   getAllUserAccounts,

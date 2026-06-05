@@ -167,6 +167,21 @@
         }
       }
 
+      #pinToggleButton {
+        border: 1px solid var(--brand);
+        background-color: var(--surface-bg);
+
+        &:hover {
+          background-color: var(--brand);
+          color: var(--brand-text);
+        }
+
+        &.pinned {
+          background-color: var(--brand);
+          color: var(--brand-text);
+        }
+      }
+
       #repeatTransactionButton {
         border: 1px solid green;
         background-color: var(--surface-bg);

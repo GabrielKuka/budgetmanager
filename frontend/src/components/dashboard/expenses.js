@@ -37,7 +37,7 @@ const Expenses = () => {
     return helper.getTransactionCurrency(
       global.accounts,
       transaction,
-      getAccountCurrency
+      getAccountCurrency,
     );
   }
 
@@ -98,7 +98,7 @@ const Sidebar = (props) => {
         return await currencyService.convert(
           props.getTransactionCurrency(e),
           global.globalCurrency,
-          e.amount
+          e.amount,
         );
       });
 
@@ -123,24 +123,24 @@ const Sidebar = (props) => {
         let filteredincomes = global.incomes?.filter(
           (i) =>
             new Date(i.date) >= props.dateRange.from &&
-            new Date(i.date) <= props.dateRange.to
+            new Date(i.date) <= props.dateRange.to,
         );
         let promises = filteredincomes?.map(async (e) => {
           return await currencyService.convert(
             helper.getTransactionCurrency(
               global.accounts,
               e,
-              props.getAccountCurrency
+              props.getAccountCurrency,
             ),
             global.globalCurrency,
-            e.amount
+            e.amount,
           );
         });
 
         const results = await Promise.all(promises);
         let totalIncome = results.reduce(
           (acc, curr) => acc + parseFloat(curr),
-          0
+          0,
         );
 
         if (totalIncome === 0 || totalShownExpenses > totalIncome) {
@@ -162,7 +162,7 @@ const Sidebar = (props) => {
         <b>
           {helper.showOrMask(
             global.privacyMode,
-            helper.formatNumber(totalShownExpenses)
+            helper.formatNumber(totalShownExpenses),
           )}
           {helper.getCurrency(global.globalCurrency)}
         </b>{" "}
@@ -383,13 +383,15 @@ const ExpensesList = (props) => {
         : props.expenses;
 
     const dateFilter = props.expenses?.filter(
-      (e) => new Date(e.date) >= fromDate && new Date(e.date) <= toDate
+      (e) => new Date(e.date) >= fromDate && new Date(e.date) <= toDate,
     );
 
-    const filteredExpenses = accountFilter
+    let filteredExpenses = accountFilter
       ?.filter((e) => categoryFilter.includes(e))
       ?.filter((e) => dateFilter.includes(e))
       .sort((a, b) => (a.date > b.date ? -1 : 1));
+    // Pinned transactions always first
+    filteredExpenses?.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
     props.setShownExpenses(filteredExpenses);
   }
 
@@ -406,7 +408,7 @@ const ExpensesList = (props) => {
         const convertedAmount = await currencyService.convert(
           props.getTransactionCurrency(item),
           global.globalCurrency,
-          item.amount
+          item.amount,
         );
         return parseFloat(convertedAmount);
       },
@@ -419,7 +421,7 @@ const ExpensesList = (props) => {
         ...item,
         transformedValue:
           by === "amount" ? await transform(item) : transform(item),
-      }))
+      })),
     );
 
     if (by in sortedBy) {
@@ -428,17 +430,19 @@ const ExpensesList = (props) => {
       sorted = itemsWithTransformedValues.sort((a, b) =>
         currentOrder === "ascending"
           ? b.transformedValue - a.transformedValue
-          : a.transformedValue - b.transformedValue
+          : a.transformedValue - b.transformedValue,
       );
       setSortedBy({
         [by]: currentOrder === "ascending" ? "descending" : "ascending",
       });
     } else {
       sorted = itemsWithTransformedValues.sort(
-        (a, b) => a.transformedValue - b.transformedValue
+        (a, b) => a.transformedValue - b.transformedValue,
       );
       setSortedBy({ [by]: "ascending" });
     }
+    // Pinned transactions always first
+    sorted?.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
     props.setShownExpenses(sorted);
   }
 
@@ -542,7 +546,7 @@ const ExpensesList = (props) => {
               refreshTransactions={props.refreshExpenses}
               categories={props.categories}
               currency={helper.getCurrency(
-                props.getTransactionCurrency(expense)
+                props.getTransactionCurrency(expense),
               )}
               setTransactionPopup={props.setTransactionPopup}
               refreshAccounts={global.updateAccounts}
