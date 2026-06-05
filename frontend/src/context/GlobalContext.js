@@ -44,12 +44,12 @@ const GlobalProvider = ({ children }) => {
   const [authToken, setauthToken] = useState(() =>
     localStorage.getItem("authToken")
       ? JSON.parse(localStorage.getItem("authToken"))
-      : null,
+      : null
   );
   const [user, setUser] = useState(
     localStorage.getItem("user")
       ? JSON.parse(localStorage.getItem("user"))
-      : null,
+      : null
   );
 
   useEffect(() => {

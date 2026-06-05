@@ -119,16 +119,16 @@ const AddTransfer = ({
             setAddingTransfer(true);
             // if from and to accounts have different currencies, convert
             const from_currency = getAccountCurrency(
-              parseInt(values["from_account"]),
+              parseInt(values["from_account"])
             );
             const to_currency = getAccountCurrency(
-              parseInt(values["to_account"]),
+              parseInt(values["to_account"])
             );
             if (from_currency !== to_currency) {
               values["to_amount"] = await currencyService.convert(
                 from_currency,
                 to_currency,
-                values["from_amount"],
+                values["from_amount"]
               );
             } else {
               values["to_amount"] = values["from_amount"];
@@ -288,7 +288,7 @@ const TransfersList = ({
         : transfers;
 
     const dateFilter = transfers.filter(
-      (t) => new Date(t.date) >= fromDate && new Date(t.date) <= toDate,
+      (t) => new Date(t.date) >= fromDate && new Date(t.date) <= toDate
     );
 
     let filteredtransfers = toAccountFilter
@@ -310,18 +310,18 @@ const TransfersList = ({
       if ("date" in sortedBy) {
         if (sortedBy["date"] == "ascending") {
           sorted = [...shownTransfers].sort(
-            (a, b) => new Date(b.date) - new Date(a.date),
+            (a, b) => new Date(b.date) - new Date(a.date)
           );
           setSortedBy({ date: "descending" });
         } else {
           sorted = [...shownTransfers].sort(
-            (a, b) => new Date(a.date) - new Date(b.date),
+            (a, b) => new Date(a.date) - new Date(b.date)
           );
           setSortedBy({ date: "ascending" });
         }
       } else {
         sorted = [...shownTransfers].sort(
-          (a, b) => new Date(a.date) - new Date(b.date),
+          (a, b) => new Date(a.date) - new Date(b.date)
         );
         setSortedBy({ date: "ascending" });
       }
@@ -457,7 +457,7 @@ const TransfersList = ({
               transaction={transfer}
               refreshTransactions={refreshTransfers}
               currency={helper.getCurrency(
-                getAccountCurrency(transfer.from_account),
+                getAccountCurrency(transfer.from_account)
               )}
               setTransactionPopup={setTransactionPopup}
               refreshAccounts={global.updateAccounts}
