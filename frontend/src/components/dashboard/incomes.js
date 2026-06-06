@@ -53,7 +53,7 @@ const Incomes = () => {
     return helper.getTransactionCurrency(
       global.accounts,
       transaction,
-      getAccountCurrency,
+      getAccountCurrency
     );
   }
 
@@ -123,7 +123,7 @@ const Sidebar = (props) => {
         return await currencyService.convert(
           props.getTransactionCurrency(e),
           global.globalCurrency,
-          e.amount,
+          e.amount
         );
       });
 
@@ -149,7 +149,7 @@ const Sidebar = (props) => {
             return await currencyService.convert(
               props.getTransactionCurrency(e),
               global.globalCurrency,
-              e.amount,
+              e.amount
             );
           });
         if (promises && promises.length > 0) {
@@ -180,7 +180,7 @@ const Sidebar = (props) => {
         <b>
           {helper.showOrMask(
             global.privacyMode,
-            helper.formatNumber(totalShownIncomes),
+            helper.formatNumber(totalShownIncomes)
           )}
           {helper.getCurrency(global.globalCurrency)}
         </b>{" "}
@@ -429,7 +429,7 @@ const IncomesList = (props) => {
       String(d.getDate()).padStart(2, "0");
 
     const dateFilter = props.incomes?.filter(
-      (e) => e.date >= fmtDate(fromDate) && e.date <= fmtDate(toDate),
+      (e) => e.date >= fmtDate(fromDate) && e.date <= fmtDate(toDate)
     );
 
     let filteredincomes = accountFilter
@@ -454,7 +454,7 @@ const IncomesList = (props) => {
         const convertedAmount = await currencyService.convert(
           props.getTransactionCurrency(item),
           global.globalCurrency,
-          item.amount,
+          item.amount
         );
         return parseFloat(convertedAmount);
       },
@@ -468,7 +468,7 @@ const IncomesList = (props) => {
         ...item,
         transformedValue:
           by === "amount" ? await transform(item) : transform(item),
-      })),
+      }))
     );
 
     if (by in sortedBy) {
@@ -477,14 +477,14 @@ const IncomesList = (props) => {
       sorted = itemsWithTransformedValues.sort((a, b) =>
         currentOrder === "ascending"
           ? b.transformedValue - a.transformedValue
-          : a.transformedValue - b.transformedValue,
+          : a.transformedValue - b.transformedValue
       );
       setSortedBy({
         [by]: currentOrder === "ascending" ? "descending" : "ascending",
       });
     } else {
       sorted = itemsWithTransformedValues.sort(
-        (a, b) => a.transformedValue - b.transformedValue,
+        (a, b) => a.transformedValue - b.transformedValue
       );
       setSortedBy({ [by]: "ascending" });
     }
@@ -593,7 +593,7 @@ const IncomesList = (props) => {
               refreshTransactions={props.refreshIncomes}
               categories={props.categories}
               currency={helper.getCurrency(
-                props.getTransactionCurrency(income),
+                props.getTransactionCurrency(income)
               )}
               setTransactionPopup={props.setTransactionPopup}
               refreshAccounts={global.updateAccounts}

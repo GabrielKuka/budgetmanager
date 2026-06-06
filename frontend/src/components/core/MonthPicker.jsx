@@ -36,7 +36,7 @@ const MonthPicker = () => {
   const handleMonthChange = (e) => {
     const m = Number(e.target.value);
     const y = Number(
-      document.querySelector(".month-picker__select--year").value,
+      document.querySelector(".month-picker__select--year").value
     );
     setMonth(m);
     setYear(y);
