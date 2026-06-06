@@ -103,7 +103,7 @@ const TransactionPopup = ({
       showToast(
         `${transactionType[0].toUpperCase() + transactionType.substring(1)} deleted.`
       );
-    });
+    }, { variant: "danger" });
   }
 
   async function addTransaction(payload) {
@@ -150,7 +150,7 @@ const TransactionPopup = ({
       await refreshTransactions();
       await global.updateAccounts();
       closePopup();
-    });
+    }, { variant: "info" });
   }
 
   // ── Derived display values ──

@@ -7,11 +7,13 @@ const ConfirmProvider = ({ children }) => {
   const [message, setMessage] = useState("");
   const [show, setShow] = useState(false);
   const [action, setAction] = useState(false);
+  const [variant, setVariant] = useState("danger");
 
-  const showConfirm = (message, callback) => {
+  const showConfirm = (message, callback, options = {}) => {
     setShow(true);
     setMessage(message);
     setAction(() => callback);
+    setVariant(options.variant || "danger");
   };
 
   function onYes() {
@@ -27,6 +29,7 @@ const ConfirmProvider = ({ children }) => {
         <ConfirmDialog
           message={message}
           show={show}
+          variant={variant}
           onYes={onYes}
           setShow={setShow}
         />
