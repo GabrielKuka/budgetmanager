@@ -20,6 +20,7 @@ import TransactionPopup from "../core/transaction_popup";
 import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
 import { validationSchemas } from "../../validationSchemas";
+import MonthPicker from "../core/MonthPicker";
 import BarChartToolTip from "../stats/barChartTooltip";
 import PercentExpensesPieChart from "../stats/percentExpensesPie";
 
@@ -52,7 +53,7 @@ const Incomes = () => {
     return helper.getTransactionCurrency(
       global.accounts,
       transaction,
-      getAccountCurrency
+      getAccountCurrency,
     );
   }
 
@@ -68,39 +69,42 @@ const Incomes = () => {
         getAccountCurrency={getAccountCurrency}
         getTransactionCurrency={getTransactionCurrency}
       />
-      {!global.incomes || !accountsLoaded ? (
-        <LoadingCard header="Loading Incomes..." />
-      ) : global.incomes && !global.incomes?.length ? (
-        <NoDataCard
-          header={"No incomes found."}
-          label={"Add an income."}
-          focusOn={"date"}
-        />
-      ) : (
-        <IncomesList
-          incomes={global.incomes}
-          shownIncomes={shownIncomes}
-          setShownIncomes={setShownIncomes}
-          categories={categories}
-          accounts={accounts}
-          dateRange={global.dateRange}
-          getAccountCurrency={getAccountCurrency}
-          getTransactionCurrency={getTransactionCurrency}
-          refreshIncomes={global.updateIncomes}
-          setTransactionPopup={setTransactionPopup}
-        />
-      )}
-      {transactionPopup && (
-        <TransactionPopup
-          transaction={transactionPopup}
-          type={0}
-          showPopup={setTransactionPopup}
-          refreshTransactions={global.updateIncomes}
-          getAccountCurrency={getAccountCurrency}
-          accounts={accounts}
-          categories={categories}
-        />
-      )}
+      <div className="incomes-wrapper__content">
+        <MonthPicker />
+        {!global.incomes || !accountsLoaded ? (
+          <LoadingCard header="Loading Incomes..." />
+        ) : global.incomes && !global.incomes?.length ? (
+          <NoDataCard
+            header={"No incomes found."}
+            label={"Add an income."}
+            focusOn={"date"}
+          />
+        ) : (
+          <IncomesList
+            incomes={global.incomes}
+            shownIncomes={shownIncomes}
+            setShownIncomes={setShownIncomes}
+            categories={categories}
+            accounts={accounts}
+            dateRange={global.dateRange}
+            getAccountCurrency={getAccountCurrency}
+            getTransactionCurrency={getTransactionCurrency}
+            refreshIncomes={global.updateIncomes}
+            setTransactionPopup={setTransactionPopup}
+          />
+        )}
+        {transactionPopup && (
+          <TransactionPopup
+            transaction={transactionPopup}
+            type={0}
+            showPopup={setTransactionPopup}
+            refreshTransactions={global.updateIncomes}
+            getAccountCurrency={getAccountCurrency}
+            accounts={accounts}
+            categories={categories}
+          />
+        )}
+      </div>
     </div>
   );
 };
@@ -119,7 +123,7 @@ const Sidebar = (props) => {
         return await currencyService.convert(
           props.getTransactionCurrency(e),
           global.globalCurrency,
-          e.amount
+          e.amount,
         );
       });
 
@@ -145,7 +149,7 @@ const Sidebar = (props) => {
             return await currencyService.convert(
               props.getTransactionCurrency(e),
               global.globalCurrency,
-              e.amount
+              e.amount,
             );
           });
         if (promises && promises.length > 0) {
@@ -176,7 +180,7 @@ const Sidebar = (props) => {
         <b>
           {helper.showOrMask(
             global.privacyMode,
-            helper.formatNumber(totalShownIncomes)
+            helper.formatNumber(totalShownIncomes),
           )}
           {helper.getCurrency(global.globalCurrency)}
         </b>{" "}
@@ -417,8 +421,15 @@ const IncomesList = (props) => {
         ? props.incomes?.filter((e) => e.category == selectedCategory)
         : props.incomes;
 
+    const fmtDate = (d) =>
+      d.getFullYear() +
+      "-" +
+      String(d.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(d.getDate()).padStart(2, "0");
+
     const dateFilter = props.incomes?.filter(
-      (e) => new Date(e.date) >= fromDate && new Date(e.date) <= toDate
+      (e) => e.date >= fmtDate(fromDate) && e.date <= fmtDate(toDate),
     );
 
     let filteredincomes = accountFilter
@@ -443,7 +454,7 @@ const IncomesList = (props) => {
         const convertedAmount = await currencyService.convert(
           props.getTransactionCurrency(item),
           global.globalCurrency,
-          item.amount
+          item.amount,
         );
         return parseFloat(convertedAmount);
       },
@@ -457,7 +468,7 @@ const IncomesList = (props) => {
         ...item,
         transformedValue:
           by === "amount" ? await transform(item) : transform(item),
-      }))
+      })),
     );
 
     if (by in sortedBy) {
@@ -466,14 +477,14 @@ const IncomesList = (props) => {
       sorted = itemsWithTransformedValues.sort((a, b) =>
         currentOrder === "ascending"
           ? b.transformedValue - a.transformedValue
-          : a.transformedValue - b.transformedValue
+          : a.transformedValue - b.transformedValue,
       );
       setSortedBy({
         [by]: currentOrder === "ascending" ? "descending" : "ascending",
       });
     } else {
       sorted = itemsWithTransformedValues.sort(
-        (a, b) => a.transformedValue - b.transformedValue
+        (a, b) => a.transformedValue - b.transformedValue,
       );
       setSortedBy({ [by]: "ascending" });
     }
@@ -582,7 +593,7 @@ const IncomesList = (props) => {
               refreshTransactions={props.refreshIncomes}
               categories={props.categories}
               currency={helper.getCurrency(
-                props.getTransactionCurrency(income)
+                props.getTransactionCurrency(income),
               )}
               setTransactionPopup={props.setTransactionPopup}
               refreshAccounts={global.updateAccounts}

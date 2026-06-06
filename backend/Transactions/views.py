@@ -1119,7 +1119,6 @@ def get_wealth_stats(request):
         rolling_wealth -= net
 
 
-
 @api_view(["PUT"])
 @authentication_classes([FlexibleTokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -1165,19 +1164,31 @@ def update_transaction(request, pk):
                 new_cash_balance = data["resolved_to_cash_balance"]
                 new_category = data.get("resolved_category")
 
-                _apply_cash_delta(old_detail.to_cash_balance, -old_detail.amount)
+                _apply_cash_delta(
+                    old_detail.to_cash_balance, -old_detail.amount
+                )
 
                 txn.date = tx_date
                 txn.description = description
                 txn.amount = new_amount
                 txn.category = new_category
                 txn.to_account = new_cash_balance.account
-                txn.save(update_fields=["date", "description", "amount", "category", "to_account"])
+                txn.save(
+                    update_fields=[
+                        "date",
+                        "description",
+                        "amount",
+                        "category",
+                        "to_account",
+                    ]
+                )
 
                 old_detail.to_cash_balance = new_cash_balance
                 old_detail.amount = new_amount
                 old_detail.category = new_category
-                old_detail.save(update_fields=["to_cash_balance", "amount", "category"])
+                old_detail.save(
+                    update_fields=["to_cash_balance", "amount", "category"]
+                )
 
                 _apply_cash_delta(new_cash_balance, new_amount)
 
@@ -1187,19 +1198,31 @@ def update_transaction(request, pk):
                 new_cash_balance = data["resolved_from_cash_balance"]
                 new_category = data.get("resolved_category")
 
-                _apply_cash_delta(old_detail.from_cash_balance, old_detail.amount)
+                _apply_cash_delta(
+                    old_detail.from_cash_balance, old_detail.amount
+                )
 
                 txn.date = tx_date
                 txn.description = description
                 txn.amount = new_amount
                 txn.category = new_category
                 txn.from_account = new_cash_balance.account
-                txn.save(update_fields=["date", "description", "amount", "category", "from_account"])
+                txn.save(
+                    update_fields=[
+                        "date",
+                        "description",
+                        "amount",
+                        "category",
+                        "from_account",
+                    ]
+                )
 
                 old_detail.from_cash_balance = new_cash_balance
                 old_detail.amount = new_amount
                 old_detail.category = new_category
-                old_detail.save(update_fields=["from_cash_balance", "amount", "category"])
+                old_detail.save(
+                    update_fields=["from_cash_balance", "amount", "category"]
+                )
 
                 _apply_cash_delta(new_cash_balance, -new_amount)
 
@@ -1212,7 +1235,9 @@ def update_transaction(request, pk):
                 new_credited = new_from_amount * new_fx_rate
                 old_credited = old_detail.amount * old_detail.fx_rate
 
-                _apply_cash_delta(old_detail.from_cash_balance, old_detail.amount)
+                _apply_cash_delta(
+                    old_detail.from_cash_balance, old_detail.amount
+                )
                 _apply_cash_delta(old_detail.to_cash_balance, -old_credited)
 
                 txn.date = tx_date
@@ -1220,13 +1245,28 @@ def update_transaction(request, pk):
                 txn.amount = new_from_amount
                 txn.from_account = new_from_cb.account
                 txn.to_account = new_to_cb.account
-                txn.save(update_fields=["date", "description", "amount", "from_account", "to_account"])
+                txn.save(
+                    update_fields=[
+                        "date",
+                        "description",
+                        "amount",
+                        "from_account",
+                        "to_account",
+                    ]
+                )
 
                 old_detail.from_cash_balance = new_from_cb
                 old_detail.to_cash_balance = new_to_cb
                 old_detail.amount = new_from_amount
                 old_detail.fx_rate = new_fx_rate
-                old_detail.save(update_fields=["from_cash_balance", "to_cash_balance", "amount", "fx_rate"])
+                old_detail.save(
+                    update_fields=[
+                        "from_cash_balance",
+                        "to_cash_balance",
+                        "amount",
+                        "fx_rate",
+                    ]
+                )
 
                 _apply_cash_delta(new_from_cb, -new_from_amount)
                 _apply_cash_delta(new_to_cb, new_credited)

@@ -14,6 +14,7 @@ import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
 import { validationSchemas } from "../../validationSchemas";
 import TransactionItem from "./transactionItem";
+import MonthPicker from "../core/MonthPicker";
 
 const Expenses = () => {
   const global = useGlobalContext();
@@ -37,7 +38,7 @@ const Expenses = () => {
     return helper.getTransactionCurrency(
       global.accounts,
       transaction,
-      getAccountCurrency
+      getAccountCurrency,
     );
   }
 
@@ -53,36 +54,39 @@ const Expenses = () => {
         getAccountCurrency={getAccountCurrency}
         getTransactionCurrency={getTransactionCurrency}
       />
-      {!global.expenses || !accountsLoaded ? (
-        <LoadingCard header="Loading Expenses..." />
-      ) : global.expenses && !global.expenses?.length ? (
-        <NoDataCard
-          header={"No expenses found."}
-          label={"Add an expense"}
-          focusOn={"date"}
-        />
-      ) : (
-        <ExpensesList
-          expenses={global.expenses}
-          shownExpenses={shownExpenses}
-          setShownExpenses={setShownExpenses}
-          accounts={accounts}
-          categories={global.expenseCategories}
-          dateRange={global.dateRange}
-          getAccountCurrency={getAccountCurrency}
-          getTransactionCurrency={getTransactionCurrency}
-          refreshExpenses={global.updateExpenses}
-          setTransactionPopup={setTransactionPopup}
-        />
-      )}
-      {transactionPopup && (
-        <TransactionPopup
-          transaction={transactionPopup}
-          showPopup={setTransactionPopup}
-          refreshTransactions={global.updateExpenses}
-          getAccountCurrency={getAccountCurrency}
-        />
-      )}
+      <div className="expenses-wrapper__content">
+        <MonthPicker />
+        {!global.expenses || !accountsLoaded ? (
+          <LoadingCard header="Loading Expenses..." />
+        ) : global.expenses && !global.expenses?.length ? (
+          <NoDataCard
+            header={"No expenses found."}
+            label={"Add an expense"}
+            focusOn={"date"}
+          />
+        ) : (
+          <ExpensesList
+            expenses={global.expenses}
+            shownExpenses={shownExpenses}
+            setShownExpenses={setShownExpenses}
+            accounts={accounts}
+            categories={global.expenseCategories}
+            dateRange={global.dateRange}
+            getAccountCurrency={getAccountCurrency}
+            getTransactionCurrency={getTransactionCurrency}
+            refreshExpenses={global.updateExpenses}
+            setTransactionPopup={setTransactionPopup}
+          />
+        )}
+        {transactionPopup && (
+          <TransactionPopup
+            transaction={transactionPopup}
+            showPopup={setTransactionPopup}
+            refreshTransactions={global.updateExpenses}
+            getAccountCurrency={getAccountCurrency}
+          />
+        )}
+      </div>
     </div>
   );
 };
@@ -98,7 +102,7 @@ const Sidebar = (props) => {
         return await currencyService.convert(
           props.getTransactionCurrency(e),
           global.globalCurrency,
-          e.amount
+          e.amount,
         );
       });
 
@@ -120,27 +124,34 @@ const Sidebar = (props) => {
         if (!global.incomes) {
           return;
         }
+        const fmtDate = (d) =>
+          d.getFullYear() +
+          "-" +
+          String(d.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(d.getDate()).padStart(2, "0");
+
         let filteredincomes = global.incomes?.filter(
           (i) =>
-            new Date(i.date) >= props.dateRange.from &&
-            new Date(i.date) <= props.dateRange.to
+            i.date >= fmtDate(props.dateRange.from) &&
+            i.date <= fmtDate(props.dateRange.to),
         );
         let promises = filteredincomes?.map(async (e) => {
           return await currencyService.convert(
             helper.getTransactionCurrency(
               global.accounts,
               e,
-              props.getAccountCurrency
+              props.getAccountCurrency,
             ),
             global.globalCurrency,
-            e.amount
+            e.amount,
           );
         });
 
         const results = await Promise.all(promises);
         let totalIncome = results.reduce(
           (acc, curr) => acc + parseFloat(curr),
-          0
+          0,
         );
 
         if (totalIncome === 0 || totalShownExpenses > totalIncome) {
@@ -162,7 +173,7 @@ const Sidebar = (props) => {
         <b>
           {helper.showOrMask(
             global.privacyMode,
-            helper.formatNumber(totalShownExpenses)
+            helper.formatNumber(totalShownExpenses),
           )}
           {helper.getCurrency(global.globalCurrency)}
         </b>{" "}
@@ -382,8 +393,15 @@ const ExpensesList = (props) => {
         ? props.expenses?.filter((e) => e.category == selectedCategory)
         : props.expenses;
 
+    const fmtDate = (d) =>
+      d.getFullYear() +
+      "-" +
+      String(d.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(d.getDate()).padStart(2, "0");
+
     const dateFilter = props.expenses?.filter(
-      (e) => new Date(e.date) >= fromDate && new Date(e.date) <= toDate
+      (e) => e.date >= fmtDate(fromDate) && e.date <= fmtDate(toDate),
     );
 
     let filteredExpenses = accountFilter
@@ -408,7 +426,7 @@ const ExpensesList = (props) => {
         const convertedAmount = await currencyService.convert(
           props.getTransactionCurrency(item),
           global.globalCurrency,
-          item.amount
+          item.amount,
         );
         return parseFloat(convertedAmount);
       },
@@ -421,7 +439,7 @@ const ExpensesList = (props) => {
         ...item,
         transformedValue:
           by === "amount" ? await transform(item) : transform(item),
-      }))
+      })),
     );
 
     if (by in sortedBy) {
@@ -430,14 +448,14 @@ const ExpensesList = (props) => {
       sorted = itemsWithTransformedValues.sort((a, b) =>
         currentOrder === "ascending"
           ? b.transformedValue - a.transformedValue
-          : a.transformedValue - b.transformedValue
+          : a.transformedValue - b.transformedValue,
       );
       setSortedBy({
         [by]: currentOrder === "ascending" ? "descending" : "ascending",
       });
     } else {
       sorted = itemsWithTransformedValues.sort(
-        (a, b) => a.transformedValue - b.transformedValue
+        (a, b) => a.transformedValue - b.transformedValue,
       );
       setSortedBy({ [by]: "ascending" });
     }
@@ -546,7 +564,7 @@ const ExpensesList = (props) => {
               refreshTransactions={props.refreshExpenses}
               categories={props.categories}
               currency={helper.getCurrency(
-                props.getTransactionCurrency(expense)
+                props.getTransactionCurrency(expense),
               )}
               setTransactionPopup={props.setTransactionPopup}
               refreshAccounts={global.updateAccounts}

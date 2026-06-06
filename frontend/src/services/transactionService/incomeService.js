@@ -21,10 +21,17 @@ async function getAllUserIncomes() {
 
 async function getUserIncomes(dateRange) {
   const token = JSON.parse(localStorage.getItem("authToken"));
+  const fmt = (d) =>
+    d.getFullYear() +
+    "-" +
+    String(d.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(d.getDate()).padStart(2, "0");
+
   const config = {
     params: {
-      from_date: new Date(dateRange.from).toISOString().split("T")[0],
-      to_date: new Date(dateRange.to).toISOString().split("T")[0],
+      from_date: fmt(dateRange.from),
+      to_date: fmt(dateRange.to),
     },
     headers: {
       Authorization: token,

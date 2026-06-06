@@ -5,11 +5,17 @@ const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
 
 async function getTransactions(dateRange, currency) {
   const token = JSON.parse(localStorage.getItem("authToken"));
+  const fmt = (d) =>
+    d.getFullYear() +
+    "-" +
+    String(d.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(d.getDate()).padStart(2, "0");
 
   const config = {
     params: {
-      from_date: dateRange.from.toLocaleDateString("en-GB").replace(/\//g, "-"),
-      to_date: dateRange.to.toLocaleDateString("en-GB").replace(/\//g, "-"),
+      from_date: fmt(dateRange.from),
+      to_date: fmt(dateRange.to),
       currency,
     },
     headers: {
@@ -57,10 +63,17 @@ async function getAllUserExpenses() {
 
 async function getUserExpenses(dateRange) {
   const token = JSON.parse(localStorage.getItem("authToken"));
+  const fmt = (d) =>
+    d.getFullYear() +
+    "-" +
+    String(d.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(d.getDate()).padStart(2, "0");
+
   const config = {
     params: {
-      from_date: new Date(dateRange.from).toISOString().split("T")[0],
-      to_date: new Date(dateRange.to).toISOString().split("T")[0],
+      from_date: fmt(dateRange.from),
+      to_date: fmt(dateRange.to),
     },
     headers: {
       Authorization: token,

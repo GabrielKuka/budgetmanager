@@ -12,6 +12,7 @@ import currencyService from "../../services/currencyService";
 import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
 import { validationSchemas } from "../../validationSchemas";
+import MonthPicker from "../core/MonthPicker";
 
 const Transfers = () => {
   const global = useGlobalContext();
@@ -31,34 +32,37 @@ const Transfers = () => {
 
   return (
     <div className={"transfers-wrapper"}>
-      {!global.transfers || !accountsLoaded ? (
-        <LoadingCard header="Loading Transfers..." />
-      ) : global.transfers && !global.transfers?.length ? (
-        <NoDataCard
-          header={"No transfers found."}
-          label={"Add a transfer"}
-          focusOn={"date"}
-        />
-      ) : (
-        <TransfersList
-          transfers={global.transfers}
-          accounts={accounts}
-          getAccountCurrency={getAccountCurrency}
-          refreshTransfers={global.updateTransfers}
-          setTransactionPopup={setTransactionPopup}
-          dateRange={global.dateRange}
-        />
-      )}
-      {transactionPopup && (
-        <TransactionPopup
-          transaction={transactionPopup}
-          type={2}
-          showPopup={setTransactionPopup}
-          refreshTransactions={global.updateTransfers}
-          getAccountCurrency={getAccountCurrency}
-          accounts={accounts}
-        />
-      )}
+      <div className="transfers-wrapper__content">
+        <MonthPicker />
+        {!global.transfers || !accountsLoaded ? (
+          <LoadingCard header="Loading Transfers..." />
+        ) : global.transfers && !global.transfers?.length ? (
+          <NoDataCard
+            header={"No transfers found."}
+            label={"Add a transfer"}
+            focusOn={"date"}
+          />
+        ) : (
+          <TransfersList
+            transfers={global.transfers}
+            accounts={accounts}
+            getAccountCurrency={getAccountCurrency}
+            refreshTransfers={global.updateTransfers}
+            setTransactionPopup={setTransactionPopup}
+            dateRange={global.dateRange}
+          />
+        )}
+        {transactionPopup && (
+          <TransactionPopup
+            transaction={transactionPopup}
+            type={2}
+            showPopup={setTransactionPopup}
+            refreshTransactions={global.updateTransfers}
+            getAccountCurrency={getAccountCurrency}
+            accounts={accounts}
+          />
+        )}
+      </div>
     </div>
   );
 };
@@ -119,16 +123,16 @@ const AddTransfer = ({
             setAddingTransfer(true);
             // if from and to accounts have different currencies, convert
             const from_currency = getAccountCurrency(
-              parseInt(values["from_account"])
+              parseInt(values["from_account"]),
             );
             const to_currency = getAccountCurrency(
-              parseInt(values["to_account"])
+              parseInt(values["to_account"]),
             );
             if (from_currency !== to_currency) {
               values["to_amount"] = await currencyService.convert(
                 from_currency,
                 to_currency,
-                values["from_amount"]
+                values["from_amount"],
               );
             } else {
               values["to_amount"] = values["from_amount"];
@@ -287,8 +291,15 @@ const TransfersList = ({
         ? transfers.filter((t) => t.from_account == selectedFromAccount)
         : transfers;
 
+    const fmtDate = (d) =>
+      d.getFullYear() +
+      "-" +
+      String(d.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(d.getDate()).padStart(2, "0");
+
     const dateFilter = transfers.filter(
-      (t) => new Date(t.date) >= fromDate && new Date(t.date) <= toDate
+      (t) => t.date >= fmtDate(fromDate) && t.date <= fmtDate(toDate),
     );
 
     let filteredtransfers = toAccountFilter
@@ -310,18 +321,18 @@ const TransfersList = ({
       if ("date" in sortedBy) {
         if (sortedBy["date"] == "ascending") {
           sorted = [...shownTransfers].sort(
-            (a, b) => new Date(b.date) - new Date(a.date)
+            (a, b) => new Date(b.date) - new Date(a.date),
           );
           setSortedBy({ date: "descending" });
         } else {
           sorted = [...shownTransfers].sort(
-            (a, b) => new Date(a.date) - new Date(b.date)
+            (a, b) => new Date(a.date) - new Date(b.date),
           );
           setSortedBy({ date: "ascending" });
         }
       } else {
         sorted = [...shownTransfers].sort(
-          (a, b) => new Date(a.date) - new Date(b.date)
+          (a, b) => new Date(a.date) - new Date(b.date),
         );
         setSortedBy({ date: "ascending" });
       }
@@ -457,7 +468,7 @@ const TransfersList = ({
               transaction={transfer}
               refreshTransactions={refreshTransfers}
               currency={helper.getCurrency(
-                getAccountCurrency(transfer.from_account)
+                getAccountCurrency(transfer.from_account),
               )}
               setTransactionPopup={setTransactionPopup}
               refreshAccounts={global.updateAccounts}
