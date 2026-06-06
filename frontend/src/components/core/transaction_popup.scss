@@ -1,12 +1,31 @@
 @import "../../mixins";
 
+// ── Type accent colors ──
+$type-income: #2f9e44;
+$type-expense: #c92a2a;
+$type-transfer: var(--brand);
+$type-buy: #ff8c00;
+$type-sell: #2e8b57;
+
+// ── Animation ──
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.45);
   z-index: 2000;
 }
 
@@ -20,129 +39,290 @@
   background-color: var(--surface-bg);
   z-index: 2001;
 
-  border: 1px solid var(--brand);
-  border-radius: 3px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0px 8px 30px var(--shadow);
 
   @include flex(column, flex-start, flex-start);
-  gap: 10px;
+  gap: 0;
 
+  animation: popupFadeIn 0.25s ease-out;
+
+  // ── Title bar ──
   .title-bar {
-    border-bottom: 1px solid var(--brand);
     background-color: var(--brand);
     width: 100%;
+    border-radius: 7px 7px 0 0;
     @include flex(row, flex-start, center);
 
+    // Type accent strip at top
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      border-radius: 7px 7px 0 0;
+    }
+    position: relative;
+
     .main {
-      padding: 10px 5px;
-      @include flex(column, center, flex-start);
-      gap: 5px;
+      padding: 14px 12px;
+      @include flex(row, flex-start, center);
+      gap: 10px;
       width: fit-content;
       flex-grow: 1;
       color: var(--brand-text);
 
-      .title {
-        font-size: 20px;
+      .type-icon {
+        font-size: 26px;
+        line-height: 1;
       }
 
-      .date {
-        color: lightgray;
-        font-size: 13px;
-        transition: text-decoration 0.2s;
+      .title-area {
+        @include flex(column, center, flex-start);
+        gap: 3px;
+        min-width: 0;
+
+        .title {
+          font-size: 22px;
+          font-weight: 600;
+          line-height: 1.3;
+        }
+
+        .date {
+          color: rgba(255, 255, 255, 0.75);
+          font-size: 13px;
+          transition: opacity 0.2s;
+          cursor: pointer;
+
+          &:hover {
+            color: #fff;
+          }
+        }
+      }
+
+      .pin-badge {
+        margin-left: auto;
+        margin-right: 12px;
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        color: var(--brand-text);
+        font-size: 14px;
+        padding: 4px 10px;
+        border-radius: 12px;
         cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s;
+        white-space: nowrap;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: #fff;
+        }
+
+        &.pinned {
+          background: rgba(255, 255, 255, 0.2);
+          border-color: #fff;
+        }
       }
     }
 
     .close-popup {
-      margin: 10px;
+      margin: 10px 12px 10px 0;
       justify-self: end;
-      background-color: #d8807d;
+      background-color: rgba(255, 255, 255, 0.15);
       color: var(--brand-text);
-      width: 40px;
+      width: 36px;
       height: 30px;
       padding: 5px;
       font-weight: bold;
-      border: 1px solid #d8807d;
-      border-radius: 5px;
+      font-size: 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
       transition: background-color 0.2s ease-in-out;
-    }
-  }
-  .title-bar:hover {
-    .close-popup {
-      background-color: rgb(208, 65, 65);
-    }
-    .date {
-      text-decoration: underline;
+
+      &:hover {
+        background-color: rgba(208, 65, 65, 0.85);
+      }
     }
   }
 
+  // ── Content area ──
   .content {
-    margin: 10px;
-    width: calc(100% - 20px);
+    padding: 20px 24px;
+    width: 100%;
+    box-sizing: border-box;
     flex-grow: 1;
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    @include flex(column, flex-start, flex-start);
-    gap: 10px;
+    @include flex(column, flex-start, stretch);
+    gap: 24px;
 
-    div {
-      width: 100%;
-      padding: 10px 10px 0 0;
+    // ── Section ──
+    .section {
+      @include flex(column, flex-start, stretch);
+      gap: 10px;
 
-      label {
-        font-weight: bold;
+      .section-heading {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--muted-text);
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--soft-border);
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 20px;
+
+        @media (max-width: 560px) {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .field-row {
+        width: 100%;
+        @include flex(row, flex-start, center);
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 4px;
+        min-height: 32px;
+
+        &:nth-child(even) {
+          background-color: var(--surface-alt-bg);
+        }
+
+        &.full-width {
+          grid-column: 1 / -1;
+        }
+
+        &.amount-field {
+          padding: 10px 14px;
+          border-radius: 6px;
+          border: 1px solid var(--soft-border);
+          background-color: var(--surface-alt-bg);
+
+          .field-value {
+            font-size: 20px;
+            font-weight: 700;
+          }
+        }
+      }
+
+      .field-label {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: var(--muted-text);
+        white-space: nowrap;
+        min-width: 90px;
+        flex-shrink: 0;
+      }
+
+      .field-value {
+        font-size: 15px;
+        color: var(--text);
+        overflow-wrap: anywhere;
       }
 
       .account_name {
         cursor: pointer;
+        color: var(--brand);
+        font-weight: 500;
+        transition: opacity 0.2s;
 
         &:hover {
+          opacity: 0.75;
           text-decoration: underline;
         }
       }
 
-      .questionmark {
-        position: absolute;
-        margin-left: 5px;
-        cursor: pointer;
-      }
-      .questionmark_tooltip {
-        visibility: hidden;
-        position: relative;
-        border: 1px solid var(--brand);
-        background-color: var(--brand);
-        color: var(--brand-text);
-        padding: 5px 8px;
-        border-radius: 3px;
-        margin-left: 30px;
+      // ── Tags ──
+      .tags-list {
+        @include flex(row, flex-start, center, wrap);
+        gap: 6px;
+
+        .tag {
+          background-color: var(--brand);
+          color: var(--brand-text);
+          font-size: 13px;
+          font-weight: 600;
+          border-radius: 12px;
+          padding: 4px 12px;
+        }
       }
 
-      .questionmark:hover {
-        position: absolute;
-        margin-left: 5px;
-        cursor: pointer;
-      }
+      // ── Tooltip ──
+      .tooltip-wrapper {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
 
-      .tag {
-        background-color: var(--brand);
-        color: var(--brand-text);
-        font-weight: bold;
-        border-radius: 3px;
-        padding: 3px 6px 3px 6px;
-        margin-left: 10px;
+        .questionmark {
+          width: 16px;
+          height: 16px;
+          cursor: pointer;
+          opacity: 0.5;
+          transition: opacity 0.2s;
+
+          &:hover {
+            opacity: 1;
+          }
+        }
+
+        .questionmark_tooltip {
+          visibility: hidden;
+          position: absolute;
+          border: 1px solid var(--brand);
+          background-color: var(--brand);
+          color: var(--brand-text);
+          font-size: 13px;
+          padding: 5px 10px;
+          border-radius: 4px;
+          white-space: nowrap;
+          z-index: 10;
+          margin-top: 28px;
+          box-shadow: 0 3px 8px var(--shadow);
+
+          &::after {
+            content: "";
+            position: absolute;
+            top: -5px;
+            left: 20px;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 5px solid var(--brand);
+          }
+        }
+
+        &:hover .questionmark_tooltip {
+          visibility: visible;
+        }
       }
     }
+
+    // ── Options bar ──
     .options {
-      width: 95%;
       border-top: 1px solid var(--border);
-      @include flex(row, flex-start, flex-start, wrap);
-      gap: 15px;
+      padding-top: 16px;
+      @include flex(row, flex-start, center, wrap);
+      gap: 10px;
 
       button {
         color: var(--text);
-        padding: 7px;
-        border-radius: 3px;
-        transition: color 0.2s, background-color 0.2s;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.2s, background-color 0.2s, border-color 0.2s;
         outline: none;
 
         &:hover {
@@ -160,34 +340,20 @@
       }
 
       #deleteButton {
-        border: 1px solid rgb(208, 65, 65);
-        background-color: var(--surface-bg);
-        &:hover {
-          background-color: rgb(208, 65, 65);
-        }
-      }
-
-      #pinToggleButton {
-        border: 1px solid var(--brand);
+        border: 1px solid var(--danger);
         background-color: var(--surface-bg);
 
         &:hover {
-          background-color: var(--brand);
-          color: var(--brand-text);
-        }
-
-        &.pinned {
-          background-color: var(--brand);
-          color: var(--brand-text);
+          background-color: var(--danger);
         }
       }
 
       #repeatTransactionButton {
-        border: 1px solid green;
+        border: 1px solid var(--success);
         background-color: var(--surface-bg);
 
         &:hover {
-          background-color: green;
+          background-color: var(--success);
         }
       }
     }
@@ -196,33 +362,65 @@
 
 @media (max-width: 560px) {
   .transaction-popup-wrapper {
-    gap: 0;
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
 
     .title-bar {
       .main {
-        min-width: 0;
+        padding: 10px 8px;
 
-        .title,
-        .date {
-          overflow-wrap: anywhere;
+        .type-icon {
+          font-size: 22px;
         }
+
+        .title {
+          font-size: 18px;
+        }
+
+        .pin-badge {
+          margin-right: 6px;
+          font-size: 12px;
+          padding: 3px 8px;
+        }
+      }
+
+      .close-popup {
+        margin: 8px;
+        width: 32px;
+        height: 28px;
       }
     }
 
     .content {
-      margin: 0;
-      width: 100%;
-      padding: 10px;
+      padding: 14px 16px;
+      gap: 18px;
 
-      div {
-        padding-right: 0;
+      .section {
+        .field-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .field-row {
+          padding: 6px 8px;
+          flex-wrap: wrap;
+
+          &.amount-field {
+            padding: 8px 12px;
+
+            .field-value {
+              font-size: 18px;
+            }
+          }
+        }
+
+        .field-label {
+          min-width: 70px;
+        }
       }
 
       .options {
-        width: 100%;
-
         button {
-          flex: 1 1 140px;
+          flex: 1 1 130px;
         }
       }
     }
