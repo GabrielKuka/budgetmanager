@@ -8,12 +8,14 @@ const ConfirmProvider = ({ children }) => {
   const [show, setShow] = useState(false);
   const [action, setAction] = useState(false);
   const [variant, setVariant] = useState("danger");
+  const [confirmLabel, setConfirmLabel] = useState(null);
 
   const showConfirm = (message, callback, options = {}) => {
     setShow(true);
     setMessage(message);
     setAction(() => callback);
     setVariant(options.variant || "danger");
+    setConfirmLabel(options.confirmLabel || null);
   };
 
   function onYes() {
@@ -30,6 +32,7 @@ const ConfirmProvider = ({ children }) => {
           message={message}
           show={show}
           variant={variant}
+          confirmLabel={confirmLabel}
           onYes={onYes}
           setShow={setShow}
         />

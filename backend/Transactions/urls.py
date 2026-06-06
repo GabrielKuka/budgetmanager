@@ -36,4 +36,9 @@ urlpatterns = [
         views.get_expense_categories,
         name="get-expense-categories",
     ),
+    path(
+        "update/<int:pk>",
+        views.update_transaction,
+        name="update-transaction",
+    ),
 ]

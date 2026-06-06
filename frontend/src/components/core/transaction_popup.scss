@@ -426,3 +426,181 @@ $type-sell: #2e8b57;
     }
   }
 }
+
+// ── Edit mode form fields ──
+.transaction-popup-wrapper {
+  .edit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 20px;
+
+    @media (max-width: 560px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    &.full-width {
+      grid-column: 1 / -1;
+    }
+
+    &.account-balance-row {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .edit-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted-text);
+  }
+
+  .edit-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: 14px;
+    color: var(--text);
+    background-color: var(--input-bg);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(95, 158, 160, 0.18);
+    }
+
+    &::placeholder {
+      color: var(--muted-text);
+      opacity: 0.6;
+    }
+  }
+
+  .edit-textarea {
+    min-height: 60px;
+    resize: vertical;
+  }
+
+  .amount-input-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .amount-currency-chip {
+    color: #2b5e61;
+    border: 1px solid var(--brand);
+    border-radius: 3px;
+    min-width: 42px;
+    height: 36px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    background-color: var(--surface-bg);
+  }
+
+  .account-balance-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+
+    @media (max-width: 560px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .tag-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+
+    .edit-input {
+      flex: 1;
+    }
+  }
+
+  .add-tag-btn {
+    border: 1px solid var(--brand);
+    border-radius: 5px;
+    background-color: var(--brand);
+    color: var(--brand-text);
+    font-weight: bold;
+    font-size: 13px;
+    padding: 6px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 0.85;
+    }
+  }
+
+  .edit-tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .edit-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background-color: var(--brand);
+    color: var(--brand-text);
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 3px 8px 3px 12px;
+  }
+
+  .edit-tag-remove {
+    background: none;
+    border: none;
+    color: var(--brand-text);
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 2px;
+    opacity: 0.7;
+    line-height: 1;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  #saveButton {
+    border: 1px solid var(--success);
+    background-color: var(--success);
+    color: #fff;
+
+    &:hover {
+      filter: brightness(1.1);
+    }
+  }
+
+  #cancelButton {
+    border: 1px solid var(--border);
+    background-color: var(--surface-bg);
+    color: var(--text);
+
+    &:hover {
+      background-color: var(--surface-alt-bg);
+    }
+  }
+}

@@ -112,7 +112,8 @@ const LoggedInNavbar = () => {
       () => {
         global.logoutUser();
         showToast("Logged out.");
-      }
+      },
+      { variant: "info", confirmLabel: "Log out" }
     );
   };
 

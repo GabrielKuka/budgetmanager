@@ -6,9 +6,10 @@ const CONFIRM_LABELS = {
   info: { yes: "Yes", icon: "ℹ️" },
 };
 
-const ConfirmDialog = ({ message, show, variant, onYes, setShow }) => {
+const ConfirmDialog = ({ message, show, variant, confirmLabel, onYes, setShow }) => {
   const dialogRef = useRef(null);
   const labels = CONFIRM_LABELS[variant] || CONFIRM_LABELS.danger;
+  const confirmText = confirmLabel || labels.yes;
 
   useEffect(() => {
     if (!show) return;
@@ -53,7 +54,7 @@ const ConfirmDialog = ({ message, show, variant, onYes, setShow }) => {
             className={`confirm-btn confirm-btn--${variant}`}
             onClick={handleYes}
           >
-            {labels.yes}
+            {confirmText}
           </button>
         </div>
       </div>

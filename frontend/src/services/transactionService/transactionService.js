@@ -113,8 +113,21 @@ async function addTransaction(payload) {
   return response.data;
 }
 
+async function updateTransaction(payload) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+  const id = payload.id;
+  const response = await axios.put(`${ENDPOINT}/update/${id}`, payload, config);
+  return response.data;
+}
+
 const transactionService = {
   togglePin,
+  updateTransaction,
   getAllIncomeCategories,
   getAllExpenseCategories,
   getAllUserAccounts,
