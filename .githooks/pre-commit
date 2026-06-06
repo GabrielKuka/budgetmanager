@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Pre-commit hook: auto-format backend (Black) and frontend (Prettier)
+# Installed via: git config core.hooksPath .githooks
+
+set -e
+
+echo "🔍 Running pre-commit formatters..."
+
+# ── Backend: Black ──
+if [ -d "backend" ]; then
+  echo "  🐍 Formatting backend with Black..."
+  cd backend
+  uv run black -l 79 . 2>&1 | sed 's/^/    /'
+  cd ..
+fi
+
+# ── Frontend: Prettier ──
+if [ -d "frontend/src" ]; then
+  echo "  ✨ Formatting frontend with Prettier..."
+  cd frontend
+  npx prettier ./src/ --write 2>&1 | sed 's/^/    /'
+  cd ..
+fi
+
+echo "✅ Formatting complete."
