@@ -1118,6 +1118,9 @@ def get_wealth_stats(request):
         )
         rolling_wealth -= net
 
+    monthly_differences.reverse()
+    return Response({"monthly_differences": monthly_differences})
+
 
 @api_view(["PUT"])
 @authentication_classes([FlexibleTokenAuthentication])
