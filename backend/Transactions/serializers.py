@@ -25,6 +25,8 @@ class TransactionReadSerializer(serializers.ModelSerializer):
     from_cash_balance = serializers.SerializerMethodField()
     to_cash_balance = serializers.SerializerMethodField()
     security = serializers.SerializerMethodField()
+    security_ticker = serializers.SerializerMethodField()
+    security_name = serializers.SerializerMethodField()
     holding = serializers.SerializerMethodField()
     quantity = serializers.SerializerMethodField()
     price_per_unit = serializers.SerializerMethodField()
@@ -48,6 +50,8 @@ class TransactionReadSerializer(serializers.ModelSerializer):
             "from_cash_balance",
             "to_cash_balance",
             "security",
+            "security_ticker",
+            "security_name",
             "holding",
             "quantity",
             "price_per_unit",
@@ -163,6 +167,18 @@ class TransactionReadSerializer(serializers.ModelSerializer):
     def get_security(self, obj):
         detail = self._security_trade_detail(obj)
         return detail.security_id if detail else None
+
+    def get_security_ticker(self, obj):
+        detail = self._security_trade_detail(obj)
+        if detail and detail.security_id:
+            return detail.security.ticker
+        return None
+
+    def get_security_name(self, obj):
+        detail = self._security_trade_detail(obj)
+        if detail and detail.security_id:
+            return detail.security.name
+        return None
 
     def get_holding(self, obj):
         detail = self._security_trade_detail(obj)

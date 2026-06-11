@@ -6,6 +6,7 @@ import "./dashboard.scss";
 import Expenses from "./expenses";
 import Incomes from "./incomes";
 import Transfers from "./transfers";
+import Trades from "./trades";
 import DatePicker from "react-datepicker";
 
 const Dashboard = () => {
@@ -34,12 +35,13 @@ const Dashboard = () => {
       {page === "expenses" && <Expenses />}
       {page === "incomes" && <Incomes />}
       {page === "transfers" && <Transfers />}
+      {page === "trades" && <Trades />}
     </div>
   );
 };
 
 const Sidebar = ({ page, setPage }) => {
-  const buttons = ["incomes", "expenses", "transfers"];
+  const buttons = ["incomes", "expenses", "transfers", "trades"];
   const global = useGlobalContext();
 
   useEffect(() => {
@@ -93,6 +95,16 @@ const Sidebar = ({ page, setPage }) => {
         width={30}
         height={30}
         title="Transfers"
+      />
+      <input
+        className={"sidebar-icon"}
+        type="image"
+        id="trades"
+        onClick={(e) => handlePage(e)}
+        src={process.env.PUBLIC_URL + "/trade_icon.png"}
+        width={30}
+        height={30}
+        title="Trades"
       />
       <DatePicker
         className="datepicker"

@@ -21,6 +21,8 @@ urlpatterns = [
     path("get_transfers", views.get_transfers, name="get-transfers"),
     path("search", views.search, name="search"),
     path("get_wealth_stats", views.get_wealth_stats, name="get-wealth-stats"),
+    path("get_trades", views.get_trades, name="get-trades"),
+    path("alltrades", views.get_all_trades, name="get-all-trades"),
     path(
         "get_profile_stats",
         views.get_profile_stats,

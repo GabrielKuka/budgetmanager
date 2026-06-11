@@ -87,7 +87,7 @@ export const helper = {
     if (balanceId) {
       for (const account of accounts || []) {
         const balance = (account.cash_balances || []).find(
-          (item) => item.id === balanceId
+          (item) => item.id === balanceId,
         );
         if (balance) {
           return balance.currency?.code || account.currency;
@@ -144,9 +144,9 @@ export const helper = {
       case "transfer":
         return "var(--brand)";
       case "buy":
-        return "darkorange";
-      case "sell":
         return "seagreen";
+      case "sell":
+        return "red";
       default:
         return "";
     }

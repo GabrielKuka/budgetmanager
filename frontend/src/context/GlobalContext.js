@@ -29,6 +29,7 @@ const GlobalProvider = ({ children }) => {
   const [expenses, setExpenses] = useState(null);
   const [incomes, setIncomes] = useState(null);
   const [transfers, setTransfers] = useState(null);
+  const [trades, setTrades] = useState(null);
 
   const [incomeCategories, setIncomeCategories] = useState(null);
   const [expenseCategories, setExpenseCategories] = useState(null);
@@ -44,12 +45,12 @@ const GlobalProvider = ({ children }) => {
   const [authToken, setauthToken] = useState(() =>
     localStorage.getItem("authToken")
       ? JSON.parse(localStorage.getItem("authToken"))
-      : null
+      : null,
   );
   const [user, setUser] = useState(
     localStorage.getItem("user")
       ? JSON.parse(localStorage.getItem("user"))
-      : null
+      : null,
   );
 
   useEffect(() => {
@@ -108,16 +109,23 @@ const GlobalProvider = ({ children }) => {
     setTransfers(response);
   }
 
+  async function updateTrades() {
+    const response = await transactionService.getUserTrades(dateRange);
+    setTrades(response);
+  }
+
   async function updateTransactions() {
     await updateExpenses();
     await updateIncomes();
     await updateTransfers();
+    await updateTrades();
   }
 
   const resetTransactions = () => {
     setIncomes([]);
     setExpenses([]);
     setTransfers([]);
+    setTrades([]);
   };
 
   const toggleTransactionPin = async (id) => {
@@ -226,10 +234,12 @@ const GlobalProvider = ({ children }) => {
     expenses,
     incomes,
     transfers,
+    trades,
 
     updateExpenses,
     updateIncomes,
     updateTransfers,
+    updateTrades,
     updateTransactions,
     toggleTransactionPin,
 

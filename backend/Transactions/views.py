@@ -684,6 +684,32 @@ def get_all_transfers(request):
 
 
 @api_view(["GET"])
+@authentication_classes([FlexibleTokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_trades(request):
+    try:
+        from_date, to_date = _parse_date_range(request)
+    except ValueError as exc:
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
+    queryset = _transaction_queryset(
+        request.user, from_date=from_date, to_date=to_date
+    ).filter(transaction_type__in=["buy", "sell"])
+    return Response(TransactionReadSerializer(queryset, many=True).data)
+
+
+@api_view(["GET"])
+@authentication_classes([FlexibleTokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_all_trades(request):
+    queryset = _transaction_queryset(request.user).filter(
+        transaction_type__in=["buy", "sell"]
+    )
+    return Response(TransactionReadSerializer(queryset, many=True).data)
+
+
+@api_view(["GET"])
 def get_income_categories(request):
     queryset = TransactionCategory.objects.filter(category_type=0).order_by(
         "category"
