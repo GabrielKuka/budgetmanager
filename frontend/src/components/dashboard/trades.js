@@ -20,7 +20,7 @@ const Trades = () => {
   const [shownTrades, setShownTrades] = useState([]);
   const [transactionPopup, setTransactionPopup] = useState(false);
   const [selectedYear, setSelectedYear] = useState(
-    new Date().getFullYear().toString(),
+    new Date().getFullYear().toString()
   );
   const [showAll, setShowAll] = useState(false);
 
@@ -40,7 +40,7 @@ const Trades = () => {
     } else {
       const year = parseInt(selectedYear, 10);
       setShownTrades(
-        allTrades.filter((t) => t.date && t.date.startsWith(year.toString())),
+        allTrades.filter((t) => t.date && t.date.startsWith(year.toString()))
       );
     }
   }, [allTrades, selectedYear, showAll]);
@@ -63,7 +63,7 @@ const Trades = () => {
     return helper.getTransactionCurrency(
       global.accounts,
       transaction,
-      getAccountCurrency,
+      getAccountCurrency
     );
   }
 
@@ -170,15 +170,15 @@ const Sidebar = (props) => {
         currencyService.convert(
           props.getTransactionCurrency(t),
           global.globalCurrency,
-          t.amount,
-        ),
+          t.amount
+        )
       );
       const sellPromises = sells.map(async (t) =>
         currencyService.convert(
           props.getTransactionCurrency(t),
           global.globalCurrency,
-          t.amount,
-        ),
+          t.amount
+        )
       );
 
       const [buyResults, sellResults] = await Promise.all([
@@ -188,11 +188,11 @@ const Sidebar = (props) => {
 
       const buyTotal = buyResults.reduce(
         (acc, curr) => acc + parseFloat(curr),
-        0,
+        0
       );
       const sellTotal = sellResults.reduce(
         (acc, curr) => acc + parseFloat(curr),
-        0,
+        0
       );
 
       if (!active) return;
@@ -225,7 +225,7 @@ const Sidebar = (props) => {
 
       const targetCur = global.globalCurrency;
       const investmentAccs = global.accounts.filter(
-        (a) => a.type === 1 && !a.deleted,
+        (a) => a.type === 1 && !a.deleted
       );
 
       // Collect raw holdings with native currency info
@@ -345,7 +345,7 @@ const Sidebar = (props) => {
               <b>
                 {helper.showOrMask(
                   global.privacyMode,
-                  helper.formatNumber(totalTradeVolume),
+                  helper.formatNumber(totalTradeVolume)
                 )}
                 {helper.getCurrency(global.globalCurrency)}
               </b>{" "}
@@ -355,7 +355,7 @@ const Sidebar = (props) => {
               <b>
                 {helper.showOrMask(
                   global.privacyMode,
-                  helper.formatNumber(totalBuys),
+                  helper.formatNumber(totalBuys)
                 )}
                 {helper.getCurrency(global.globalCurrency)}
               </b>{" "}
@@ -365,7 +365,7 @@ const Sidebar = (props) => {
               <b>
                 {helper.showOrMask(
                   global.privacyMode,
-                  helper.formatNumber(totalSells),
+                  helper.formatNumber(totalSells)
                 )}
                 {helper.getCurrency(global.globalCurrency)}
               </b>{" "}
@@ -383,7 +383,7 @@ const Sidebar = (props) => {
                     <b>
                       {helper.showOrMask(
                         global.privacyMode,
-                        holdingsSummary.totalCostBasis,
+                        holdingsSummary.totalCostBasis
                       )}
                       {helper.getCurrency(global.globalCurrency)}
                     </b>
@@ -395,7 +395,7 @@ const Sidebar = (props) => {
                     <b>
                       {helper.showOrMask(
                         global.privacyMode,
-                        holdingsSummary.totalMarketValue,
+                        holdingsSummary.totalMarketValue
                       )}
                       {helper.getCurrency(global.globalCurrency)}
                     </b>
@@ -411,7 +411,7 @@ const Sidebar = (props) => {
                   >
                     {helper.showOrMask(
                       global.privacyMode,
-                      holdingsSummary.totalUnrealizedPnl,
+                      holdingsSummary.totalUnrealizedPnl
                     )}
                     {helper.getCurrency(global.globalCurrency)}
                   </span>
@@ -430,7 +430,7 @@ const Sidebar = (props) => {
                       <b>
                         {helper.showOrMask(
                           global.privacyMode,
-                          helper.formatNumber(pos.marketValue),
+                          helper.formatNumber(pos.marketValue)
                         )}
                         {helper.getCurrency(global.globalCurrency)}
                       </b>
@@ -526,7 +526,7 @@ const TradeItem = ({ trade, currency, refreshTrades, setTransactionPopup }) => {
         <span className="trade-item__value">
           {helper.showOrMask(
             global.privacyMode,
-            helper.formatNumber(trade.amount),
+            helper.formatNumber(trade.amount)
           )}{" "}
           {currency}
         </span>

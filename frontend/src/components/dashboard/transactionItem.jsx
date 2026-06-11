@@ -54,7 +54,7 @@ const TransactionItem = (props) => {
 
     const repeatTransactionButtonClicked =
       !!event.target?.attributes?.id?.value?.includes(
-        "repeatTransactionButton",
+        "repeatTransactionButton"
       );
 
     const pinToggleButtonClicked =
@@ -142,7 +142,7 @@ const TransactionItem = (props) => {
       showToast(
         `${
           transactionType[0].toUpperCase() + transactionType.substring(1)
-        } deleted.`,
+        } deleted.`
       );
     });
   }
@@ -182,7 +182,7 @@ const TransactionItem = (props) => {
             global.accounts,
             transactionType === "income"
               ? props.transaction.to_account
-              : props.transaction.from_account,
+              : props.transaction.from_account
           )}
         >
           <span className="transaction-value">
@@ -190,7 +190,7 @@ const TransactionItem = (props) => {
               global.accounts,
               transactionType === "income"
                 ? props.transaction.to_account
-                : props.transaction.from_account,
+                : props.transaction.from_account
             )}
           </span>
         </label>
@@ -203,7 +203,7 @@ const TransactionItem = (props) => {
             global.accounts,
             transactionType === "buy"
               ? props.transaction.from_account
-              : props.transaction.to_account,
+              : props.transaction.to_account
           )}
         >
           <span className="transaction-value">
@@ -211,7 +211,7 @@ const TransactionItem = (props) => {
               global.accounts,
               transactionType === "buy"
                 ? props.transaction.from_account
-                : props.transaction.to_account,
+                : props.transaction.to_account
             )}
           </span>
         </label>
@@ -223,13 +223,13 @@ const TransactionItem = (props) => {
             data-label="From"
             style={helper.accountLabelStyle(
               global.accounts,
-              props.transaction.from_account,
+              props.transaction.from_account
             )}
           >
             <span className="transaction-value">
               {helper.getAccountName(
                 global.accounts,
-                props.transaction.from_account,
+                props.transaction.from_account
               )}
             </span>
           </label>
@@ -238,13 +238,13 @@ const TransactionItem = (props) => {
             data-label="To"
             style={helper.accountLabelStyle(
               global.accounts,
-              props.transaction.to_account,
+              props.transaction.to_account
             )}
           >
             <span className="transaction-value">
               {helper.getAccountName(
                 global.accounts,
-                props.transaction.to_account,
+                props.transaction.to_account
               )}
             </span>
           </label>
@@ -260,7 +260,7 @@ const TransactionItem = (props) => {
           {transactionType === "expense" && <span>- </span>}
           {helper.showOrMask(
             global.privacyMode,
-            helper.formatNumber(props.transaction?.amount),
+            helper.formatNumber(props.transaction?.amount)
           )}{" "}
           {props.currency}
         </span>

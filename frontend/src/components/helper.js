@@ -87,7 +87,7 @@ export const helper = {
     if (balanceId) {
       for (const account of accounts || []) {
         const balance = (account.cash_balances || []).find(
-          (item) => item.id === balanceId,
+          (item) => item.id === balanceId
         );
         if (balance) {
           return balance.currency?.code || account.currency;
