@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import transactionService from "../../services/transactionService/transactionService";
 import "./trades.scss";
 import NoDataCard from "../core/nodata";
@@ -7,7 +7,6 @@ import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
 import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
-import TransactionItem from "./transactionItem";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 
 const Trades = () => {
@@ -20,10 +19,12 @@ const Trades = () => {
   const [shownTrades, setShownTrades] = useState([]);
   const [transactionPopup, setTransactionPopup] = useState(false);
   const [selectedYear, setSelectedYear] = useState(
-    new Date().getFullYear().toString()
+    new Date().getFullYear().toString(),
   );
   const [showAll, setShowAll] = useState(false);
   const [showDrafts, setShowDrafts] = useState(true);
+  const [stocksExpanded, setStocksExpanded] = useState(true);
+  const [tradesExpanded, setTradesExpanded] = useState(false);
 
   // Fetch all trades on mount
   useEffect(() => {
@@ -40,7 +41,7 @@ const Trades = () => {
     if (!showAll) {
       const year = parseInt(selectedYear, 10);
       filtered = filtered.filter(
-        (t) => t.date && t.date.startsWith(year.toString())
+        (t) => t.date && t.date.startsWith(year.toString()),
       );
     }
     if (!showDrafts) {
@@ -67,7 +68,7 @@ const Trades = () => {
     return helper.getTransactionCurrency(
       global.accounts,
       transaction,
-      getAccountCurrency
+      getAccountCurrency,
     );
   }
 
@@ -88,57 +89,77 @@ const Trades = () => {
         getTransactionCurrency={getTransactionCurrency}
       />
       <div className="trades-wrapper__content">
-        <div className="trades-filter-bar">
-          <select
-            className="trades-filter-bar__year"
-            value={selectedYear}
-            onChange={handleYearChange}
-            aria-label="Select year"
-            disabled={showAll}
-          >
-            {(() => {
-              const years = [];
-              const current = new Date().getFullYear();
-              for (let y = current - 10; y <= current; y++) {
-                years.push(y);
-              }
-              return years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ));
-            })()}
-          </select>
-          <button
-            className={`trades-filter-bar__toggle${showAll ? " active" : ""}`}
-            onClick={handleToggleAll}
-          >
-            {showAll ? "Showing all trades" : "Load all trades"}
-          </button>
-          <button
-            className={`trades-filter-bar__draft-toggle${
-              showDrafts ? " active" : ""
-            }`}
-            onClick={() => setShowDrafts((prev) => !prev)}
-          >
-            {showDrafts ? "Hide Drafts" : "Show Drafts"}
-          </button>
-        </div>
-        {!allTrades || !accountsLoaded ? (
-          <LoadingCard header="Loading Trades..." />
-        ) : shownTrades && !shownTrades?.length ? (
-          <NoDataCard header={"No trades found."} label={"Add a buy or sell"} />
-        ) : (
-          <TradesList
-            trades={shownTrades}
-            accounts={accounts}
-            getTransactionCurrency={getTransactionCurrency}
-            refreshTrades={refreshTrades}
-            setTransactionPopup={setTransactionPopup}
-            showDrafts={showDrafts}
-            setShowDrafts={setShowDrafts}
-          />
-        )}
+        {/* Stock Holdings Accordion — default visible */}
+        <AccordionSection
+          title="Stock Holdings"
+          expanded={stocksExpanded}
+          onToggle={() => setStocksExpanded((p) => !p)}
+        >
+          <StockHoldings />
+        </AccordionSection>
+
+        {/* Trades Accordion — default folded, filters inside */}
+        <AccordionSection
+          title="Trades"
+          expanded={tradesExpanded}
+          onToggle={() => setTradesExpanded((p) => !p)}
+        >
+          <div className="trades-filter-bar">
+            <select
+              className="trades-filter-bar__year"
+              value={selectedYear}
+              onChange={handleYearChange}
+              aria-label="Select year"
+              disabled={showAll}
+            >
+              {(() => {
+                const years = [];
+                const current = new Date().getFullYear();
+                for (let y = current - 10; y <= current; y++) {
+                  years.push(y);
+                }
+                return years.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ));
+              })()}
+            </select>
+            <button
+              className={`trades-filter-bar__toggle${showAll ? " active" : ""}`}
+              onClick={handleToggleAll}
+            >
+              {showAll ? "Showing all trades" : "Load all trades"}
+            </button>
+            <button
+              className={`trades-filter-bar__draft-toggle${
+                showDrafts ? " active" : ""
+              }`}
+              onClick={() => setShowDrafts((prev) => !prev)}
+            >
+              {showDrafts ? "Hide Drafts" : "Show Drafts"}
+            </button>
+          </div>
+          {!allTrades || !accountsLoaded ? (
+            <LoadingCard header="Loading Trades..." />
+          ) : shownTrades && !shownTrades?.length ? (
+            <NoDataCard
+              header={"No trades found."}
+              label={"Add a buy or sell"}
+            />
+          ) : (
+            <TradesList
+              trades={shownTrades}
+              accounts={accounts}
+              getTransactionCurrency={getTransactionCurrency}
+              refreshTrades={refreshTrades}
+              setTransactionPopup={setTransactionPopup}
+              showDrafts={showDrafts}
+              setShowDrafts={setShowDrafts}
+            />
+          )}
+        </AccordionSection>
+
         {transactionPopup && (
           <TransactionPopup
             transaction={transactionPopup}
@@ -184,15 +205,15 @@ const Sidebar = (props) => {
         currencyService.convert(
           props.getTransactionCurrency(t),
           global.globalCurrency,
-          t.amount
-        )
+          t.amount,
+        ),
       );
       const sellPromises = sells.map(async (t) =>
         currencyService.convert(
           props.getTransactionCurrency(t),
           global.globalCurrency,
-          t.amount
-        )
+          t.amount,
+        ),
       );
 
       const [buyResults, sellResults] = await Promise.all([
@@ -202,11 +223,11 @@ const Sidebar = (props) => {
 
       const buyTotal = buyResults.reduce(
         (acc, curr) => acc + parseFloat(curr),
-        0
+        0,
       );
       const sellTotal = sellResults.reduce(
         (acc, curr) => acc + parseFloat(curr),
-        0
+        0,
       );
 
       if (!active) return;
@@ -239,7 +260,7 @@ const Sidebar = (props) => {
 
       const targetCur = global.globalCurrency;
       const investmentAccs = global.accounts.filter(
-        (a) => a.type === 1 && !a.deleted
+        (a) => a.type === 1 && !a.deleted,
       );
 
       // Collect raw holdings with native currency info
@@ -359,7 +380,7 @@ const Sidebar = (props) => {
               <b>
                 {helper.showOrMask(
                   global.privacyMode,
-                  helper.formatNumber(totalTradeVolume)
+                  helper.formatNumber(totalTradeVolume),
                 )}
                 {helper.getCurrency(global.globalCurrency)}
               </b>{" "}
@@ -369,7 +390,7 @@ const Sidebar = (props) => {
               <b>
                 {helper.showOrMask(
                   global.privacyMode,
-                  helper.formatNumber(totalBuys)
+                  helper.formatNumber(totalBuys),
                 )}
                 {helper.getCurrency(global.globalCurrency)}
               </b>{" "}
@@ -379,7 +400,7 @@ const Sidebar = (props) => {
               <b>
                 {helper.showOrMask(
                   global.privacyMode,
-                  helper.formatNumber(totalSells)
+                  helper.formatNumber(totalSells),
                 )}
                 {helper.getCurrency(global.globalCurrency)}
               </b>{" "}
@@ -397,7 +418,7 @@ const Sidebar = (props) => {
                     <b>
                       {helper.showOrMask(
                         global.privacyMode,
-                        holdingsSummary.totalCostBasis
+                        holdingsSummary.totalCostBasis,
                       )}
                       {helper.getCurrency(global.globalCurrency)}
                     </b>
@@ -409,7 +430,7 @@ const Sidebar = (props) => {
                     <b>
                       {helper.showOrMask(
                         global.privacyMode,
-                        holdingsSummary.totalMarketValue
+                        holdingsSummary.totalMarketValue,
                       )}
                       {helper.getCurrency(global.globalCurrency)}
                     </b>
@@ -425,7 +446,7 @@ const Sidebar = (props) => {
                   >
                     {helper.showOrMask(
                       global.privacyMode,
-                      holdingsSummary.totalUnrealizedPnl
+                      holdingsSummary.totalUnrealizedPnl,
                     )}
                     {helper.getCurrency(global.globalCurrency)}
                   </span>
@@ -444,7 +465,7 @@ const Sidebar = (props) => {
                       <b>
                         {helper.showOrMask(
                           global.privacyMode,
-                          helper.formatNumber(pos.marketValue)
+                          helper.formatNumber(pos.marketValue),
                         )}
                         {helper.getCurrency(global.globalCurrency)}
                       </b>
@@ -540,7 +561,7 @@ const TradeItem = ({ trade, currency, refreshTrades, setTransactionPopup }) => {
         <span className="trade-item__value">
           {helper.showOrMask(
             global.privacyMode,
-            helper.formatNumber(trade.amount)
+            helper.formatNumber(trade.amount),
           )}{" "}
           {currency}
         </span>
@@ -556,6 +577,245 @@ const TradeItem = ({ trade, currency, refreshTrades, setTransactionPopup }) => {
           {transactionType === "buy" ? "BUY" : "SELL"}
         </span>
       </label>
+    </div>
+  );
+};
+
+// ---- Accordion wrapper ----
+const AccordionSection = ({ title, expanded, onToggle, children }) => (
+  <div className="trades-wrapper__accordion">
+    <div className="trades-wrapper__accordion-header" onClick={onToggle}>
+      <span className="trades-wrapper__accordion-header__title">{title}</span>
+      <span
+        className={`trades-wrapper__accordion-header__chevron${
+          expanded ? " expanded" : ""
+        }`}
+      >
+        ▼
+      </span>
+    </div>
+    <div
+      className={`trades-wrapper__accordion-content${
+        expanded ? "" : " collapsed"
+      }`}
+    >
+      {children}
+    </div>
+  </div>
+);
+
+// ---- Provider icon matching ----
+function getProviderIcon(name) {
+  const lower = name.toLowerCase();
+  if (lower.includes("interactive brokers") || lower.includes("ibkr"))
+    return "ibkr_icon.png";
+  if (lower.includes("trading212") || lower.includes("t212"))
+    return "t212_icon.png";
+  if (lower.includes("wise")) return "wise_icon.png";
+  if (lower.includes("revolut")) return "revolut_icon.png";
+  return null;
+}
+
+// ---- Stock Holdings ----
+const StockHoldings = () => {
+  const global = useGlobalContext();
+  const [stocks, setStocks] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [stockSearch, setStockSearch] = useState("");
+  const targetCur = global.globalCurrency;
+
+  useEffect(() => {
+    let active = true;
+    async function compute() {
+      setLoading(true);
+      if (!global.accounts) {
+        setStocks(null);
+        setLoading(false);
+        return;
+      }
+
+      const investmentAccs = global.accounts.filter(
+        (a) => a.type === 1 && !a.deleted,
+      );
+
+      // Collect raw holdings with account info
+      const rawHoldings = [];
+      for (const acc of investmentAccs) {
+        const provider = getProviderIcon(acc.name);
+        for (const h of acc.holdings || []) {
+          const qty = h.quantity ? parseFloat(h.quantity) : 0;
+          if (qty <= 0) continue;
+          const secCur = h.security?.currency?.code || "EUR";
+          const latestPrice = h.latest_price?.price
+            ? parseFloat(h.latest_price.price)
+            : null;
+          const unrealizedGain = h.unrealized_gain
+            ? parseFloat(h.unrealized_gain)
+            : null;
+          rawHoldings.push({
+            ticker: h.security?.ticker || "?",
+            name: h.security?.name || h.security?.ticker || "?",
+            quantity: qty,
+            latestPrice,
+            unrealizedGain,
+            currency: secCur,
+            provider,
+          });
+        }
+      }
+
+      // Convert all to target currency
+      const convertPromises = rawHoldings.map(async (h) => {
+        let price = h.latestPrice;
+        let ug = h.unrealizedGain;
+        if (h.currency !== targetCur) {
+          if (price !== null) {
+            price = parseFloat(
+              await currencyService.convert(h.currency, targetCur, price),
+            );
+          }
+          if (ug !== null) {
+            ug = parseFloat(
+              await currencyService.convert(h.currency, targetCur, ug),
+            );
+          }
+        }
+        return { ...h, latestPrice: price, unrealizedGain: ug };
+      });
+
+      const converted = await Promise.all(convertPromises);
+      if (!active) return;
+
+      // Aggregate by ticker, collecting unique providers
+      const agg = {};
+      for (const h of converted) {
+        if (!agg[h.ticker]) {
+          agg[h.ticker] = {
+            ticker: h.ticker,
+            name: h.name,
+            quantity: 0,
+            latestPrice: null,
+            unrealizedGain: 0,
+            providers: [],
+          };
+        }
+        agg[h.ticker].quantity += h.quantity;
+        // Use latest non-null price
+        if (h.latestPrice !== null) {
+          agg[h.ticker].latestPrice = h.latestPrice;
+        }
+        agg[h.ticker].unrealizedGain += h.unrealizedGain || 0;
+        if (h.provider && !agg[h.ticker].providers.includes(h.provider)) {
+          agg[h.ticker].providers.push(h.provider);
+        }
+      }
+
+      setStocks(Object.values(agg));
+      setLoading(false);
+    }
+
+    compute();
+    return () => {
+      active = false;
+    };
+  }, [global.accounts, targetCur]);
+
+  if (loading) {
+    return (
+      <div className="trades-wrapper__stocks-list">
+        <div className="stocks" style={{ padding: 20 }}>
+          <img
+            src={`${process.env.PUBLIC_URL}/loading_icon.gif`}
+            alt="loading"
+            width={40}
+            height={40}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (!stocks || stocks.length === 0) {
+    return (
+      <div className="trades-wrapper__stocks-list">
+        <NoDataCard header="No holdings found." />
+      </div>
+    );
+  }
+
+  const filteredStocks = stockSearch
+    ? stocks.filter((s) =>
+        s.ticker.toLowerCase().includes(stockSearch.toLowerCase()),
+      )
+    : stocks;
+
+  return (
+    <div className="trades-wrapper__stocks-list">
+      <div className="header">
+        <div className="header__ticker-cell">
+          <label>Ticker</label>
+          <input
+            className="header__ticker-search"
+            type="text"
+            placeholder="Search…"
+            value={stockSearch}
+            onChange={(e) => setStockSearch(e.target.value)}
+          />
+        </div>
+        <label>Qty</label>
+        <label>Price</label>
+        <label>Unrealized P&amp;L</label>
+      </div>
+      <div className="stocks">
+        {filteredStocks.map((s) => (
+          <div key={s.ticker} className="trades-wrapper__stock-item">
+            <label className="trades-wrapper__stock-item__ticker">
+              <span className="trades-wrapper__stock-item__value">
+                {s.ticker}
+              </span>
+              {s.providers.length > 0 && (
+                <span className="trades-wrapper__stock-item__icons">
+                  {s.providers.map((icon) => (
+                    <img
+                      key={icon}
+                      src={`${process.env.PUBLIC_URL}/${icon}`}
+                      alt={icon.replace("_icon.png", "")}
+                    />
+                  ))}
+                </span>
+              )}
+            </label>
+            <label>
+              <span className="trades-wrapper__stock-item__value">
+                {helper.formatNumber(s.quantity, 4)}
+              </span>
+            </label>
+            <label>
+              <span className="trades-wrapper__stock-item__value">
+                {s.latestPrice !== null
+                  ? `${helper.formatNumber(s.latestPrice)} ${helper.getCurrency(
+                      targetCur,
+                    )}`
+                  : "—"}
+              </span>
+            </label>
+            <label>
+              <span
+                className={`trades-wrapper__stock-item__value ${
+                  s.unrealizedGain >= 0 ? "pnl-positive" : "pnl-negative"
+                }`}
+              >
+                {helper.showOrMask(
+                  global.privacyMode,
+                  `${s.unrealizedGain >= 0 ? "+" : ""}${helper.formatNumber(
+                    s.unrealizedGain,
+                  )} ${helper.getCurrency(targetCur)}`,
+                )}
+              </span>
+            </label>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
