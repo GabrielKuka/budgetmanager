@@ -36,7 +36,8 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name="transaction",
             index=models.Index(
-                fields=["user", "is_draft", "date"], name="txn_user_draft_date_idx"
+                fields=["user", "is_draft", "date"],
+                name="txn_user_draft_date_idx",
             ),
         ),
     ]
