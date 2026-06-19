@@ -23,6 +23,7 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
   const [tags, setTags] = useState([]);
   const [transactionType, setTransactionType] = useState("1");
   const [customRate, setCustomRate] = useState("");
+  const [scheduledDate, setScheduledDate] = useState("");
 
   const cashBalanceOptions = useMemo(() => {
     const options = [];
@@ -172,6 +173,58 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
     showToast(`${TX_LABELS[transactionType]} added.`);
   }
 
+  async function submitDraft(values) {
+    const txTypeNum = parseInt(transactionType, 10);
+    const payload = {
+      type: txTypeNum,
+      date: values.date,
+      description: values.description,
+      tags: tags.map((tag) => ({ name: tag })),
+      is_draft: true,
+    };
+
+    if (scheduledDate) {
+      payload.scheduled_apply_at = new Date(scheduledDate).toISOString();
+    }
+
+    if (transactionType === "0") {
+      payload.amount = values.amount;
+      payload.to_cash_balance = parseInt(values.to_cash_balance, 10);
+      payload.category = parseInt(values.category, 10);
+    } else if (transactionType === "1") {
+      payload.amount = values.amount;
+      payload.from_cash_balance = parseInt(values.from_cash_balance, 10);
+      payload.category = parseInt(values.category, 10);
+    } else if (transactionType === "2") {
+      payload.from_amount = values.amount;
+      payload.from_cash_balance = parseInt(values.from_cash_balance, 10);
+      payload.to_cash_balance = parseInt(values.to_cash_balance, 10);
+      const fromCurrency = getBalanceCurrencyById(values.from_cash_balance);
+      const toCurrency = getBalanceCurrencyById(values.to_cash_balance);
+      if (fromCurrency && toCurrency && fromCurrency !== toCurrency) {
+        payload.to_amount =
+          Number(customRate || 0) * Number(values.amount || 0);
+      } else {
+        payload.to_amount = values.amount;
+      }
+    } else if (transactionType === "3") {
+      payload.from_cash_balance = parseInt(values.from_cash_balance, 10);
+      payload.security = values.security;
+      payload.quantity = values.quantity;
+      payload.price_per_unit = values.price_per_unit;
+    } else if (transactionType === "4") {
+      payload.to_cash_balance = parseInt(values.to_cash_balance, 10);
+      payload.holding = parseInt(values.holding, 10);
+      payload.quantity = values.quantity;
+      payload.price_per_unit = values.price_per_unit;
+    }
+
+    await transactionService.addTransaction(payload);
+    await global.updateTransactions();
+    await refreshAccounts();
+    showToast("Draft saved.");
+  }
+
   async function handleRate(fieldName, setFieldValue, selectedValue) {
     setFieldValue(fieldName, selectedValue);
 
@@ -257,7 +310,16 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
               }
             }}
           >
-            {({ values, setFieldValue, errors, touched, resetForm }) => {
+            {({
+              values,
+              setFieldValue,
+              errors,
+              touched,
+              resetForm,
+              validateForm,
+              setSubmitting,
+              submitForm,
+            }) => {
               const sourceBalances = getBalancesByAccountId(
                 values.from_account
               );
@@ -559,6 +621,16 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
                     </Field>
                   )}
 
+                  <div className="scheduled-apply-row">
+                    <label>Auto-apply date (optional):</label>
+                    <input
+                      type="datetime-local"
+                      id="scheduled_apply_at"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                    />
+                  </div>
+
                   <div id="submit_wrapper">
                     <button type="submit" id={"submit-button"}>
                       Add {TX_LABELS[transactionType]}
@@ -578,7 +650,26 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
                     <button
                       type="button"
                       id={"draft-button"}
-                      onClick={() => showToast("Not implemented yet.")}
+                      onClick={async () => {
+                        setAddingTransaction(true);
+                        try {
+                          const errors = await validateForm();
+                          if (Object.keys(errors || {}).length > 0) {
+                            setSubmitting(false);
+                            setAddingTransaction(false);
+                            return;
+                          }
+                          await submitDraft(values);
+                          setTags([]);
+                          setCustomRate("");
+                          setScheduledDate("");
+                          resetForm();
+                          showPopup(false);
+                        } finally {
+                          setAddingTransaction(false);
+                          setSubmitting(false);
+                        }
+                      }}
                     >
                       Save as Draft
                     </button>

@@ -57,6 +57,10 @@ class TransactionReadSerializer(serializers.ModelSerializer):
             "price_per_unit",
             "fx_rate",
             "pinned",
+            "is_draft",
+            "draft_created",
+            "scheduled_apply_at",
+            "applied_at",
         )
 
     def _income_detail(self, obj):
@@ -247,6 +251,11 @@ class TransactionWriteSerializer(serializers.Serializer):
         required=False,
         max_digits=19,
         decimal_places=8,
+    )
+
+    is_draft = serializers.BooleanField(required=False, default=False)
+    scheduled_apply_at = serializers.DateTimeField(
+        required=False, allow_null=True
     )
 
     def _user(self):
@@ -724,5 +733,12 @@ class TransactionWriteSerializer(serializers.Serializer):
             normalized["resolved_security"] = holding.security
             normalized["resolved_quantity"] = quantity
             normalized["resolved_price_per_unit"] = ppu
+
+        is_draft = attrs.get("is_draft", False)
+        normalized["is_draft"] = is_draft
+        if is_draft:
+            normalized["scheduled_apply_at"] = attrs.get(
+                "scheduled_apply_at", None
+            )
 
         return normalized

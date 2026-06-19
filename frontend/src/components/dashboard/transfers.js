@@ -20,6 +20,7 @@ const Transfers = () => {
   const accountsLoaded =
     Array.isArray(global.accounts) && Array.isArray(global.activeAccounts);
   const [transactionPopup, setTransactionPopup] = useState(false);
+  const [showDrafts, setShowDrafts] = useState(true);
 
   function getAccountCurrency(id) {
     const account = global.accounts?.find((a) => Number(a.id) === Number(id));
@@ -33,7 +34,7 @@ const Transfers = () => {
   return (
     <div className={"transfers-wrapper"}>
       <div className="transfers-wrapper__content">
-        <MonthPicker />
+        <MonthPicker showDrafts={showDrafts} setShowDrafts={setShowDrafts} />
         {!global.transfers || !accountsLoaded ? (
           <LoadingCard header="Loading Transfers..." />
         ) : global.transfers && !global.transfers?.length ? (
@@ -50,6 +51,7 @@ const Transfers = () => {
             refreshTransfers={global.updateTransfers}
             setTransactionPopup={setTransactionPopup}
             dateRange={global.dateRange}
+            showDrafts={showDrafts}
           />
         )}
         {transactionPopup && (
@@ -266,12 +268,13 @@ const TransfersList = ({
   refreshTransfers,
   setTransactionPopup,
   dateRange,
+  showDrafts,
 }) => {
   const global = useGlobalContext();
   const [shownTransfers = transfers, setShownTransfers] = useState({});
   const [sortedBy, setSortedBy] = useState({});
 
-  useEffect(filterTransfers, [dateRange, transfers]);
+  useEffect(filterTransfers, [dateRange, transfers, showDrafts]);
   useEffect(filterTransfers, []);
 
   function filterTransfers() {
@@ -305,6 +308,7 @@ const TransfersList = ({
     let filteredtransfers = toAccountFilter
       .filter((t) => fromAccountFilter.includes(t))
       .filter((t) => dateFilter.includes(t))
+      .filter((t) => showDrafts || !t.is_draft)
       .sort((a, b) => (a.date > b.date ? -1 : 1));
     // Pinned transactions always first
     filteredtransfers?.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));

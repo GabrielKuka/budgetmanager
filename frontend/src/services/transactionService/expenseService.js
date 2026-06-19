@@ -3,7 +3,7 @@ import { BASE_URL, BACKEND_PORT } from "../../config";
 
 const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
 
-async function getTransactions(dateRange, currency) {
+async function getTransactions(dateRange, currency, includeDrafts = true) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const fmt = (d) =>
     d.getFullYear() +
@@ -17,6 +17,7 @@ async function getTransactions(dateRange, currency) {
       from_date: fmt(dateRange.from),
       to_date: fmt(dateRange.to),
       currency,
+      include_drafts: includeDrafts ? "true" : "false",
     },
     headers: {
       Authorization: token,
@@ -61,7 +62,7 @@ async function getAllUserExpenses() {
   }
 }
 
-async function getUserExpenses(dateRange) {
+async function getUserExpenses(dateRange, includeDrafts = true) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const fmt = (d) =>
     d.getFullYear() +
@@ -74,6 +75,7 @@ async function getUserExpenses(dateRange) {
     params: {
       from_date: fmt(dateRange.from),
       to_date: fmt(dateRange.to),
+      include_drafts: includeDrafts ? "true" : "false",
     },
     headers: {
       Authorization: token,

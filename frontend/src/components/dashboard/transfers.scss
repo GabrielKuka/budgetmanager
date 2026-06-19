@@ -206,6 +206,7 @@
         @include title-decoration($height: 3px, $width: 100%, $bottom: -1px);
       }
     }
+
     .transfers {
       @include flex(column, flex-start, center);
       width: 100%;

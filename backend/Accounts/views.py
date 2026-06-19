@@ -215,7 +215,7 @@ def _allocation_percent(amount, total):
 
 def _account_activity_payload(user, account):
     transactions_by_month = list(
-        Transaction.objects.filter(user=user)
+        Transaction.objects.filter(is_draft=False, user=user)
         .filter(
             Q(
                 transaction_type="income",
@@ -681,6 +681,7 @@ def account_stats(request, account_id):
 
     income_month_rows = list(
         Transaction.objects.filter(
+            is_draft=False,
             user=request.user,
             transaction_type="income",
             income_detail__to_cash_balance__account=account,
@@ -691,6 +692,7 @@ def account_stats(request, account_id):
         .values("date", "calc_amount")
     ) + list(
         Transaction.objects.filter(
+            is_draft=False,
             user=request.user,
             transaction_type="transfer",
             transfer_detail__to_cash_balance__account=account,
@@ -708,6 +710,7 @@ def account_stats(request, account_id):
 
     expense_month_rows = list(
         Transaction.objects.filter(
+            is_draft=False,
             user=request.user,
             transaction_type="expense",
             expense_detail__from_cash_balance__account=account,
@@ -718,6 +721,7 @@ def account_stats(request, account_id):
         .values("date", "calc_amount")
     ) + list(
         Transaction.objects.filter(
+            is_draft=False,
             user=request.user,
             transaction_type="transfer",
             transfer_detail__from_cash_balance__account=account,
@@ -730,6 +734,7 @@ def account_stats(request, account_id):
 
     income_year_rows = list(
         Transaction.objects.filter(
+            is_draft=False,
             user=request.user,
             transaction_type="income",
             income_detail__to_cash_balance__account=account,
@@ -740,6 +745,7 @@ def account_stats(request, account_id):
         .values("date", "calc_amount")
     ) + list(
         Transaction.objects.filter(
+            is_draft=False,
             user=request.user,
             transaction_type="transfer",
             transfer_detail__to_cash_balance__account=account,
@@ -757,6 +763,7 @@ def account_stats(request, account_id):
 
     expense_year_rows = list(
         Transaction.objects.filter(
+            is_draft=False,
             user=request.user,
             transaction_type="expense",
             expense_detail__from_cash_balance__account=account,
@@ -767,6 +774,7 @@ def account_stats(request, account_id):
         .values("date", "calc_amount")
     ) + list(
         Transaction.objects.filter(
+            is_draft=False,
             user=request.user,
             transaction_type="transfer",
             transfer_detail__from_cash_balance__account=account,
@@ -779,6 +787,7 @@ def account_stats(request, account_id):
 
     last_month_income_rows = list(
         Transaction.objects.filter(
+            is_draft=False,
             user=request.user,
             transaction_type="income",
             income_detail__to_cash_balance__account=account,
@@ -789,6 +798,7 @@ def account_stats(request, account_id):
         .values("calc_amount")
     ) + list(
         Transaction.objects.filter(
+            is_draft=False,
             user=request.user,
             transaction_type="transfer",
             transfer_detail__to_cash_balance__account=account,
@@ -805,6 +815,7 @@ def account_stats(request, account_id):
     )
     last_month_expense_rows = list(
         Transaction.objects.filter(
+            is_draft=False,
             user=request.user,
             transaction_type="expense",
             expense_detail__from_cash_balance__account=account,
@@ -815,6 +826,7 @@ def account_stats(request, account_id):
         .values("calc_amount")
     ) + list(
         Transaction.objects.filter(
+            is_draft=False,
             user=request.user,
             transaction_type="transfer",
             transfer_detail__from_cash_balance__account=account,
@@ -895,7 +907,7 @@ def account_stats(request, account_id):
             )
 
     transactions_by_month = list(
-        Transaction.objects.filter(user=request.user)
+        Transaction.objects.filter(is_draft=False, user=request.user)
         .filter(
             Q(
                 transaction_type="income",
@@ -1002,7 +1014,7 @@ def account_stats(request, account_id):
 def account_transactions(request, account_id):
     account = get_object_or_404(Account, id=account_id, user=request.user)
     transactions = (
-        Transaction.objects.filter(user=request.user)
+        Transaction.objects.filter(is_draft=False, user=request.user)
         .filter(
             Q(
                 transaction_type="income",

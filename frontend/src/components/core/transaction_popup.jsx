@@ -37,23 +37,23 @@ const TransactionPopup = ({
   const [editDate, setEditDate] = useState(transaction.date);
   const [editAmount, setEditAmount] = useState(transaction.amount);
   const [editDescription, setEditDescription] = useState(
-    transaction.description || ""
+    transaction.description || "",
   );
   const [editTags, setEditTags] = useState(
-    transaction.tags?.map((t) => t.name) || []
+    transaction.tags?.map((t) => t.name) || [],
   );
   const [editCategory, setEditCategory] = useState(transaction.category || "");
   const [editFromAccount, setEditFromAccount] = useState(
-    transaction.from_account || ""
+    transaction.from_account || "",
   );
   const [editFromCashBalance, setEditFromCashBalance] = useState(
-    transaction.from_cash_balance || ""
+    transaction.from_cash_balance || "",
   );
   const [editToAccount, setEditToAccount] = useState(
-    transaction.to_account || ""
+    transaction.to_account || "",
   );
   const [editToCashBalance, setEditToCashBalance] = useState(
-    transaction.to_cash_balance || ""
+    transaction.to_cash_balance || "",
   );
   const [editTagInput, setEditTagInput] = useState("");
 
@@ -93,8 +93,8 @@ const TransactionPopup = ({
     });
     return options.sort((a, b) =>
       `${a.accountName}-${a.currencyCode}`.localeCompare(
-        `${b.accountName}-${b.currencyCode}`
-      )
+        `${b.accountName}-${b.currencyCode}`,
+      ),
     );
   }, [global.activeAccounts]);
 
@@ -128,7 +128,7 @@ const TransactionPopup = ({
     return helper.getTransactionCurrency(
       global.accounts,
       transaction,
-      getAccountCurrency
+      getAccountCurrency,
     );
   }
 
@@ -190,10 +190,10 @@ const TransactionPopup = ({
         showToast(
           `${
             transactionType[0].toUpperCase() + transactionType.substring(1)
-          } deleted.`
+          } deleted.`,
         );
       },
-      { variant: "danger" }
+      { variant: "danger" },
     );
   }
 
@@ -244,7 +244,7 @@ const TransactionPopup = ({
         await global.updateAccounts();
         closePopup();
       },
-      { variant: "info" }
+      { variant: "info" },
     );
   }
 
@@ -282,14 +282,14 @@ const TransactionPopup = ({
         setIsEditing(false);
         showToast("Transaction updated.");
       },
-      { variant: "info" }
+      { variant: "info" },
     );
   }
 
   const currency = getTransactionCurrency();
   const amountDisplay = helper.showOrMask(
     global.privacyMode,
-    helper.formatNumber(transaction.amount)
+    helper.formatNumber(transaction.amount),
   );
   const amountColor = helper.amountLabelColor(transactionType);
   const accountId = getAccountId();
@@ -298,11 +298,11 @@ const TransactionPopup = ({
   const categoryEmoji = helper.categoryIcon(transaction.category);
   const quantDisplay = helper.showOrMask(
     global.privacyMode,
-    helper.formatNumber(transaction.quantity, 4)
+    helper.formatNumber(transaction.quantity, 4),
   );
   const priceDisplay = helper.showOrMask(
     global.privacyMode,
-    helper.formatNumber(transaction.price_per_unit)
+    helper.formatNumber(transaction.price_per_unit),
   );
 
   const accountOptions = useMemo(() => {
@@ -325,7 +325,11 @@ const TransactionPopup = ({
         className="overlay"
         onClick={isEditing ? undefined : closePopup}
       ></div>
-      <div className="transaction-popup-wrapper">
+      <div
+        className={`transaction-popup-wrapper${
+          transaction.is_draft ? " is-draft" : ""
+        }`}
+      >
         <div className="title-bar">
           <div className="main">
             <span className="type-icon">{typeMeta.icon}</span>
@@ -334,13 +338,16 @@ const TransactionPopup = ({
                 {isEditing
                   ? "Edit Transaction"
                   : `${typeMeta.verb} ${amountDisplay} ${helper.getCurrency(
-                      currency
+                      currency,
                     )}`}
               </span>
               <span className="date">
                 {typeMeta.dateLabel} {transaction.date}
               </span>
             </div>
+            {!isEditing && transaction.is_draft && (
+              <span className="draft-badge-popup">DRAFT</span>
+            )}
             {!isEditing && (
               <button
                 className={`pin-badge${isPinned ? " pinned" : ""}`}
@@ -410,7 +417,7 @@ const TransactionPopup = ({
                             onChange={(e) => {
                               setEditFromAccount(e.target.value);
                               setEditFromCashBalance(
-                                getAutoCashBalanceId(e.target.value)
+                                getAutoCashBalanceId(e.target.value),
                               );
                             }}
                           >
@@ -468,7 +475,7 @@ const TransactionPopup = ({
                             onChange={(e) => {
                               setEditToAccount(e.target.value);
                               setEditToCashBalance(
-                                getAutoCashBalanceId(e.target.value)
+                                getAutoCashBalanceId(e.target.value),
                               );
                             }}
                           >
@@ -526,7 +533,7 @@ const TransactionPopup = ({
                             onChange={(e) => {
                               setEditToAccount(e.target.value);
                               setEditToCashBalance(
-                                getAutoCashBalanceId(e.target.value)
+                                getAutoCashBalanceId(e.target.value),
                               );
                             }}
                           >
@@ -686,7 +693,7 @@ const TransactionPopup = ({
                       className="field-value account_name"
                       style={helper.accountLabelStyle(
                         global.accounts,
-                        accountId
+                        accountId,
                       )}
                       onClick={() => navigate(`/accounts/${accountId}`)}
                     >
@@ -704,7 +711,7 @@ const TransactionPopup = ({
                       >
                         {helper.getAccountName(
                           global.accounts,
-                          transaction.to_account
+                          transaction.to_account,
                         )}
                       </span>
                     </div>

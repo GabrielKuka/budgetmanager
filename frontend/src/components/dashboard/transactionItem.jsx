@@ -124,6 +124,15 @@ const TransactionItem = (props) => {
     setShowKebab(false);
   }
 
+  async function handleApplyDraft() {
+    showConfirm("Apply this draft? Balances will be updated.", async () => {
+      await transactionService.applyDraft(props.transaction.id);
+      await props.refreshTransactions();
+      showToast("Draft applied.");
+    });
+    setShowKebab(false);
+  }
+
   function handleDelete() {
     showConfirm(`Delete ${transactionType}?`, async () => {
       const payload = {
@@ -165,6 +174,19 @@ const TransactionItem = (props) => {
     >
       {helper.isRecent(props.transaction.created_on) && (
         <label className="new-transaction">NEW!</label>
+      )}
+      {props.transaction.is_draft && (
+        <label className="draft-badge">
+          DRAFT
+          {props.transaction.scheduled_apply_at && (
+            <span className="draft-schedule">
+              &middot;{" "}
+              {new Date(
+                props.transaction.scheduled_apply_at
+              ).toLocaleDateString()}
+            </span>
+          )}
+        </label>
       )}
       <label id="date" data-label="Date">
         <span className="transaction-value">{props.transaction.date}</span>
@@ -309,6 +331,11 @@ const TransactionItem = (props) => {
           <button onClick={handleShowMore} id="showMoreButton">
             Show more
           </button>
+          {props.transaction.is_draft && (
+            <button onClick={handleApplyDraft} id="applyDraftButton">
+              Apply Draft
+            </button>
+          )}
           {(transactionType === "income" || transactionType === "expense") && (
             <button
               onClick={handleRepeatTransaction}

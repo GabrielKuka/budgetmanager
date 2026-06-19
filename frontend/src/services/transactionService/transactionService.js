@@ -139,9 +139,21 @@ async function updateTransaction(payload) {
   return response.data;
 }
 
+async function applyDraft(id) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    headers: {
+      Authorization: token,
+    },
+  };
+  const response = await axios.put(`${ENDPOINT}/apply/${id}`, {}, config);
+  return response.data;
+}
+
 const transactionService = {
   togglePin,
   updateTransaction,
+  applyDraft,
   getAllIncomeCategories,
   getAllExpenseCategories,
   getAllUserAccounts,

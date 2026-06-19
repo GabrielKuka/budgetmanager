@@ -19,7 +19,7 @@ async function getAllUserIncomes() {
   return response.data;
 }
 
-async function getUserIncomes(dateRange) {
+async function getUserIncomes(dateRange, includeDrafts = true) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const fmt = (d) =>
     d.getFullYear() +
@@ -32,6 +32,7 @@ async function getUserIncomes(dateRange) {
     params: {
       from_date: fmt(dateRange.from),
       to_date: fmt(dateRange.to),
+      include_drafts: includeDrafts ? "true" : "false",
     },
     headers: {
       Authorization: token,

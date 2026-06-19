@@ -35,6 +35,7 @@ const Incomes = () => {
 
   const [shownIncomes, setShownIncomes] = useState([]);
   const [transactionPopup, setTransactionPopup] = useState(false);
+  const [showDrafts, setShowDrafts] = useState(true);
 
   useEffect(() => {
     setCategories(global.incomeCategories);
@@ -70,7 +71,7 @@ const Incomes = () => {
         getTransactionCurrency={getTransactionCurrency}
       />
       <div className="incomes-wrapper__content">
-        <MonthPicker />
+        <MonthPicker showDrafts={showDrafts} setShowDrafts={setShowDrafts} />
         {!global.incomes || !accountsLoaded ? (
           <LoadingCard header="Loading Incomes..." />
         ) : global.incomes && !global.incomes?.length ? (
@@ -91,6 +92,7 @@ const Incomes = () => {
             getTransactionCurrency={getTransactionCurrency}
             refreshIncomes={global.updateIncomes}
             setTransactionPopup={setTransactionPopup}
+            showDrafts={showDrafts}
           />
         )}
         {transactionPopup && (
@@ -116,7 +118,7 @@ const Sidebar = (props) => {
 
   useEffect(() => {
     let active = true;
-    const shownIncomes = props.shownIncomes || [];
+    const shownIncomes = (props.shownIncomes || []).filter((e) => !e.is_draft);
 
     async function getTotal() {
       let promises = shownIncomes.map(async (e) => {
@@ -194,7 +196,7 @@ const Sidebar = (props) => {
       <div className="pie-chart-card">
         <div className="chart-title">By category</div>
         <PercentExpensesPieChart
-          expenses={props.shownIncomes}
+          expenses={(props.shownIncomes || []).filter((e) => !e.is_draft)}
           categories={props.categories}
           getAccountCurrency={props.getAccountCurrency}
           getTransactionCurrency={props.getTransactionCurrency}
@@ -401,7 +403,7 @@ const AddIncome = ({
 const IncomesList = (props) => {
   const global = useGlobalContext();
   const [sortedBy, setSortedBy] = useState({});
-  useEffect(filterIncomes, [props.dateRange, props.incomes]);
+  useEffect(filterIncomes, [props.dateRange, props.incomes, props.showDrafts]);
   useEffect(filterIncomes, []);
 
   function filterIncomes() {
@@ -435,6 +437,7 @@ const IncomesList = (props) => {
     let filteredincomes = accountFilter
       ?.filter((e) => categoryFilter.includes(e))
       ?.filter((e) => dateFilter.includes(e))
+      ?.filter((e) => props.showDrafts || !e.is_draft)
       ?.sort((a, b) => (a.date > b.date ? -1 : 1));
     // Pinned transactions always first
     filteredincomes?.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));

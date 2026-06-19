@@ -23,11 +23,12 @@ const Trades = () => {
     new Date().getFullYear().toString()
   );
   const [showAll, setShowAll] = useState(false);
+  const [showDrafts, setShowDrafts] = useState(true);
 
   // Fetch all trades on mount
   useEffect(() => {
     (async () => {
-      const data = await transactionService.getAllUserTrades();
+      const data = await transactionService.getAllUserTrades(true);
       setAllTrades(data || []);
     })();
   }, []);
@@ -35,15 +36,18 @@ const Trades = () => {
   // Filter by year whenever selectedYear or showAll changes
   useEffect(() => {
     if (!allTrades) return;
-    if (showAll) {
-      setShownTrades(allTrades);
-    } else {
+    let filtered = allTrades;
+    if (!showAll) {
       const year = parseInt(selectedYear, 10);
-      setShownTrades(
-        allTrades.filter((t) => t.date && t.date.startsWith(year.toString()))
+      filtered = filtered.filter(
+        (t) => t.date && t.date.startsWith(year.toString())
       );
     }
-  }, [allTrades, selectedYear, showAll]);
+    if (!showDrafts) {
+      filtered = filtered.filter((t) => !t.is_draft);
+    }
+    setShownTrades(filtered);
+  }, [allTrades, selectedYear, showAll, showDrafts]);
 
   // Refresh handler
   const refreshTrades = async () => {
@@ -111,6 +115,14 @@ const Trades = () => {
           >
             {showAll ? "Showing all trades" : "Load all trades"}
           </button>
+          <button
+            className={`trades-filter-bar__draft-toggle${
+              showDrafts ? " active" : ""
+            }`}
+            onClick={() => setShowDrafts((prev) => !prev)}
+          >
+            {showDrafts ? "Hide Drafts" : "Show Drafts"}
+          </button>
         </div>
         {!allTrades || !accountsLoaded ? (
           <LoadingCard header="Loading Trades..." />
@@ -123,6 +135,8 @@ const Trades = () => {
             getTransactionCurrency={getTransactionCurrency}
             refreshTrades={refreshTrades}
             setTransactionPopup={setTransactionPopup}
+            showDrafts={showDrafts}
+            setShowDrafts={setShowDrafts}
           />
         )}
         {transactionPopup && (

@@ -20,7 +20,7 @@ async function getAllUserTransfers() {
   }
 }
 
-async function getUserTransfers(dateRange) {
+async function getUserTransfers(dateRange, includeDrafts = true) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const fmt = (d) =>
     d.getFullYear() +
@@ -33,6 +33,7 @@ async function getUserTransfers(dateRange) {
     params: {
       from_date: fmt(dateRange.from),
       to_date: fmt(dateRange.to),
+      include_drafts: includeDrafts ? "true" : "false",
     },
     headers: {
       Authorization: token,

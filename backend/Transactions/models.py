@@ -44,6 +44,10 @@ class Transaction(models.Model):
     tags = models.ManyToManyField(Tag, blank=True)
     created_on = models.DateTimeField(auto_now_add=True)
     pinned = models.BooleanField(default=False)
+    is_draft = models.BooleanField(default=False)
+    draft_created = models.DateTimeField(null=True, blank=True)
+    scheduled_apply_at = models.DateTimeField(null=True, blank=True)
+    applied_at = models.DateTimeField(null=True, blank=True)
 
     # Legacy flat fields kept for backward compatibility during staged migration.
     amount = models.DecimalField(
@@ -77,6 +81,10 @@ class Transaction(models.Model):
             models.Index(
                 fields=["user", "transaction_type", "date"],
                 name="txn_user_type_date_idx",
+            ),
+            models.Index(
+                fields=["user", "is_draft", "date"],
+                name="txn_user_draft_date_idx",
             ),
         ]
 

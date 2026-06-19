@@ -3,7 +3,7 @@ import { BASE_URL, BACKEND_PORT } from "../../config";
 
 const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
 
-async function getUserTrades(dateRange) {
+async function getUserTrades(dateRange, includeDrafts = true) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const fmt = (d) =>
     d.getFullYear() +
@@ -16,6 +16,7 @@ async function getUserTrades(dateRange) {
     params: {
       from_date: fmt(dateRange.from),
       to_date: fmt(dateRange.to),
+      include_drafts: includeDrafts ? "true" : "false",
     },
     headers: {
       Authorization: token,
@@ -30,9 +31,12 @@ async function getUserTrades(dateRange) {
   }
 }
 
-async function getAllUserTrades() {
+async function getAllUserTrades(includeDrafts = true) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
+    params: {
+      include_drafts: includeDrafts ? "true" : "false",
+    },
     headers: {
       Authorization: token,
     },

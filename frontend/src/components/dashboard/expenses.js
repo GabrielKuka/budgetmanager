@@ -24,6 +24,7 @@ const Expenses = () => {
 
   const [shownExpenses, setShownExpenses] = useState([]);
   const [transactionPopup, setTransactionPopup] = useState(false);
+  const [showDrafts, setShowDrafts] = useState(true);
 
   function getAccountCurrency(id) {
     const account = global.accounts?.find((a) => Number(a.id) === Number(id));
@@ -55,7 +56,7 @@ const Expenses = () => {
         getTransactionCurrency={getTransactionCurrency}
       />
       <div className="expenses-wrapper__content">
-        <MonthPicker />
+        <MonthPicker showDrafts={showDrafts} setShowDrafts={setShowDrafts} />
         {!global.expenses || !accountsLoaded ? (
           <LoadingCard header="Loading Expenses..." />
         ) : global.expenses && !global.expenses?.length ? (
@@ -76,6 +77,8 @@ const Expenses = () => {
             getTransactionCurrency={getTransactionCurrency}
             refreshExpenses={global.updateExpenses}
             setTransactionPopup={setTransactionPopup}
+            showDrafts={showDrafts}
+            setShowDrafts={setShowDrafts}
           />
         )}
         {transactionPopup && (
@@ -190,7 +193,7 @@ const Sidebar = (props) => {
         )}
       </div>
       <CurrentExpensesBarChart
-        expenses={props.shownExpenses}
+        expenses={(props.shownExpenses || []).filter((e) => !e.is_draft)}
         categories={props.categories}
         getAccountCurrency={props.getAccountCurrency}
         getTransactionCurrency={props.getTransactionCurrency}
@@ -200,7 +203,7 @@ const Sidebar = (props) => {
       <div className="pie-chart-card">
         <div className="chart-title">By category</div>
         <PercentExpensesPieChart
-          expenses={props.shownExpenses}
+          expenses={(props.shownExpenses || []).filter((e) => !e.is_draft)}
           categories={props.categories}
           getAccountCurrency={props.getAccountCurrency}
           getTransactionCurrency={props.getTransactionCurrency}
@@ -373,7 +376,11 @@ const AddExpense = ({
 const ExpensesList = (props) => {
   const [sortedBy, setSortedBy] = useState({});
   useEffect(filterExpenses, []);
-  useEffect(filterExpenses, [props.dateRange, props.expenses]);
+  useEffect(filterExpenses, [
+    props.dateRange,
+    props.expenses,
+    props.showDrafts,
+  ]);
   const global = useGlobalContext();
 
   function filterExpenses() {
@@ -407,6 +414,7 @@ const ExpensesList = (props) => {
     let filteredExpenses = accountFilter
       ?.filter((e) => categoryFilter.includes(e))
       ?.filter((e) => dateFilter.includes(e))
+      ?.filter((e) => props.showDrafts || !e.is_draft)
       .sort((a, b) => (a.date > b.date ? -1 : 1));
     // Pinned transactions always first
     filteredExpenses?.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));

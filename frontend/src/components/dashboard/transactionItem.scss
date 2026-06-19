@@ -121,6 +121,29 @@
     right: 0;
     transition: padding 0.3s ease;
   }
+
+  .draft-badge {
+    color: var(--brand-text);
+    background-color: #ffa500;
+    width: fit-content;
+    padding: 3px 8px;
+    min-height: 18px;
+    line-height: 1;
+    border-top-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: padding 0.3s ease;
+    z-index: 1;
+
+    .draft-schedule {
+      font-weight: 400;
+      font-size: 10px;
+    }
+  }
 }
 
 @media (max-width: 760px) {

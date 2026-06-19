@@ -231,6 +231,36 @@
         }
       }
 
+      .scheduled-apply-row {
+        @include flex(row, flex-start, center);
+        gap: 8px;
+        width: 100%;
+
+        label {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--muted-text);
+          white-space: nowrap;
+        }
+
+        input[type="datetime-local"] {
+          border: 1px solid var(--border);
+          border-radius: 5px;
+          padding: 6px;
+          outline: none;
+          font-size: 13px;
+          color: var(--text);
+          background-color: var(--surface-bg);
+          flex: 1;
+          max-width: 220px;
+
+          &:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 2px rgba(95, 158, 160, 0.18);
+          }
+        }
+      }
+
       #submit_wrapper {
         @include flex(row, flex-start, center, wrap);
         max-width: 100%;

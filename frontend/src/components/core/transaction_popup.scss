@@ -48,6 +48,11 @@ $type-sell: #2e8b57;
 
   animation: popupFadeIn 0.25s ease-out;
 
+  &.is-draft {
+    border-color: orange;
+    box-shadow: 0px 8px 30px rgba(255, 165, 0, 0.2);
+  }
+
   // ── Title bar ──
   .title-bar {
     background-color: var(--brand);
@@ -101,6 +106,20 @@ $type-sell: #2e8b57;
             color: #fff;
           }
         }
+      }
+
+      .draft-badge-popup {
+        margin-left: auto;
+        margin-right: 8px;
+        background: orange;
+        color: var(--brand-text);
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 12px;
+        white-space: nowrap;
+        letter-spacing: 0.5px;
+        line-height: 1.4;
       }
 
       .pin-badge {

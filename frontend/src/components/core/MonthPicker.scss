@@ -64,6 +64,25 @@
       color: var(--brand-text);
     }
   }
+
+  &__draft-toggle {
+    background-color: transparent;
+    color: orange;
+    border: 1px solid orange;
+    border-radius: 3px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    white-space: nowrap;
+
+    &:hover,
+    &.active {
+      background-color: orange;
+      color: var(--brand-text);
+    }
+  }
 }
 
 @media (max-width: 600px) {

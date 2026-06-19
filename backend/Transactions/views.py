@@ -4,6 +4,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from django.db import transaction as db_transaction
 from django.db.models import F, Q
+from django.utils import timezone
 from rest_framework import exceptions, status
 from rest_framework.authentication import (
     TokenAuthentication,
@@ -118,7 +119,11 @@ def _parse_date_range(request):
 
 
 def _transaction_queryset(
-    user, transaction_type=None, from_date=None, to_date=None
+    user,
+    transaction_type=None,
+    from_date=None,
+    to_date=None,
+    include_drafts=False,
 ):
     queryset = (
         Transaction.objects.filter(user=user)
@@ -142,6 +147,8 @@ def _transaction_queryset(
         .order_by("-pinned", "-date", "-id")
     )
 
+    if not include_drafts:
+        queryset = queryset.filter(is_draft=False)
     if transaction_type:
         queryset = queryset.filter(transaction_type=transaction_type)
     if from_date:
@@ -237,6 +244,10 @@ def _update_holding_for_sell_reversal(holding, quantity):
 
 def _delete_transaction_and_reverse(txn):
     with db_transaction.atomic():
+        if txn.is_draft:
+            txn.delete()
+            return
+
         if txn.transaction_type == "income":
             detail = txn.income_detail
             _apply_cash_delta(detail.to_cash_balance, -detail.amount)
@@ -334,9 +345,20 @@ def add_transaction(request):
     description = data.get("description", "")
     tx_date = data["date"]
     tags = data["resolved_tags"]
+    is_draft = data.get("is_draft", False)
+    scheduled_apply_at = data.get("scheduled_apply_at", None)
 
     try:
         with db_transaction.atomic():
+            draft_kwargs = {}
+            if is_draft:
+                draft_kwargs = {
+                    "is_draft": True,
+                    "draft_created": timezone.now(),
+                    "scheduled_apply_at": scheduled_apply_at,
+                    "applied_at": None,
+                }
+
             if tx_type == "income":
                 amount = data["resolved_amount"]
                 to_cash_balance = data["resolved_to_cash_balance"]
@@ -350,6 +372,7 @@ def add_transaction(request):
                     category=category,
                     from_account=None,
                     to_account=to_cash_balance.account,
+                    **draft_kwargs,
                 )
                 IncomeDetail.objects.create(
                     transaction=txn,
@@ -357,7 +380,8 @@ def add_transaction(request):
                     amount=amount,
                     category=category,
                 )
-                _apply_cash_delta(to_cash_balance, amount)
+                if not is_draft:
+                    _apply_cash_delta(to_cash_balance, amount)
 
             elif tx_type == "expense":
                 amount = data["resolved_amount"]
@@ -372,6 +396,7 @@ def add_transaction(request):
                     category=category,
                     from_account=from_cash_balance.account,
                     to_account=None,
+                    **draft_kwargs,
                 )
                 ExpenseDetail.objects.create(
                     transaction=txn,
@@ -379,7 +404,8 @@ def add_transaction(request):
                     amount=amount,
                     category=category,
                 )
-                _apply_cash_delta(from_cash_balance, -amount)
+                if not is_draft:
+                    _apply_cash_delta(from_cash_balance, -amount)
 
             elif tx_type == "transfer":
                 from_amount = data["resolved_from_amount"]
@@ -397,6 +423,7 @@ def add_transaction(request):
                     category=None,
                     from_account=from_cash_balance.account,
                     to_account=to_cash_balance.account,
+                    **draft_kwargs,
                 )
                 TransferDetail.objects.create(
                     transaction=txn,
@@ -405,8 +432,9 @@ def add_transaction(request):
                     amount=from_amount,
                     fx_rate=fx_rate,
                 )
-                _apply_cash_delta(from_cash_balance, -from_amount)
-                _apply_cash_delta(to_cash_balance, credited_amount)
+                if not is_draft:
+                    _apply_cash_delta(from_cash_balance, -from_amount)
+                    _apply_cash_delta(to_cash_balance, credited_amount)
 
             elif tx_type == "buy":
                 from_cash_balance = data["resolved_from_cash_balance"]
@@ -453,6 +481,7 @@ def add_transaction(request):
                     category=None,
                     from_account=from_cash_balance.account,
                     to_account=None,
+                    **draft_kwargs,
                 )
                 SecurityTradeDetail.objects.create(
                     transaction=txn,
@@ -462,8 +491,9 @@ def add_transaction(request):
                     quantity=quantity,
                     price_per_unit=price_per_unit,
                 )
-                _apply_cash_delta(from_cash_balance, -total)
-                _update_holding_for_buy(holding, quantity, price_per_unit)
+                if not is_draft:
+                    _apply_cash_delta(from_cash_balance, -total)
+                    _update_holding_for_buy(holding, quantity, price_per_unit)
 
             elif tx_type == "sell":
                 holding = Holding.objects.select_for_update().get(
@@ -488,6 +518,7 @@ def add_transaction(request):
                     category=None,
                     from_account=None,
                     to_account=to_cash_balance.account,
+                    **draft_kwargs,
                 )
                 SecurityTradeDetail.objects.create(
                     transaction=txn,
@@ -497,8 +528,9 @@ def add_transaction(request):
                     quantity=quantity,
                     price_per_unit=price_per_unit,
                 )
-                _apply_cash_delta(to_cash_balance, total)
-                _update_holding_for_sell(holding, quantity)
+                if not is_draft:
+                    _apply_cash_delta(to_cash_balance, total)
+                    _update_holding_for_sell(holding, quantity)
 
             else:
                 raise ValueError(f"Unsupported transaction type: {tx_type}")
@@ -509,6 +541,92 @@ def add_transaction(request):
         return Response(
             {"message": "Transaction added.", "id": txn.pk},
             status=status.HTTP_201_CREATED,
+        )
+
+    except ValueError as exc:
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+@api_view(["PUT"])
+@authentication_classes([FlexibleTokenAuthentication])
+@permission_classes([IsAuthenticated])
+def apply_draft(request, pk):
+    try:
+        txn = Transaction.objects.select_related(
+            "income_detail__to_cash_balance",
+            "expense_detail__from_cash_balance",
+            "transfer_detail__from_cash_balance",
+            "transfer_detail__to_cash_balance",
+            "security_trade_detail__holding",
+            "security_trade_detail__cash_balance",
+        ).get(pk=pk, user=request.user)
+    except Transaction.DoesNotExist:
+        return Response(
+            {"error": "Transaction not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if not txn.is_draft:
+        return Response(
+            {"error": "Transaction is not a draft."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        with db_transaction.atomic():
+            tx_type = txn.transaction_type
+
+            if tx_type == "income":
+                detail = txn.income_detail
+                _apply_cash_delta(detail.to_cash_balance, detail.amount)
+
+            elif tx_type == "expense":
+                detail = txn.expense_detail
+                _apply_cash_delta(detail.from_cash_balance, -detail.amount)
+
+            elif tx_type == "transfer":
+                detail = txn.transfer_detail
+                credited_amount = detail.amount * detail.fx_rate
+                _apply_cash_delta(detail.from_cash_balance, -detail.amount)
+                _apply_cash_delta(detail.to_cash_balance, credited_amount)
+
+            elif tx_type == "buy":
+                detail = txn.security_trade_detail
+                total = detail.total_value
+                _apply_cash_delta(detail.cash_balance, -total)
+                if detail.holding_id:
+                    holding = Holding.objects.select_for_update().get(
+                        pk=detail.holding_id
+                    )
+                    _update_holding_for_buy(
+                        holding, detail.quantity, detail.price_per_unit
+                    )
+
+            elif tx_type == "sell":
+                detail = txn.security_trade_detail
+                total = detail.total_value
+                _apply_cash_delta(detail.cash_balance, total)
+                if detail.holding_id:
+                    holding = Holding.objects.select_for_update().get(
+                        pk=detail.holding_id
+                    )
+                    _update_holding_for_sell(holding, detail.quantity)
+
+            else:
+                raise ValueError(f"Unsupported transaction type: {tx_type}")
+
+            txn.is_draft = False
+            txn.applied_at = timezone.now()
+            txn.scheduled_apply_at = None
+            txn.save(
+                update_fields=["is_draft", "applied_at", "scheduled_apply_at"]
+            )
+
+        return Response(
+            TransactionReadSerializer(txn).data,
+            status=status.HTTP_200_OK,
         )
 
     except ValueError as exc:
@@ -582,11 +700,17 @@ def get_transactions(request):
             {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
         )
 
+    include_drafts = request.GET.get("include_drafts", "").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
     queryset = _transaction_queryset(
         request.user,
         transaction_type=None,
         from_date=from_date,
         to_date=to_date,
+        include_drafts=include_drafts,
     )
     transactions = list(queryset)
     rows = TransactionReadSerializer(transactions, many=True).data
@@ -610,8 +734,17 @@ def get_expenses(request):
         return Response(
             {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
         )
+    include_drafts = request.GET.get("include_drafts", "").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
     queryset = _transaction_queryset(
-        request.user, "expense", from_date, to_date
+        request.user,
+        "expense",
+        from_date,
+        to_date,
+        include_drafts=include_drafts,
     )
     return Response(TransactionReadSerializer(queryset, many=True).data)
 
@@ -626,8 +759,17 @@ def get_incomes(request):
         return Response(
             {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
         )
+    include_drafts = request.GET.get("include_drafts", "").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
     queryset = _transaction_queryset(
-        request.user, "income", from_date, to_date
+        request.user,
+        "income",
+        from_date,
+        to_date,
+        include_drafts=include_drafts,
     )
     return Response(TransactionReadSerializer(queryset, many=True).data)
 
@@ -642,8 +784,17 @@ def get_transfers(request):
         return Response(
             {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
         )
+    include_drafts = request.GET.get("include_drafts", "").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
     queryset = _transaction_queryset(
-        request.user, "transfer", from_date, to_date
+        request.user,
+        "transfer",
+        from_date,
+        to_date,
+        include_drafts=include_drafts,
     )
     return Response(TransactionReadSerializer(queryset, many=True).data)
 
@@ -693,8 +844,16 @@ def get_trades(request):
         return Response(
             {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
         )
+    include_drafts = request.GET.get("include_drafts", "").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
     queryset = _transaction_queryset(
-        request.user, from_date=from_date, to_date=to_date
+        request.user,
+        from_date=from_date,
+        to_date=to_date,
+        include_drafts=include_drafts,
     ).filter(transaction_type__in=["buy", "sell"])
     return Response(TransactionReadSerializer(queryset, many=True).data)
 
@@ -703,9 +862,14 @@ def get_trades(request):
 @authentication_classes([FlexibleTokenAuthentication])
 @permission_classes([IsAuthenticated])
 def get_all_trades(request):
-    queryset = _transaction_queryset(request.user).filter(
-        transaction_type__in=["buy", "sell"]
+    include_drafts = request.GET.get("include_drafts", "").lower() in (
+        "true",
+        "1",
+        "yes",
     )
+    queryset = _transaction_queryset(
+        request.user, include_drafts=include_drafts
+    ).filter(transaction_type__in=["buy", "sell"])
     return Response(TransactionReadSerializer(queryset, many=True).data)
 
 
@@ -1019,6 +1183,7 @@ def get_profile_stats(request):
         Transaction.objects.filter(
             user=request.user,
             transaction_type__in=("income", "expense"),
+            is_draft=False,
         )
         .select_related(
             "income_detail__to_cash_balance__currency",
@@ -1103,6 +1268,7 @@ def get_wealth_stats(request):
         Transaction.objects.filter(
             user=user,
             transaction_type__in=("income", "expense"),
+            is_draft=False,
             date__gte=date(2023, 1, 1),
         )
         .select_related(

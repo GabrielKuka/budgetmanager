@@ -43,4 +43,9 @@ urlpatterns = [
         views.update_transaction,
         name="update-transaction",
     ),
+    path(
+        "apply/<int:pk>",
+        views.apply_draft,
+        name="apply-draft",
+    ),
 ]

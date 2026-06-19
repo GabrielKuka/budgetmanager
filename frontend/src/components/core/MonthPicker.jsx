@@ -17,7 +17,7 @@ const MONTHS = [
   "December",
 ];
 
-const MonthPicker = () => {
+const MonthPicker = ({ showDrafts, setShowDrafts }) => {
   const global = useGlobalContext();
 
   const now = new Date();
@@ -97,6 +97,14 @@ const MonthPicker = () => {
       >
         Reset
       </button>
+      {typeof showDrafts !== "undefined" && (
+        <button
+          className={`month-picker__draft-toggle${showDrafts ? " active" : ""}`}
+          onClick={() => setShowDrafts((prev) => !prev)}
+        >
+          {showDrafts ? "Hide Drafts" : "Show Drafts"}
+        </button>
+      )}
     </div>
   );
 };
