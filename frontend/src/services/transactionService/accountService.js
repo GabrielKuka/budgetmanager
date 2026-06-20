@@ -116,7 +116,7 @@ async function softDeleteAccount(payload) {
   const response = await axios.put(
     `${ENDPOINT}/soft_delete/${payload}`,
     {},
-    config,
+    config
   );
   if (response.status === 200) {
     return response.data;
@@ -135,7 +135,7 @@ async function restoreAccount(payload) {
   const response = await axios.put(
     `${ENDPOINT}/restore/${payload}`,
     {},
-    config,
+    config
   );
   if (response.status === 200) {
     return response.data;

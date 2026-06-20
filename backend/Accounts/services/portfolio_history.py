@@ -150,7 +150,9 @@ def build_portfolio_timeseries(user, timeframe, target_currency, mode="value"):
 
     # 6. Walk through dates, updating running quantities and computing values
     running_qty = defaultdict(Decimal)  # security_id -> current quantity
-    running_cost_basis = defaultdict(Decimal)  # security_id -> total cost basis (qty * avg_cost)
+    running_cost_basis = defaultdict(
+        Decimal
+    )  # security_id -> total cost basis (qty * avg_cost)
     # Pre-sort deltas for fast replay
     sorted_deltas = {}
     for sec_id in security_deltas:
@@ -176,7 +178,9 @@ def build_portfolio_timeseries(user, timeframe, target_currency, mode="value"):
             quote_currency__in=list(all_currencies),
             date__lte=end_date,
             provider=ExchangeRate.PROVIDER_FRANKFURTER,
-        ).order_by("quote_currency", "-date").values("quote_currency", "date", "rate")
+        )
+        .order_by("quote_currency", "-date")
+        .values("quote_currency", "date", "rate")
     )
 
     # Group by quote_currency: {cur: {date: rate}}
@@ -191,7 +195,9 @@ def build_portfolio_timeseries(user, timeframe, target_currency, mode="value"):
             if cur == target_currency:
                 continue
             cur_rate = _find_nearest_date_rate(rates_by_cur.get(cur, {}), d)
-            tgt_rate = _find_nearest_date_rate(rates_by_cur.get(target_currency, {}), d)
+            tgt_rate = _find_nearest_date_rate(
+                rates_by_cur.get(target_currency, {}), d
+            )
             if cur_rate and tgt_rate:
                 fx_rate_batch[(cur, d)] = tgt_rate / cur_rate
 
@@ -201,7 +207,9 @@ def build_portfolio_timeseries(user, timeframe, target_currency, mode="value"):
             return cached
         if from_cur == target_currency:
             return Decimal("1")
-        return convert_amount(Decimal("1"), from_cur, target_currency, target_date)
+        return convert_amount(
+            Decimal("1"), from_cur, target_currency, target_date
+        )
 
     for current_date in all_dates:
         # Apply deltas for this date — track qty and cost basis
@@ -220,7 +228,9 @@ def build_portfolio_timeseries(user, timeframe, target_currency, mode="value"):
                     # Sell: reduce cost basis proportionally
                     if old_qty > 0:
                         removal_ratio = abs(delta_qty) / old_qty
-                        running_cost_basis[sec_id] = old_cost * (Decimal("1") - removal_ratio)
+                        running_cost_basis[sec_id] = old_cost * (
+                            Decimal("1") - removal_ratio
+                        )
                     else:
                         running_cost_basis[sec_id] = Decimal("0")
                 running_qty[sec_id] += delta_qty
@@ -259,7 +269,9 @@ def build_portfolio_timeseries(user, timeframe, target_currency, mode="value"):
                 cost_basis = running_cost_basis.get(sec_id, Decimal("0"))
                 if cost_basis > 0:
                     cost_basis_converted = cost_basis * rate
-                    daily_return += market_value_converted - cost_basis_converted
+                    daily_return += (
+                        market_value_converted - cost_basis_converted
+                    )
             except MissingExchangeRate:
                 continue
 

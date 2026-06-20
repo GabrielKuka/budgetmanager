@@ -31,7 +31,7 @@ const InvestmentChart = () => {
       const result = await accountService.getPortfolioHistory(
         timeframe,
         targetCur,
-        apiMode,
+        apiMode
       );
       setData(result || []);
     } catch {
