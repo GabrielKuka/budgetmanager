@@ -5,7 +5,7 @@
   position: fixed;
   width: 100%;
   height: calc(100vh - var(--navbar-height));
-  overflow: hidden;
+  overflow-y: auto;
 
   &__sidebar {
     position: fixed;

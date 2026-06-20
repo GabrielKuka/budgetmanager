@@ -1,0 +1,85 @@
+@import "../../mixins";
+
+.investment-chart {
+  border: 1px solid var(--border);
+  box-shadow: 1px 1px 2px var(--shadow);
+  border-radius: 3px;
+  background-color: var(--surface-bg);
+  width: 100%;
+  max-width: 980px;
+  @include flex(column, flex-start, stretch);
+  padding: 16px;
+
+  &__header {
+    @include flex(row, space-between, center);
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  &__title {
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 14px;
+    color: var(--brand);
+  }
+
+  &__controls {
+    @include flex(row, flex-end, center);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  &__timeframes {
+    @include flex(row, flex-start, center);
+    gap: 4px;
+  }
+
+  &__mode-toggle {
+    @include flex(row, flex-start, center);
+    gap: 4px;
+    border-left: 1px solid var(--border);
+    padding-left: 12px;
+  }
+
+  &__btn {
+    border: 1px solid var(--brand);
+    background-color: var(--surface-bg);
+    color: var(--brand);
+    border-radius: 3px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: var(--brand);
+      color: var(--brand-text);
+    }
+
+    &.active {
+      background-color: var(--brand);
+      color: var(--brand-text);
+    }
+  }
+
+  &__body {
+    width: 100%;
+    min-height: 280px;
+    @include flex(row, center, center);
+  }
+
+  &__loading {
+    @include flex(row, center, center);
+    padding: 40px;
+  }
+
+  &__empty {
+    @include flex(row, center, center);
+    padding: 40px;
+    color: var(--muted-text);
+    font-size: 14px;
+  }
+}

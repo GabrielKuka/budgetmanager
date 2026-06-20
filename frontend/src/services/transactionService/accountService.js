@@ -116,7 +116,7 @@ async function softDeleteAccount(payload) {
   const response = await axios.put(
     `${ENDPOINT}/soft_delete/${payload}`,
     {},
-    config
+    config,
   );
   if (response.status === 200) {
     return response.data;
@@ -135,7 +135,7 @@ async function restoreAccount(payload) {
   const response = await axios.put(
     `${ENDPOINT}/restore/${payload}`,
     {},
-    config
+    config,
   );
   if (response.status === 200) {
     return response.data;
@@ -160,6 +160,22 @@ async function deleteAccount(payload) {
   }
 }
 
+async function getPortfolioHistory(timeframe, currency) {
+  const token = JSON.parse(localStorage.getItem("authToken"));
+  const config = {
+    params: { timeframe, currency },
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  };
+  const response = await axios.get(`${ENDPOINT}/portfolio/history`, config);
+
+  if (response.status === 200) {
+    return response.data;
+  }
+  return [];
+}
+
 const accountService = {
   getAccountStats,
   getAccountTransactions,
@@ -170,6 +186,7 @@ const accountService = {
   getAccountTotals,
   getAccountOverview,
   addAccount,
+  getPortfolioHistory,
 };
 
 export default accountService;

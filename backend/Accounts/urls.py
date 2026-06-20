@@ -41,4 +41,9 @@ urlpatterns = [
         name="gettransactions",
     ),
     path("stats/<int:account_id>", views.account_stats, name="accountdata"),
+    path(
+        "portfolio/history",
+        views.portfolio_history,
+        name="portfolio_history",
+    ),
 ]

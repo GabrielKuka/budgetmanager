@@ -1121,3 +1121,37 @@ def account_transactions(request, account_id):
         payload.append(row)
 
     return Response(payload, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def portfolio_history(request):
+    """
+    Return timeseries of total investment (holdings) value over a timeframe.
+
+    Query params:
+      - timeframe: 1D, 5D, MTD, YTD, 1Y, 5Y, MAX (default: 1Y)
+      - currency:   target currency code (default: EUR)
+    """
+    timeframe = request.GET.get("timeframe", "1Y").strip().upper()
+    currency = request.GET.get("currency", "EUR").strip().upper()
+
+    valid_timeframes = {"1D", "5D", "MTD", "YTD", "1Y", "5Y", "MAX"}
+    if timeframe not in valid_timeframes:
+        return Response(
+            {"error": f"Invalid timeframe. Choose from: {', '.join(sorted(valid_timeframes))}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    from Accounts.services.portfolio_history import build_portfolio_timeseries
+
+    try:
+        data = build_portfolio_timeseries(request.user, timeframe, currency)
+    except ValueError as exc:
+        return Response(
+            {"error": str(exc)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    return Response(data, status=status.HTTP_200_OK)
