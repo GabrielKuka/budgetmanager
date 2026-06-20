@@ -22,14 +22,16 @@ const InvestmentChart = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState("1Y");
-  const [mode, setMode] = useState("value"); // "value" | "change"
+  const [mode, setMode] = useState("value"); // "value" | "change" | "return"
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
+      const apiMode = mode === "return" ? "return" : "value";
       const result = await accountService.getPortfolioHistory(
         timeframe,
         targetCur,
+        apiMode,
       );
       setData(result || []);
     } catch {
@@ -58,6 +60,10 @@ const InvestmentChart = () => {
     return `${helper.formatNumber(val)} ${helper.getCurrency(targetCur)}`;
   };
 
+  // For return mode, plot the "return" field
+  const dataKey =
+    mode === "return" ? "return" : mode === "change" ? "change_pct" : "total";
+
   return (
     <div className="investment-chart">
       <div className="investment-chart__header">
@@ -84,6 +90,14 @@ const InvestmentChart = () => {
               onClick={() => setMode("value")}
             >
               Value
+            </button>
+            <button
+              className={`investment-chart__btn${
+                mode === "return" ? " active" : ""
+              }`}
+              onClick={() => setMode("return")}
+            >
+              Return
             </button>
             <button
               className={`investment-chart__btn${
@@ -116,7 +130,12 @@ const InvestmentChart = () => {
             <LineChart
               data={chartData.map((pt) => ({
                 ...pt,
-                displayValue: mode === "change" ? pt.change_pct : pt.total,
+                displayValue:
+                  mode === "return"
+                    ? pt.return
+                    : mode === "change"
+                    ? pt.change_pct
+                    : pt.total,
               }))}
               margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
             >
@@ -132,7 +151,11 @@ const InvestmentChart = () => {
               <YAxis
                 tick={{ fontSize: 11, fill: "var(--muted-text)" }}
                 tickFormatter={formatYAxis}
-                domain={mode === "change" ? ["auto", "auto"] : [0, "auto"]}
+                domain={
+                  mode === "change" || mode === "return"
+                    ? ["auto", "auto"]
+                    : [0, "auto"]
+                }
               />
               <Tooltip
                 formatter={(value) => [formatTooltipValue(value, null)]}
@@ -146,7 +169,7 @@ const InvestmentChart = () => {
               />
               <Line
                 type="monotone"
-                dataKey={mode === "change" ? "change_pct" : "total"}
+                dataKey={dataKey}
                 stroke="var(--brand)"
                 strokeWidth={2}
                 dot={false}

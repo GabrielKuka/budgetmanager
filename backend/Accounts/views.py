@@ -1140,14 +1140,22 @@ def portfolio_history(request):
     valid_timeframes = {"1D", "5D", "MTD", "YTD", "1Y", "5Y", "MAX"}
     if timeframe not in valid_timeframes:
         return Response(
-            {"error": f"Invalid timeframe. Choose from: {', '.join(sorted(valid_timeframes))}"},
+            {
+                "error": f"Invalid timeframe. Choose from: {', '.join(sorted(valid_timeframes))}"
+            },
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     from Accounts.services.portfolio_history import build_portfolio_timeseries
 
+    mode = request.GET.get("mode", "value").strip().lower()
+    if mode not in ("value", "return"):
+        mode = "value"
+
     try:
-        data = build_portfolio_timeseries(request.user, timeframe, currency)
+        data = build_portfolio_timeseries(
+            request.user, timeframe, currency, mode=mode
+        )
     except ValueError as exc:
         return Response(
             {"error": str(exc)},

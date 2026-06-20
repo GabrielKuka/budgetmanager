@@ -160,10 +160,10 @@ async function deleteAccount(payload) {
   }
 }
 
-async function getPortfolioHistory(timeframe, currency) {
+async function getPortfolioHistory(timeframe, currency, mode) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
-    params: { timeframe, currency },
+    params: { timeframe, currency, mode },
     headers: {
       Authorization: `Token ${token}`,
     },
