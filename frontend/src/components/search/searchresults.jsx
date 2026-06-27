@@ -26,7 +26,7 @@ const SearchResults = () => {
   const [transfers, setTransfers] = useState([]);
 
   const [shownExpenses, setShownExpenses] = useState([]);
-  const [shownIncomes, setShownIncomes] = useState([[]]);
+  const [shownIncomes, setShownIncomes] = useState([]);
   const [shownTransfers, setShownTransfers] = useState([]);
 
   const [expensesSorting, setExpensesSorting] = useState("");

@@ -8,17 +8,6 @@ async function getAllIncomeCategories() {
 
   return response.data;
 }
-async function getAllUserIncomes() {
-  const token = JSON.parse(localStorage.getItem("authToken"));
-  const config = {
-    headers: {
-      Authorization: token,
-    },
-  };
-  const response = await axios.get(`${ENDPOINT}/allincomes`, config);
-  return response.data;
-}
-
 async function getUserIncomes(dateRange, includeDrafts = true) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const fmt = (d) =>
@@ -75,7 +64,6 @@ const incomeService = {
   addIncome,
   deleteIncome,
   getAllIncomeCategories,
-  getAllUserIncomes,
   getUserIncomes,
 };
 

@@ -45,23 +45,6 @@ async function getAllExpenseCategories() {
   }
 }
 
-async function getAllUserExpenses() {
-  const token = JSON.parse(localStorage.getItem("authToken"));
-  const config = {
-    headers: {
-      Authorization: token,
-    },
-  };
-
-  const response = await axios.get(`${ENDPOINT}/allexpenses`, config);
-
-  if (response.status === 200) {
-    return response.data;
-  } else {
-    return "no data";
-  }
-}
-
 async function getUserExpenses(dateRange, includeDrafts = true) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const fmt = (d) =>
@@ -118,7 +101,6 @@ const expenseService = {
   addExpense,
   deleteExpense,
   getAllExpenseCategories,
-  getAllUserExpenses,
   getUserExpenses,
   getTransactions,
 };

@@ -46,10 +46,6 @@ async function deleteExpense(payload) {
   return await expenseService.deleteExpense(payload);
 }
 
-async function getAllUserExpenses() {
-  return await expenseService.getAllUserExpenses();
-}
-
 async function getUserExpenses(dateRange) {
   return await expenseService.getUserExpenses(dateRange);
 }
@@ -57,10 +53,6 @@ async function getUserExpenses(dateRange) {
 // Incomes
 async function getAllIncomeCategories() {
   return await incomeService.getAllIncomeCategories();
-}
-
-async function getAllUserIncomes() {
-  return await incomeService.getAllUserIncomes();
 }
 
 async function getUserIncomes(dateRange) {
@@ -76,10 +68,6 @@ async function deleteIncome(payload) {
 }
 
 // Transfers
-async function getAllUserTransfers() {
-  return await transferService.getAllUserTransfers();
-}
-
 async function getUserTransfers(dateRange) {
   return await transferService.getUserTransfers(dateRange);
 }
@@ -157,8 +145,6 @@ const transactionService = {
   getAllIncomeCategories,
   getAllExpenseCategories,
   getAllUserAccounts,
-  getAllUserExpenses,
-  getAllUserTransfers,
   addExpense,
   deleteExpense,
   addIncome,
@@ -169,7 +155,6 @@ const transactionService = {
   softDeleteAccount,
   deleteAccount,
   restoreAccount,
-  getAllUserIncomes,
   getTransactions,
   getUserExpenses,
   getUserIncomes,

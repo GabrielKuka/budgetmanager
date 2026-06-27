@@ -39,16 +39,13 @@ const InvestmentChart = () => {
     } finally {
       setLoading(false);
     }
-  }, [timeframe, targetCur]);
+  }, [timeframe, targetCur, mode]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   const chartData = data || [];
-
-  // Compute first value for % change
-  const firstValue = chartData.length > 0 ? chartData[0].total : 0;
 
   const formatYAxis = (val) => {
     if (mode === "change") return `${val.toFixed(1)}%`;
@@ -128,15 +125,7 @@ const InvestmentChart = () => {
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <LineChart
-              data={chartData.map((pt) => ({
-                ...pt,
-                displayValue:
-                  mode === "return"
-                    ? pt.return
-                    : mode === "change"
-                    ? pt.change_pct
-                    : pt.total,
-              }))}
+              data={chartData}
               margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />

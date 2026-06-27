@@ -29,9 +29,6 @@ const LoggedInNavbar = () => {
   const showConfirm = useConfirm();
 
   const [accounts, setAccounts] = useState(global.accounts);
-  const [expenses, setExpenses] = useState(global.expenses);
-  const [incomes, setIncomes] = useState(global.incomes);
-  const [transfers, setTransfers] = useState(global.transfers);
   const [searchResults, setSearchResults] = useState(null);
   const [searchValue, setSearchValue] = useState(null);
   const [suggestionBox, setSuggestionBox] = useState(false);
@@ -58,18 +55,6 @@ const LoggedInNavbar = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    let location = window.location.pathname.replace("/", "");
-    const activeButton = location
-      ? document.getElementById(location)
-      : document.getElementById("dashboard");
-    if (activeButton) {
-      activeButton.style.fontWeight = "bold";
-    }
-  }, []);
-
-  useEffect(() => {}, [global.privacyMode]);
-
-  useEffect(() => {
     if (searchResults?.length > 0) {
       setSuggestionBox(true);
     } else {
@@ -80,18 +65,6 @@ const LoggedInNavbar = () => {
   useEffect(() => {
     setAccounts(global.accounts);
   }, [global.accounts]);
-
-  useEffect(() => {
-    setExpenses(global.expenses);
-  }, [global.expenses]);
-
-  useEffect(() => {
-    setIncomes(global.incomes);
-  }, [global.incomes]);
-
-  useEffect(() => {
-    setTransfers(global.transfers);
-  }, [global.transfers]);
 
   function getAccountCurrency(id) {
     const account = accounts?.filter((a) => a.id === parseInt(id));
