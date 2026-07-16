@@ -45,7 +45,11 @@ async function getAllExpenseCategories() {
   }
 }
 
-async function getUserExpenses(dateRange, includeDrafts = true, currency = null) {
+async function getUserExpenses(
+  dateRange,
+  includeDrafts = true,
+  currency = null
+) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const fmt = (d) =>
     d.getFullYear() +

@@ -3,7 +3,11 @@ import { BASE_URL, BACKEND_PORT } from "../../config";
 
 const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
 
-async function getUserTransfers(dateRange, includeDrafts = true, currency = null) {
+async function getUserTransfers(
+  dateRange,
+  includeDrafts = true,
+  currency = null
+) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const fmt = (d) =>
     d.getFullYear() +

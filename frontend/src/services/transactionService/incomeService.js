@@ -8,7 +8,11 @@ async function getAllIncomeCategories() {
 
   return response.data;
 }
-async function getUserIncomes(dateRange, includeDrafts = true, currency = null) {
+async function getUserIncomes(
+  dateRange,
+  includeDrafts = true,
+  currency = null
+) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const fmt = (d) =>
     d.getFullYear() +

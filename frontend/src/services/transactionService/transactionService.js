@@ -46,8 +46,16 @@ async function deleteExpense(payload) {
   return await expenseService.deleteExpense(payload);
 }
 
-async function getUserExpenses(dateRange, includeDrafts = true, currency = null) {
-  return await expenseService.getUserExpenses(dateRange, includeDrafts, currency);
+async function getUserExpenses(
+  dateRange,
+  includeDrafts = true,
+  currency = null
+) {
+  return await expenseService.getUserExpenses(
+    dateRange,
+    includeDrafts,
+    currency
+  );
 }
 
 // Incomes
@@ -55,7 +63,11 @@ async function getAllIncomeCategories() {
   return await incomeService.getAllIncomeCategories();
 }
 
-async function getUserIncomes(dateRange, includeDrafts = true, currency = null) {
+async function getUserIncomes(
+  dateRange,
+  includeDrafts = true,
+  currency = null
+) {
   return await incomeService.getUserIncomes(dateRange, includeDrafts, currency);
 }
 
@@ -68,8 +80,16 @@ async function deleteIncome(payload) {
 }
 
 // Transfers
-async function getUserTransfers(dateRange, includeDrafts = true, currency = null) {
-  return await transferService.getUserTransfers(dateRange, includeDrafts, currency);
+async function getUserTransfers(
+  dateRange,
+  includeDrafts = true,
+  currency = null
+) {
+  return await transferService.getUserTransfers(
+    dateRange,
+    includeDrafts,
+    currency
+  );
 }
 
 async function addTransfer(payload) {
