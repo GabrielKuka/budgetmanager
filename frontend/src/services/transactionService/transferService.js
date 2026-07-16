@@ -3,7 +3,7 @@ import { BASE_URL, BACKEND_PORT } from "../../config";
 
 const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
 
-async function getUserTransfers(dateRange, includeDrafts = true) {
+async function getUserTransfers(dateRange, includeDrafts = true, currency = null) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const fmt = (d) =>
     d.getFullYear() +
@@ -22,6 +22,9 @@ async function getUserTransfers(dateRange, includeDrafts = true) {
       Authorization: token,
     },
   };
+  if (currency) {
+    config.params.currency = currency;
+  }
   const response = await axios.get(`${ENDPOINT}/get_transfers`, config);
 
   if (response.status === 200) {

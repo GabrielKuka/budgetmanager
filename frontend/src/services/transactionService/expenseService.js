@@ -45,7 +45,7 @@ async function getAllExpenseCategories() {
   }
 }
 
-async function getUserExpenses(dateRange, includeDrafts = true) {
+async function getUserExpenses(dateRange, includeDrafts = true, currency = null) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const fmt = (d) =>
     d.getFullYear() +
@@ -64,6 +64,9 @@ async function getUserExpenses(dateRange, includeDrafts = true) {
       Authorization: token,
     },
   };
+  if (currency) {
+    config.params.currency = currency;
+  }
   const response = await axios.get(`${ENDPOINT}/get_expenses`, config);
 
   if (response.status === 200) {

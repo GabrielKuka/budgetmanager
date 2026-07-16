@@ -95,17 +95,17 @@ const GlobalProvider = ({ children }) => {
   }
 
   async function updateExpenses() {
-    const response = await transactionService.getUserExpenses(dateRange, true);
+    const response = await transactionService.getUserExpenses(dateRange, true, globalCurrency);
     setExpenses(response);
   }
 
   async function updateIncomes() {
-    const response = await transactionService.getUserIncomes(dateRange, true);
+    const response = await transactionService.getUserIncomes(dateRange, true, globalCurrency);
     setIncomes(response);
   }
 
   async function updateTransfers() {
-    const response = await transactionService.getUserTransfers(dateRange, true);
+    const response = await transactionService.getUserTransfers(dateRange, true, globalCurrency);
     setTransfers(response);
   }
 

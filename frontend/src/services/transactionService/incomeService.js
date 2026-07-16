@@ -8,7 +8,7 @@ async function getAllIncomeCategories() {
 
   return response.data;
 }
-async function getUserIncomes(dateRange, includeDrafts = true) {
+async function getUserIncomes(dateRange, includeDrafts = true, currency = null) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const fmt = (d) =>
     d.getFullYear() +
@@ -27,6 +27,9 @@ async function getUserIncomes(dateRange, includeDrafts = true) {
       Authorization: token,
     },
   };
+  if (currency) {
+    config.params.currency = currency;
+  }
   const response = await axios.get(`${ENDPOINT}/get_incomes`, config);
 
   if (response.status === 200) {

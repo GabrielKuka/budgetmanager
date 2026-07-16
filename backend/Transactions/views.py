@@ -739,6 +739,7 @@ def get_expenses(request):
         "1",
         "yes",
     )
+    currency = request.GET.get("currency")
     queryset = _transaction_queryset(
         request.user,
         "expense",
@@ -746,7 +747,12 @@ def get_expenses(request):
         to_date,
         include_drafts=include_drafts,
     )
-    return Response(TransactionReadSerializer(queryset, many=True).data)
+    transactions = list(queryset)
+    rows = TransactionReadSerializer(transactions, many=True).data
+    error = _append_converted_amounts(transactions, rows, currency)
+    if error:
+        return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(rows)
 
 
 @api_view(["GET"])
@@ -764,6 +770,7 @@ def get_incomes(request):
         "1",
         "yes",
     )
+    currency = request.GET.get("currency")
     queryset = _transaction_queryset(
         request.user,
         "income",
@@ -771,7 +778,12 @@ def get_incomes(request):
         to_date,
         include_drafts=include_drafts,
     )
-    return Response(TransactionReadSerializer(queryset, many=True).data)
+    transactions = list(queryset)
+    rows = TransactionReadSerializer(transactions, many=True).data
+    error = _append_converted_amounts(transactions, rows, currency)
+    if error:
+        return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(rows)
 
 
 @api_view(["GET"])
@@ -789,6 +801,7 @@ def get_transfers(request):
         "1",
         "yes",
     )
+    currency = request.GET.get("currency")
     queryset = _transaction_queryset(
         request.user,
         "transfer",
@@ -796,7 +809,12 @@ def get_transfers(request):
         to_date,
         include_drafts=include_drafts,
     )
-    return Response(TransactionReadSerializer(queryset, many=True).data)
+    transactions = list(queryset)
+    rows = TransactionReadSerializer(transactions, many=True).data
+    error = _append_converted_amounts(transactions, rows, currency)
+    if error:
+        return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(rows)
 
 
 @api_view(["GET"])
