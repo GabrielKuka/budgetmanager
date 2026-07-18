@@ -253,11 +253,14 @@ const TransactionItem = (props) => {
                 global.accounts,
                 props.transaction.from_account
               )}
-              {props.currency && props.toCurrency && props.currency !== props.toCurrency && (
-                <span className="transfer-currency-hint">
-                  {" "}({props.currency} → {props.toCurrency})
-                </span>
-              )}
+              {props.currency &&
+                props.toCurrency &&
+                props.currency !== props.toCurrency && (
+                  <span className="transfer-currency-hint">
+                    {" "}
+                    ({props.currency} → {props.toCurrency})
+                  </span>
+                )}
             </span>
           </label>
           <label
@@ -285,13 +288,16 @@ const TransactionItem = (props) => {
         <span className="transaction-value amount-value">
           {transactionType === "income" && <span>+ </span>}
           {transactionType === "expense" && <span>- </span>}
-          {transactionType === "transfer" && props.toCurrency && props.currency !== props.toCurrency ? (
+          {transactionType === "transfer" &&
+          props.toCurrency &&
+          props.currency !== props.toCurrency ? (
             <>
               {helper.showOrMask(
                 global.privacyMode,
                 helper.formatNumber(props.transaction?.amount)
               )}{" "}
-              {props.currency}{" → "}
+              {props.currency}
+              {" → "}
               {helper.showOrMask(
                 global.privacyMode,
                 helper.formatNumber(props.transaction?.to_amount)

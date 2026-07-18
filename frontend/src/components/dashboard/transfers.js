@@ -474,12 +474,14 @@ const TransfersList = ({
               key={transfer.id}
               transaction={transfer}
               refreshTransactions={refreshTransfers}
-              currency={transfer.from_currency || helper.getCurrency(
-                getAccountCurrency(transfer.from_account)
-              )}
-              toCurrency={transfer.to_currency || helper.getCurrency(
-                getAccountCurrency(transfer.to_account)
-              )}
+              currency={
+                transfer.from_currency ||
+                helper.getCurrency(getAccountCurrency(transfer.from_account))
+              }
+              toCurrency={
+                transfer.to_currency ||
+                helper.getCurrency(getAccountCurrency(transfer.to_account))
+              }
               setTransactionPopup={setTransactionPopup}
               refreshAccounts={global.updateAccounts}
             />
