@@ -131,13 +131,13 @@ const AddTransfer = ({
               parseInt(values["to_account"])
             );
             if (from_currency !== to_currency) {
-              values["to_amount"] = await currencyService.convert(
+              values["fx_rate"] = await currencyService.convert(
                 from_currency,
                 to_currency,
-                values["from_amount"]
+                1
               );
             } else {
-              values["to_amount"] = values["from_amount"];
+              values["fx_rate"] = 1;
             }
 
             values["type"] = 2;
@@ -463,6 +463,9 @@ const TransfersList = ({
             />
           )}
         </div>
+        <div>
+          <label>Exchange Rate</label>
+        </div>
       </div>
       <div className={"transfers"}>
         {shownTransfers?.length > 0 &&
@@ -471,8 +474,11 @@ const TransfersList = ({
               key={transfer.id}
               transaction={transfer}
               refreshTransactions={refreshTransfers}
-              currency={helper.getCurrency(
+              currency={transfer.from_currency || helper.getCurrency(
                 getAccountCurrency(transfer.from_account)
+              )}
+              toCurrency={transfer.to_currency || helper.getCurrency(
+                getAccountCurrency(transfer.to_account)
               )}
               setTransactionPopup={setTransactionPopup}
               refreshAccounts={global.updateAccounts}

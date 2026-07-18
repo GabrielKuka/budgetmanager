@@ -150,10 +150,7 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
       const fromCurrency = getBalanceCurrencyById(values.from_cash_balance);
       const toCurrency = getBalanceCurrencyById(values.to_cash_balance);
       if (fromCurrency && toCurrency && fromCurrency !== toCurrency) {
-        payload.to_amount =
-          Number(customRate || 0) * Number(values.amount || 0);
-      } else {
-        payload.to_amount = values.amount;
+        payload.fx_rate = parseFloat(customRate);
       }
     } else if (transactionType === "3") {
       payload.from_cash_balance = parseInt(values.from_cash_balance, 10);
@@ -202,10 +199,7 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
       const fromCurrency = getBalanceCurrencyById(values.from_cash_balance);
       const toCurrency = getBalanceCurrencyById(values.to_cash_balance);
       if (fromCurrency && toCurrency && fromCurrency !== toCurrency) {
-        payload.to_amount =
-          Number(customRate || 0) * Number(values.amount || 0);
-      } else {
-        payload.to_amount = values.amount;
+        payload.fx_rate = parseFloat(customRate);
       }
     } else if (transactionType === "3") {
       payload.from_cash_balance = parseInt(values.from_cash_balance, 10);

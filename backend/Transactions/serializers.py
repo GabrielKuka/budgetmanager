@@ -24,6 +24,9 @@ class TransactionReadSerializer(serializers.ModelSerializer):
     account = serializers.SerializerMethodField()
     from_cash_balance = serializers.SerializerMethodField()
     to_cash_balance = serializers.SerializerMethodField()
+    from_currency = serializers.SerializerMethodField()
+    to_currency = serializers.SerializerMethodField()
+    to_amount = serializers.SerializerMethodField()
     security = serializers.SerializerMethodField()
     security_ticker = serializers.SerializerMethodField()
     security_name = serializers.SerializerMethodField()
@@ -49,6 +52,9 @@ class TransactionReadSerializer(serializers.ModelSerializer):
             "account",
             "from_cash_balance",
             "to_cash_balance",
+            "from_currency",
+            "to_currency",
+            "to_amount",
             "security",
             "security_ticker",
             "security_name",
@@ -199,6 +205,24 @@ class TransactionReadSerializer(serializers.ModelSerializer):
     def get_fx_rate(self, obj):
         detail = self._transfer_detail(obj)
         return float(detail.fx_rate) if detail else None
+
+    def get_from_currency(self, obj):
+        detail = self._transfer_detail(obj)
+        if detail and detail.from_cash_balance.currency_id:
+            return detail.from_cash_balance.currency.code
+        return None
+
+    def get_to_currency(self, obj):
+        detail = self._transfer_detail(obj)
+        if detail and detail.to_cash_balance.currency_id:
+            return detail.to_cash_balance.currency.code
+        return None
+
+    def get_to_amount(self, obj):
+        detail = self._transfer_detail(obj)
+        if detail:
+            return float(detail.amount * detail.fx_rate)
+        return None
 
 
 class TransactionWriteSerializer(serializers.Serializer):

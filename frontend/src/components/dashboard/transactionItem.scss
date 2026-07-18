@@ -9,12 +9,15 @@
 
   &:hover {
     background-color: var(--surface-alt-bg);
+
     #amount {
       font-weight: bold;
     }
+
     .new-transaction {
       padding: 3px 12px;
     }
+
     .kebab-button {
       visibility: visible;
     }
@@ -29,7 +32,7 @@
   border-bottom: 1px solid var(--soft-border);
 
   display: grid;
-  grid-template-columns: 0.6fr 1.5fr 0.9fr 0.8fr 1.1fr;
+  grid-template-columns: 0.8fr 0.8fr 0.8fr 0.8fr 2fr 0.8fr;
   grid-gap: 10px;
   align-items: center;
 
@@ -45,6 +48,7 @@
     border-radius: 100%;
     background: none;
     transition: border 0.2s ease-in-out;
+
     img {
       height: 13px;
       width: 3px;
@@ -53,6 +57,7 @@
     &:hover {
       border: 1px solid var(--border);
     }
+
     &:active {
       background-color: var(--surface-alt-bg);
     }
@@ -81,6 +86,7 @@
       color: var(--text);
       border: none;
     }
+
     button:hover {
       background-color: var(--surface-alt-bg);
     }
@@ -105,6 +111,11 @@
   #date {
     color: var(--muted-text);
   }
+
+  #amount {
+    white-space: nowrap;
+  }
+
   .new-transaction {
     color: var(--brand-text);
     background-color: var(--brand);
@@ -120,6 +131,17 @@
     top: 0;
     right: 0;
     transition: padding 0.3s ease;
+  }
+
+  .transfer-currency-hint {
+    font-size: 11px;
+    color: var(--muted-text);
+    font-weight: 400;
+  }
+
+  #fx_rate {
+    color: var(--muted-text);
+    font-size: 13px;
   }
 
   .draft-badge {
@@ -200,6 +222,8 @@
     }
 
     #amount {
+      white-space: nowrap;
+
       .amount-value {
         white-space: nowrap;
       }

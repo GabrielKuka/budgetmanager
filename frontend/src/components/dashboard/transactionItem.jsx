@@ -253,6 +253,11 @@ const TransactionItem = (props) => {
                 global.accounts,
                 props.transaction.from_account
               )}
+              {props.currency && props.toCurrency && props.currency !== props.toCurrency && (
+                <span className="transfer-currency-hint">
+                  {" "}({props.currency} → {props.toCurrency})
+                </span>
+              )}
             </span>
           </label>
           <label
@@ -280,11 +285,28 @@ const TransactionItem = (props) => {
         <span className="transaction-value amount-value">
           {transactionType === "income" && <span>+ </span>}
           {transactionType === "expense" && <span>- </span>}
-          {helper.showOrMask(
-            global.privacyMode,
-            helper.formatNumber(props.transaction?.amount)
-          )}{" "}
-          {props.currency}
+          {transactionType === "transfer" && props.toCurrency && props.currency !== props.toCurrency ? (
+            <>
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(props.transaction?.amount)
+              )}{" "}
+              {props.currency}{" → "}
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(props.transaction?.to_amount)
+              )}{" "}
+              {props.toCurrency}
+            </>
+          ) : (
+            <>
+              {helper.showOrMask(
+                global.privacyMode,
+                helper.formatNumber(props.transaction?.amount)
+              )}{" "}
+              {props.currency}
+            </>
+          )}
         </span>
       </label>
       {(transactionType === "income" || transactionType === "expense") && (
@@ -294,6 +316,13 @@ const TransactionItem = (props) => {
               {helper.categoryIcon(props.transaction.category)}
             </span>
             <span>{getCategory(props.transaction.category)}</span>
+          </span>
+        </label>
+      )}
+      {transactionType === "transfer" && (
+        <label id="fx_rate" data-label="Rate">
+          <span className="transaction-value">
+            {helper.formatNumber(props.transaction?.fx_rate, 6)}
           </span>
         </label>
       )}
