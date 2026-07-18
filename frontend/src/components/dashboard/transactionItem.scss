@@ -27,14 +27,18 @@
   flex: 0 0 auto;
   cursor: pointer;
   width: 100%;
-  min-height: 64px;
-  padding: 18px 20px;
+  min-height: 48px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--soft-border);
 
   display: grid;
-  grid-template-columns: 0.8fr 0.8fr 0.8fr 0.8fr 2fr 0.8fr;
+  grid-template-columns: 0.6fr 1.5fr 0.9fr 0.8fr 1.1fr;
   grid-gap: 10px;
   align-items: center;
+
+  &.transaction-item--transfer {
+    grid-template-columns: 0.8fr 0.8fr 0.8fr 0.8fr 2fr 0.8fr;
+  }
 
   .kebab-button {
     position: absolute;

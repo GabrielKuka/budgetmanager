@@ -169,7 +169,7 @@ const TransactionItem = (props) => {
 
   return (
     <div
-      className={`transaction-item${props.transaction.pinned ? " pinned" : ""}`}
+      className={`transaction-item${props.transaction.pinned ? " pinned" : ""}${transactionType === "transfer" ? " transaction-item--transfer" : ""}`}
       onClick={handleShowMore}
     >
       {helper.isRecent(props.transaction.created_on) && (
