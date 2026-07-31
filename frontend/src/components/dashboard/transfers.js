@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import TransactionItem from "./transactionItem";
-import { Formik, Form, Field } from "formik";
 import transactionService from "../../services/transactionService/transactionService";
 import "./transfers.scss";
 import NoDataCard from "../core/nodata";
@@ -11,7 +10,6 @@ import TransactionPopup from "../core/transaction_popup";
 import currencyService from "../../services/currencyService";
 import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
-import { validationSchemas } from "../../validationSchemas";
 import MonthPicker from "../core/MonthPicker";
 
 const Transfers = () => {
@@ -21,6 +19,8 @@ const Transfers = () => {
     Array.isArray(global.accounts) && Array.isArray(global.activeAccounts);
   const [transactionPopup, setTransactionPopup] = useState(false);
   const [showDrafts, setShowDrafts] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [shownTransfers, setShownTransfers] = useState([]);
 
   function getAccountCurrency(id) {
     const account = global.accounts?.find((a) => Number(a.id) === Number(id));
@@ -33,8 +33,18 @@ const Transfers = () => {
 
   return (
     <div className={"transfers-wrapper"}>
+      <Sidebar
+        transfers={global.transfers}
+        accounts={accounts}
+        getAccountCurrency={getAccountCurrency}
+      />
       <div className="transfers-wrapper__content">
-        <MonthPicker showDrafts={showDrafts} setShowDrafts={setShowDrafts} />
+        <MonthPicker
+          showDrafts={showDrafts}
+          setShowDrafts={setShowDrafts}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
         {!global.transfers || !accountsLoaded ? (
           <LoadingCard header="Loading Transfers..." />
         ) : global.transfers && !global.transfers?.length ? (
@@ -46,12 +56,15 @@ const Transfers = () => {
         ) : (
           <TransfersList
             transfers={global.transfers}
+            shownTransfers={shownTransfers}
+            setShownTransfers={setShownTransfers}
             accounts={accounts}
             getAccountCurrency={getAccountCurrency}
             refreshTransfers={global.updateTransfers}
             setTransactionPopup={setTransactionPopup}
             dateRange={global.dateRange}
             showDrafts={showDrafts}
+            searchTerm={searchTerm}
           />
         )}
         {transactionPopup && (
@@ -69,212 +82,184 @@ const Transfers = () => {
   );
 };
 
-const Sidebar = ({
-  accounts,
-  refreshTransfers,
-  refreshAccounts,
-  getAccountCurrency,
-}) => {
+const Sidebar = ({ transfers, accounts, getAccountCurrency }) => {
+  const global = useGlobalContext();
+  const [netFlows, setNetFlows] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    async function computeNetFlows() {
+      const shown = (transfers || []).filter((t) => !t.is_draft);
+      const accMap = {};
+      for (const t of shown) {
+        // Outflow from source account (in source currency)
+        const fromCurrency =
+          t.from_currency || getAccountCurrency(t.from_account);
+        const toCurrency = t.to_currency || getAccountCurrency(t.to_account);
+
+        const outflowGlobal = parseFloat(
+          await currencyService.convert(
+            fromCurrency,
+            global.globalCurrency,
+            t.amount
+          )
+        );
+        const inflowGlobal = parseFloat(
+          await currencyService.convert(
+            toCurrency,
+            global.globalCurrency,
+            t.to_amount != null ? t.to_amount : t.amount
+          )
+        );
+
+        if (!accMap[t.from_account]) {
+          accMap[t.from_account] = 0;
+        }
+        accMap[t.from_account] -= outflowGlobal;
+
+        if (!accMap[t.to_account]) {
+          accMap[t.to_account] = 0;
+        }
+        accMap[t.to_account] += inflowGlobal;
+      }
+
+      const rows = Object.keys(accMap).map((id) => ({
+        id,
+        name: accounts?.find((a) => a.id === Number(id))?.name || "Not found",
+        net: accMap[id],
+      }));
+      rows.sort((a, b) => b.net - a.net);
+      if (active) {
+        setNetFlows(rows);
+      }
+    }
+    computeNetFlows();
+    return () => {
+      active = false;
+    };
+  }, [transfers, accounts, global.globalCurrency]);
+
   return (
     <div className={"transfers-wrapper__sidebar"}>
-      <AddTransfer
-        accounts={accounts}
-        refreshTransfers={refreshTransfers}
-        refreshAccounts={refreshAccounts}
-        getAccountCurrency={getAccountCurrency}
-      />
-    </div>
-  );
-};
-
-const AddTransfer = ({
-  accounts,
-  refreshTransfers,
-  refreshAccounts,
-  getAccountCurrency,
-}) => {
-  const showToast = useToast();
-  const [tags, setTags] = useState([]);
-  const [addingTransfer, setAddingTransfer] = useState(false);
-
-  function addTag(e) {
-    e.preventDefault();
-    if (!tags.includes(e.target.previousElementSibling.value)) {
-      setTags([...tags, e.target.previousElementSibling.value]);
-      const input = document.getElementById("add_tag_textfield");
-      input.value = "";
-      input.focus();
-    }
-  }
-
-  return (
-    <div className={"enter-transfer"}>
-      <Formik
-        initialValues={{
-          from_amount: "",
-          from_account: "",
-          to_account: "",
-          description: "",
-          date: new Date().toISOString().slice(0, 10),
-        }}
-        validationSchema={validationSchemas.transferFormSchema}
-        validateOnBlur={false}
-        validateOnChange={false}
-        onSubmit={(values, { resetForm, setSubmitting, validateForm }) => {
-          validateForm().then(async () => {
-            setAddingTransfer(true);
-            // if from and to accounts have different currencies, convert
-            const from_currency = getAccountCurrency(
-              parseInt(values["from_account"])
-            );
-            const to_currency = getAccountCurrency(
-              parseInt(values["to_account"])
-            );
-            if (from_currency !== to_currency) {
-              values["fx_rate"] = await currencyService.convert(
-                from_currency,
-                to_currency,
-                1
-              );
-            } else {
-              values["fx_rate"] = 1;
-            }
-
-            values["type"] = 2;
-            values["tags"] = tags.map((tag) => ({
-              name: tag,
-            }));
-            await transactionService.addTransfer(values);
-            await refreshTransfers();
-            await refreshAccounts();
-            showToast("Transfer Added", "info");
-            resetForm();
-            setTags([]);
-            setSubmitting(false);
-            setAddingTransfer(false);
-          });
-        }}
-      >
-        {({ errors, touched }) => (
-          <Form className={"form"}>
-            <label onClick={() => document.getElementById("date").focus()}>
-              Enter Transfer
-            </label>
-            <Field type="text" id="date" name="date" placeholder="Enter date" />
-            <Field as="select" name="from_account">
-              <option value="" disabled hidden>
-                From account
-              </option>
-              {accounts
-                ?.sort((a, b) => (a.name > b.name ? 1 : -1))
-                .map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
-                    {helper.getCurrency(getAccountCurrency(a.id))}
-                  </option>
-                ))}
-            </Field>
-            <Field as="select" name="to_account">
-              <option value="" disabled hidden>
-                To account
-              </option>
-              {accounts
-                ?.sort((a, b) => (a.name > b.name ? 1 : -1))
-                .map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} {parseFloat(a.amount).toFixed(2)}{" "}
-                    {helper.getCurrency(getAccountCurrency(a.id))}
-                  </option>
-                ))}
-            </Field>
-            <Field type="text" name="from_amount" placeholder="Enter amount" />
-            <div className={"tags_container"}>
-              <div className={"tags_container__input"}>
-                <input
-                  type="text"
-                  name="tags"
-                  id="add_tag_textfield"
-                  placeholder="Enter tags"
-                />
-                <button
-                  type="button"
-                  className={"add-tag-button"}
-                  onClick={(e) => addTag(e)}
+      <div className="net-flow-card">
+        <div className="chart-title">Net transfer flow</div>
+        {netFlows.length === 0 ? (
+          <div className="net-flow-card__empty">No transfers this period.</div>
+        ) : (
+          <ul className="net-flow-list">
+            {netFlows.map((row) => (
+              <li key={row.id} className="net-flow-list__item">
+                <span className="net-flow-list__name">{row.name}</span>
+                <span
+                  className={`net-flow-list__value ${
+                    row.net >= 0 ? "positive" : "negative"
+                  }`}
                 >
-                  + Tag
-                </button>
-              </div>
-              {tags && (
-                <div className={"tags_container__shown-tags"}>
-                  {tags.map((t) => (
-                    <span className={"tag"} key={t}>
-                      {t}
-                      <button
-                        type="button"
-                        className={"remove-tag-button"}
-                        onClick={() => setTags(tags.filter((tag) => tag !== t))}
-                      >
-                        x
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-            <Field
-              as="textarea"
-              rows={2}
-              name="description"
-              id="description"
-              placeholder="Enter a description"
-            />
-            <div id="submit_wrapper">
-              <button type="submit" id={"submit-button"}>
-                Add Transfer
-              </button>
-              {addingTransfer && (
-                <img
-                  src={process.env.PUBLIC_URL + "/loading_icon.gif"}
-                  alt="loading icon"
-                  width="27"
-                  height="27"
-                />
-              )}
-            </div>
-            {errors.date && touched.date ? <span>{errors.date}</span> : null}
-            {errors.from_account && touched.from_account ? (
-              <span>{errors.from_account}</span>
-            ) : null}
-            {errors.to_account && touched.to_account ? (
-              <span>{errors.to_account}</span>
-            ) : null}
-            {errors.from_amount && touched.from_amount ? (
-              <span>{errors.from_amount}</span>
-            ) : null}
-            {errors.description && touched.description ? (
-              <span>{errors.description}</span>
-            ) : null}
-          </Form>
+                  {helper.showOrMask(
+                    global.privacyMode,
+                    helper.formatNumber(row.net)
+                  )}
+                  {helper.getCurrency(global.globalCurrency)}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
-      </Formik>
+      </div>
     </div>
   );
 };
 
 const TransfersList = ({
   transfers,
+  shownTransfers,
+  setShownTransfers,
   accounts,
   getAccountCurrency,
   refreshTransfers,
   setTransactionPopup,
   dateRange,
   showDrafts,
+  searchTerm,
 }) => {
   const global = useGlobalContext();
-  const [shownTransfers = transfers, setShownTransfers] = useState({});
   const [sortedBy, setSortedBy] = useState({});
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [selectionActive, setSelectionActive] = useState(false);
+  const [selectedSum, setSelectedSum] = useState(0);
+  const showToast = useToast();
+  const showConfirm = useConfirm();
+  const listRef = useRef(null);
 
-  useEffect(filterTransfers, [dateRange, transfers, showDrafts]);
+  useEffect(() => {
+    let active = true;
+    async function computeSelectedSum() {
+      if (selectedIds.length === 0) {
+        setSelectedSum(0);
+        return;
+      }
+      const selected = (shownTransfers || []).filter((e) =>
+        selectedIds.includes(e.id)
+      );
+      const converted = await Promise.all(
+        selected.map(async (e) => {
+          const currency =
+            e.from_currency || getAccountCurrency(e.from_account);
+          return parseFloat(
+            await currencyService.convert(
+              currency,
+              global.globalCurrency,
+              e.amount
+            )
+          );
+        })
+      );
+      if (active) {
+        setSelectedSum(
+          parseFloat(converted.reduce((a, b) => a + b, 0).toFixed(2))
+        );
+      }
+    }
+    computeSelectedSum();
+    return () => {
+      active = false;
+    };
+  }, [selectedIds, shownTransfers, global.globalCurrency]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (selectionActive && !listRef.current?.contains(event.target)) {
+        setSelectionActive(false);
+        setSelectedIds([]);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [selectionActive]);
+
+  function matchesSearch(transfer) {
+    const term = (searchTerm || "").trim().toLowerCase();
+    if (!term) {
+      return true;
+    }
+    const fromName =
+      accounts?.find((a) => a.id === transfer.from_account)?.name || "";
+    const toName =
+      accounts?.find((a) => a.id === transfer.to_account)?.name || "";
+    const tags = (transfer.tags || []).map((t) => t.name).join(" ");
+    return [
+      String(transfer.description || ""),
+      String(transfer.amount),
+      String(transfer.to_amount || ""),
+      fromName,
+      toName,
+      tags,
+    ].some((v) => v.toLowerCase().includes(term));
+  }
+
+  useEffect(filterTransfers, [dateRange, transfers, showDrafts, searchTerm]);
   useEffect(filterTransfers, []);
 
   function filterTransfers() {
@@ -309,10 +294,44 @@ const TransfersList = ({
       .filter((t) => fromAccountFilter.includes(t))
       .filter((t) => dateFilter.includes(t))
       .filter((t) => showDrafts || !t.is_draft)
+      .filter((t) => matchesSearch(t))
       .sort((a, b) => (a.date > b.date ? -1 : 1));
     // Pinned transactions always first
     filteredtransfers?.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
     setShownTransfers(filteredtransfers);
+  }
+
+  function handleLongPress(id) {
+    setSelectionActive(true);
+    setSelectedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  }
+
+  function toggleSelect(id) {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+
+  async function handleBulkDelete() {
+    showConfirm(
+      `Delete ${selectedIds.length} transfer(s)? This cannot be undone.`,
+      async () => {
+        for (const id of selectedIds) {
+          const transfer = shownTransfers.find((e) => e.id === id);
+          if (!transfer) {
+            continue;
+          }
+          await transactionService.deleteTransfer({
+            type: 2,
+            id: transfer.id,
+          });
+        }
+        setSelectedIds([]);
+        setSelectionActive(false);
+        showToast(`${selectedIds.length} transfer(s) deleted.`);
+        await refreshTransfers();
+      }
+    );
   }
   function sortShownTransfers(by = "") {
     if (!by) {
@@ -364,7 +383,7 @@ const TransfersList = ({
   }
 
   return (
-    <div className={"transfers-wrapper__transfers-list"}>
+    <div ref={listRef} className={"transfers-wrapper__transfers-list"}>
       <div className={"header"}>
         <div>
           <label onClick={() => sortShownTransfers("date")}>Date:</label>
@@ -484,9 +503,40 @@ const TransfersList = ({
               }
               setTransactionPopup={setTransactionPopup}
               refreshAccounts={global.updateAccounts}
+              selectionActive={selectionActive}
+              selected={selectedIds.includes(transfer.id)}
+              onLongPress={handleLongPress}
+              onToggleSelect={toggleSelect}
             />
           ))}
       </div>
+      {selectionActive && selectedIds.length > 0 && (
+        <div className={"bulk-action-bar"}>
+          <span className={"bulk-action-bar__count"}>
+            {selectedIds.length} selected ·{" "}
+            {helper.showOrMask(
+              global.privacyMode,
+              helper.formatNumber(selectedSum)
+            )}
+            {helper.getCurrency(global.globalCurrency)}
+          </span>
+          <button
+            className={"bulk-action-bar__delete"}
+            onClick={handleBulkDelete}
+          >
+            Delete
+          </button>
+          <button
+            className={"bulk-action-bar__clear"}
+            onClick={() => {
+              setSelectedIds([]);
+              setSelectionActive(false);
+            }}
+          >
+            Clear
+          </button>
+        </div>
+      )}
     </div>
   );
 };

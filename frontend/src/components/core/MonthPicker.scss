@@ -83,6 +83,28 @@
       color: var(--brand-text);
     }
   }
+
+  &__search {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border: 1px solid var(--input-border);
+    border-radius: 3px;
+    padding: 5px 12px;
+    font-size: 13px;
+    height: 32px;
+    min-width: 150px;
+    max-width: 220px;
+
+    &::placeholder {
+      color: var(--muted-text);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(95, 158, 160, 0.25);
+    }
+  }
 }
 
 @media (max-width: 600px) {

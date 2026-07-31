@@ -12,13 +12,44 @@ const TransactionItem = (props) => {
   const showConfirm = useConfirm();
   const showToast = useToast();
   const kebabMenu = useRef(null);
+  const longPressTimer = useRef(null);
   const transactionType = props.transaction?.transaction_type;
+
+  const selectionActive = props.selectionActive;
+  const selected = props.selected;
 
   let categories = [];
   if (transactionType === "income") {
     categories = global.incomeCategories;
   } else if (transactionType === "expense") {
     categories = global.expenseCategories;
+  }
+
+  useEffect(() => {
+    return () => {
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+      }
+    };
+  }, []);
+
+  function startLongPress() {
+    if (selectionActive || !props.onLongPress) {
+      return;
+    }
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
+    longPressTimer.current = setTimeout(() => {
+      props.onLongPress(props.transaction.id);
+    }, 500);
+  }
+
+  function cancelLongPress() {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
   }
 
   useEffect(() => {
@@ -59,6 +90,13 @@ const TransactionItem = (props) => {
 
     const pinToggleButtonClicked =
       !!event.target?.attributes?.id?.value?.includes("pinToggleButton");
+
+    if (selectionActive) {
+      if (props.onToggleSelect) {
+        props.onToggleSelect(props.transaction.id);
+      }
+      return;
+    }
 
     if (
       !kebabClicked &&
@@ -171,8 +209,16 @@ const TransactionItem = (props) => {
     <div
       className={`transaction-item${props.transaction.pinned ? " pinned" : ""}${
         transactionType === "transfer" ? " transaction-item--transfer" : ""
+      }${selected ? " transaction-item--selected" : ""}${
+        selectionActive ? " transaction-item--selection-mode" : ""
       }`}
       onClick={handleShowMore}
+      onMouseDown={startLongPress}
+      onMouseUp={cancelLongPress}
+      onMouseLeave={cancelLongPress}
+      onTouchStart={startLongPress}
+      onTouchEnd={cancelLongPress}
+      onTouchMove={cancelLongPress}
     >
       {helper.isRecent(props.transaction.created_on) && (
         <label className="new-transaction">NEW!</label>

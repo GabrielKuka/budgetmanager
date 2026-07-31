@@ -7,6 +7,36 @@
     border-radius: 2px;
   }
 
+  &.transaction-item--selected.transaction-item--selected {
+    background-color: var(--brand);
+    color: var(--brand-text);
+
+    .transaction-value {
+      color: var(--brand-text);
+    }
+
+    #date,
+    #amount,
+    #fx_rate,
+    .transfer-currency-hint {
+      color: var(--brand-text);
+    }
+
+    .category-value {
+      color: var(--brand-text);
+    }
+
+    #description {
+      color: var(--brand-text);
+    }
+  }
+
+  &.transaction-item--selection-mode {
+    .kebab-button {
+      visibility: hidden;
+    }
+  }
+
   &:hover {
     background-color: var(--surface-alt-bg);
 
@@ -182,6 +212,24 @@
     border: 1px solid var(--border);
     border-radius: 6px;
     background-color: var(--surface-bg);
+
+    &.transaction-item--selected.transaction-item--selected {
+      background-color: var(--brand);
+      color: var(--brand-text);
+
+      label,
+      .transaction-value,
+      #date,
+      #amount,
+      #fx_rate {
+        color: var(--brand-text);
+      }
+
+      label::before {
+        color: var(--brand-text);
+        opacity: 0.85;
+      }
+    }
 
     label {
       min-width: 0;

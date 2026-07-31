@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import TransactionItem from "./transactionItem";
 import transactionService from "../../services/transactionService/transactionService";
 import "react-datepicker/dist/react-datepicker.css";
@@ -14,6 +14,7 @@ import {
 import "./incomes.scss";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
+import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
@@ -36,6 +37,7 @@ const Incomes = () => {
   const [shownIncomes, setShownIncomes] = useState([]);
   const [transactionPopup, setTransactionPopup] = useState(false);
   const [showDrafts, setShowDrafts] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     setCategories(global.incomeCategories);
@@ -63,6 +65,7 @@ const Incomes = () => {
       <Sidebar
         accounts={accounts}
         categories={categories}
+        incomes={global.incomes}
         refreshIncomes={global.updateIncomes}
         refreshAccounts={global.updateAccounts}
         shownIncomes={shownIncomes}
@@ -71,7 +74,12 @@ const Incomes = () => {
         getTransactionCurrency={getTransactionCurrency}
       />
       <div className="incomes-wrapper__content">
-        <MonthPicker showDrafts={showDrafts} setShowDrafts={setShowDrafts} />
+        <MonthPicker
+          showDrafts={showDrafts}
+          setShowDrafts={setShowDrafts}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
         {!global.incomes || !accountsLoaded ? (
           <LoadingCard header="Loading Incomes..." />
         ) : global.incomes && !global.incomes?.length ? (
@@ -93,6 +101,7 @@ const Incomes = () => {
             refreshIncomes={global.updateIncomes}
             setTransactionPopup={setTransactionPopup}
             showDrafts={showDrafts}
+            searchTerm={searchTerm}
           />
         )}
         {transactionPopup && (
@@ -115,10 +124,62 @@ const Sidebar = (props) => {
   const global = useGlobalContext();
   const [totalShownIncomes, setShownIncomes] = useState(0);
   const [incomesPerCategory, setIncomesPerCategory] = useState([]);
+  const [largestIncomes, setLargestIncomes] = useState([]);
+  const [prevMonthTotal, setPrevMonthTotal] = useState(null);
+
+  useEffect(() => {
+    async function getLargest() {
+      const shown = (props.incomes || []).filter((e) => !e.is_draft);
+      const withConverted = await Promise.all(
+        shown.map(async (e) => ({
+          ...e,
+          converted: parseFloat(
+            await currencyService.convert(
+              props.getTransactionCurrency(e),
+              global.globalCurrency,
+              e.amount
+            )
+          ),
+        }))
+      );
+      const sorted = withConverted.sort((a, b) => b.converted - a.converted);
+      setLargestIncomes(sorted.slice(0, 5));
+    }
+    getLargest();
+  }, [props.incomes, global.globalCurrency]);
 
   useEffect(() => {
     let active = true;
-    const shownIncomes = (props.shownIncomes || []).filter((e) => !e.is_draft);
+    async function getPrevMonthTotal() {
+      const from = props.dateRange?.from;
+      if (!from) {
+        return;
+      }
+      const prevMonth = new Date(from.getFullYear(), from.getMonth() - 1, 1);
+      const prevTo = new Date(from.getFullYear(), from.getMonth(), 0);
+      const data = await transactionService.getUserIncomes(
+        { from: prevMonth, to: prevTo },
+        false,
+        global.globalCurrency
+      );
+      if (!active) {
+        return;
+      }
+      const total = (data || []).reduce(
+        (acc, e) => acc + parseFloat(e.converted_amount || 0),
+        0
+      );
+      setPrevMonthTotal(parseFloat(total).toFixed(2));
+    }
+    getPrevMonthTotal();
+    return () => {
+      active = false;
+    };
+  }, [props.dateRange, global.globalCurrency]);
+
+  useEffect(() => {
+    let active = true;
+    const shownIncomes = (props.incomes || []).filter((e) => !e.is_draft);
 
     async function getTotal() {
       let promises = shownIncomes.map(async (e) => {
@@ -174,7 +235,7 @@ const Sidebar = (props) => {
     return () => {
       active = false;
     };
-  }, [props.shownIncomes, props.categories, global.globalCurrency]);
+  }, [props.incomes, props.categories, global.globalCurrency]);
 
   return (
     <div className={"incomes-wrapper__sidebar"}>
@@ -192,11 +253,60 @@ const Sidebar = (props) => {
           {props.dateRange.to.toDateString()}.
         </small>
       </div>
+      {prevMonthTotal !== null &&
+        (() => {
+          const diff =
+            parseFloat(totalShownIncomes) - parseFloat(prevMonthTotal);
+          const sign = diff >= 0 ? "+" : "-";
+          const word = diff >= 0 ? "more than" : "less than";
+          const pct =
+            prevMonthTotal > 0
+              ? sign +
+                Math.abs((diff / parseFloat(prevMonthTotal)) * 100).toFixed(1)
+              : "0.0";
+          return (
+            <div className="mom-compare">
+              <span>
+                {helper.showOrMask(
+                  global.privacyMode,
+                  helper.formatNumber(Math.abs(diff).toFixed(2))
+                )}
+                {helper.getCurrency(global.globalCurrency)} {word} last month{" "}
+                <strong>({pct}%)</strong>
+              </span>
+            </div>
+          );
+        })()}
       <Chart data={incomesPerCategory} />
+      {largestIncomes.length > 0 && (
+        <div className="largest-list-card">
+          <div className="chart-title">Largest incomes</div>
+          <ol className="largest-list">
+            {largestIncomes.map((e, idx) => (
+              <li key={e.id} className="largest-list__item">
+                <span className="largest-list__rank">{idx + 1}</span>
+                <span className="largest-list__desc">
+                  {e.description
+                    ? e.description
+                    : props.categories?.find((c) => c.id === e.category)
+                        ?.category || "—"}
+                </span>
+                <span className="largest-list__amount">
+                  {helper.showOrMask(
+                    global.privacyMode,
+                    helper.formatNumber(e.converted)
+                  )}
+                  {helper.getCurrency(global.globalCurrency)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
       <div className="pie-chart-card">
         <div className="chart-title">By category</div>
         <PercentExpensesPieChart
-          expenses={(props.shownIncomes || []).filter((e) => !e.is_draft)}
+          expenses={(props.incomes || []).filter((e) => !e.is_draft)}
           categories={props.categories}
           getAccountCurrency={props.getAccountCurrency}
           getTransactionCurrency={props.getTransactionCurrency}
@@ -403,8 +513,84 @@ const AddIncome = ({
 const IncomesList = (props) => {
   const global = useGlobalContext();
   const [sortedBy, setSortedBy] = useState({});
-  useEffect(filterIncomes, [props.dateRange, props.incomes, props.showDrafts]);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [selectionActive, setSelectionActive] = useState(false);
+  const [selectedSum, setSelectedSum] = useState(0);
+  const showToast = useToast();
+  const showConfirm = useConfirm();
+  const listRef = useRef(null);
+  useEffect(filterIncomes, [
+    props.dateRange,
+    props.incomes,
+    props.showDrafts,
+    props.searchTerm,
+  ]);
   useEffect(filterIncomes, []);
+
+  useEffect(() => {
+    let active = true;
+    async function computeSelectedSum() {
+      if (selectedIds.length === 0) {
+        setSelectedSum(0);
+        return;
+      }
+      const selected = (props.shownIncomes || []).filter((e) =>
+        selectedIds.includes(e.id)
+      );
+      const converted = await Promise.all(
+        selected.map(async (e) =>
+          parseFloat(
+            await currencyService.convert(
+              props.getTransactionCurrency(e),
+              global.globalCurrency,
+              e.amount
+            )
+          )
+        )
+      );
+      if (active) {
+        setSelectedSum(
+          parseFloat(converted.reduce((a, b) => a + b, 0).toFixed(2))
+        );
+      }
+    }
+    computeSelectedSum();
+    return () => {
+      active = false;
+    };
+  }, [selectedIds, props.shownIncomes, global.globalCurrency]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (selectionActive && !listRef.current?.contains(event.target)) {
+        setSelectionActive(false);
+        setSelectedIds([]);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [selectionActive]);
+
+  function matchesSearch(income) {
+    const term = (props.searchTerm || "").trim().toLowerCase();
+    if (!term) {
+      return true;
+    }
+    const categoryName =
+      props.categories?.find((c) => c.id === income.category)?.category || "";
+    const accountName =
+      props.accounts?.find((a) => a.id === income.to_account)?.name || "";
+    const tags = (income.tags || []).map((t) => t.name).join(" ");
+    return [
+      String(income.description || ""),
+      String(income.amount),
+      categoryName,
+      accountName,
+      tags,
+    ].some((v) => v.toLowerCase().includes(term));
+  }
 
   function filterIncomes() {
     const selectedAccount = document.getElementById("account").value;
@@ -438,10 +624,44 @@ const IncomesList = (props) => {
       ?.filter((e) => categoryFilter.includes(e))
       ?.filter((e) => dateFilter.includes(e))
       ?.filter((e) => props.showDrafts || !e.is_draft)
+      ?.filter((e) => matchesSearch(e))
       ?.sort((a, b) => (a.date > b.date ? -1 : 1));
     // Pinned transactions always first
     filteredincomes?.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
     props.setShownIncomes(filteredincomes);
+  }
+
+  function handleLongPress(id) {
+    setSelectionActive(true);
+    setSelectedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  }
+
+  function toggleSelect(id) {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+
+  async function handleBulkDelete() {
+    showConfirm(
+      `Delete ${selectedIds.length} income(s)? This cannot be undone.`,
+      async () => {
+        for (const id of selectedIds) {
+          const income = props.shownIncomes.find((e) => e.id === id);
+          if (!income) {
+            continue;
+          }
+          await transactionService.deleteIncome({
+            type: 0,
+            id: income.id,
+          });
+        }
+        setSelectedIds([]);
+        setSelectionActive(false);
+        showToast(`${selectedIds.length} income(s) deleted.`);
+        await props.refreshIncomes();
+      }
+    );
   }
 
   async function sortShownIncomes(by = "") {
@@ -497,7 +717,7 @@ const IncomesList = (props) => {
   }
 
   return (
-    <div className={"incomes-wrapper__incomes-list"}>
+    <div ref={listRef} className={"incomes-wrapper__incomes-list"}>
       <div className={"header"}>
         <div>
           <label onClick={() => sortShownIncomes("date")}>Date:</label>
@@ -600,9 +820,40 @@ const IncomesList = (props) => {
               )}
               setTransactionPopup={props.setTransactionPopup}
               refreshAccounts={global.updateAccounts}
+              selectionActive={selectionActive}
+              selected={selectedIds.includes(income.id)}
+              onLongPress={handleLongPress}
+              onToggleSelect={toggleSelect}
             />
           ))}
       </div>
+      {selectionActive && selectedIds.length > 0 && (
+        <div className={"bulk-action-bar"}>
+          <span className={"bulk-action-bar__count"}>
+            {selectedIds.length} selected ·{" "}
+            {helper.showOrMask(
+              global.privacyMode,
+              helper.formatNumber(selectedSum)
+            )}
+            {helper.getCurrency(global.globalCurrency)}
+          </span>
+          <button
+            className={"bulk-action-bar__delete"}
+            onClick={handleBulkDelete}
+          >
+            Delete
+          </button>
+          <button
+            className={"bulk-action-bar__clear"}
+            onClick={() => {
+              setSelectedIds([]);
+              setSelectionActive(false);
+            }}
+          >
+            Clear
+          </button>
+        </div>
+      )}
     </div>
   );
 };

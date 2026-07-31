@@ -17,7 +17,12 @@ const MONTHS = [
   "December",
 ];
 
-const MonthPicker = ({ showDrafts, setShowDrafts }) => {
+const MonthPicker = ({
+  showDrafts,
+  setShowDrafts,
+  searchTerm,
+  setSearchTerm,
+}) => {
   const global = useGlobalContext();
 
   const now = new Date();
@@ -90,6 +95,17 @@ const MonthPicker = ({ showDrafts, setShowDrafts }) => {
           </option>
         ))}
       </select>
+      {typeof searchTerm !== "undefined" &&
+        typeof setSearchTerm !== "undefined" && (
+          <input
+            type="text"
+            className="month-picker__search"
+            placeholder="Search..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Search transactions"
+          />
+        )}
       <button
         className="month-picker__reset"
         onClick={handleReset}
