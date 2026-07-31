@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.db import transaction as db_transaction
@@ -1195,7 +1195,8 @@ def get_profile_stats(request):
     currency = request.GET.get("currency", "EUR").upper()
     today = date.today()
     current_month_start = today.replace(day=1)
-    twelve_months_ago = today - timedelta(days=365)
+    # Income vs expense chart shows data since January 2023.
+    income_vs_expense_start = date(2023, 1, 1)
 
     base_queryset = (
         Transaction.objects.filter(
@@ -1215,7 +1216,7 @@ def get_profile_stats(request):
         base_queryset.filter(date__gte=current_month_start, date__lte=today)
     )
     recent_transactions = list(
-        base_queryset.filter(date__gte=twelve_months_ago)
+        base_queryset.filter(date__gte=income_vs_expense_start)
     )
 
     try:

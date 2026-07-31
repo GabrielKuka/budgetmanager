@@ -129,7 +129,7 @@ const CustomLegend = () => {
         cursor: "pointer",
       }}
     >
-      Shows monthly incomes vs expenses for the last 12 months.
+      Shows monthly incomes vs expenses since January 2023.
     </div>
   );
 };
