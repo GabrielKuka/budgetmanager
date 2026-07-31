@@ -303,9 +303,9 @@ const Sidebar = (props) => {
                 <span className="largest-list__amount">
                   {helper.showOrMask(
                     global.privacyMode,
-                    helper.formatNumber(e.converted)
+                    helper.formatNumber(e.amount)
                   )}
-                  {helper.getCurrency(global.globalCurrency)}
+                  {helper.getCurrency(props.getTransactionCurrency(e))}
                 </span>
               </li>
             ))}
