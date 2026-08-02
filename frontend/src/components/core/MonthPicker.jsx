@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useGlobalContext } from "../../context/GlobalContext";
 import "./MonthPicker.scss";
 
@@ -26,11 +26,21 @@ const MonthPicker = ({
   const global = useGlobalContext();
 
   const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
 
-  const [month, setMonth] = useState(currentMonth);
-  const [year, setYear] = useState(currentYear);
+  const [month, setMonth] = useState(
+    () => global.dateRange?.from?.getMonth() ?? now.getMonth()
+  );
+  const [year, setYear] = useState(
+    () => global.dateRange?.from?.getFullYear() ?? now.getFullYear()
+  );
+
+  useEffect(() => {
+    const from = global.dateRange?.from;
+    if (from) {
+      setMonth(from.getMonth());
+      setYear(from.getFullYear());
+    }
+  }, [global.dateRange?.from]);
 
   const applyMonth = (m, y) => {
     const from = new Date(y, m, 1);
@@ -64,7 +74,7 @@ const MonthPicker = ({
   };
 
   const years = [];
-  for (let y = currentYear - 7; y <= currentYear + 3; y++) {
+  for (let y = now.getFullYear() - 7; y <= now.getFullYear() + 3; y++) {
     years.push(y);
   }
 
