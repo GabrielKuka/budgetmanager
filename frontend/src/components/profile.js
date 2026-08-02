@@ -128,6 +128,7 @@ const Sidebar = (props) => {
   const global = useGlobalContext();
   const navigate = useNavigate();
   const [totalWealth, setTotalWealth] = useState({ wealth: null, change: 0 });
+  const [topAccounts, setTopAccounts] = useState([]);
 
   function resolveHoldingValue(holding) {
     if (holding.market_value !== null && holding.market_value !== undefined) {
@@ -194,6 +195,58 @@ const Sidebar = (props) => {
     }
     getTotalWealth();
   }, [global.globalCurrency, global.activeAccounts]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function computeTopAccounts() {
+      const accounts = (props.accounts || []).filter(
+        (a) => a.deleted !== true
+      );
+      const conversions = accounts.map(async (a) => {
+        let total = 0;
+
+        // Sum all cash balances, converted to the global currency
+        for (const balance of a.cash_balances || []) {
+          const fromCurrency = balance.currency?.code || a.currency;
+          const converted = await currencyService.convert(
+            fromCurrency,
+            global.globalCurrency,
+            parseFloat(balance.balance || 0)
+          );
+          total += parseFloat(converted || 0);
+        }
+
+        // Sum all holdings (market value), converted to the global currency
+        for (const holding of a.holdings || []) {
+          const fromCurrency =
+            holding.security?.currency?.code || a.currency;
+          const converted = await currencyService.convert(
+            fromCurrency,
+            global.globalCurrency,
+            resolveHoldingValue(holding)
+          );
+          total += parseFloat(converted || 0);
+        }
+
+        return { id: a.id, name: a.name, convertedAmount: total };
+      });
+      const results = await Promise.all(conversions);
+      if (active) {
+        setTopAccounts(
+          results
+            .filter((r) => r.convertedAmount > 0)
+            .sort((x, y) => y.convertedAmount - x.convertedAmount)
+            .slice(0, 5)
+        );
+      }
+    }
+
+    computeTopAccounts();
+    return () => {
+      active = false;
+    };
+  }, [props.accounts, global.globalCurrency]);
 
   useEffect(() => {
     async function getPercentageChange() {
@@ -393,26 +446,23 @@ const Sidebar = (props) => {
           </Link>
         </div>
         <div className={"accounts-list"}>
-          {props.accounts?.length > 0 &&
-            props.accounts
-              ?.filter((a) => a.amount > 0)
-              .slice(0, 5)
-              ?.map((a) => (
-                <div
-                  key={a.id}
-                  className={"account-item"}
-                  onClick={() => navigate(`/accounts/${a.id}`)}
-                >
-                  <label className={"name"}>{a.name}</label>
-                  <label className={"amount"}>
-                    {helper.showOrMask(
-                      props.global.privacyMode,
-                      parseFloat(a.amount).toFixed(2)
-                    )}{" "}
-                    {helper.getCurrency(getAccountCurrency(a.id))}
-                  </label>
-                </div>
-              ))}
+          {topAccounts?.length > 0 &&
+            topAccounts?.map((a) => (
+              <div
+                key={a.id}
+                className={"account-item"}
+                onClick={() => navigate(`/accounts/${a.id}`)}
+              >
+                <label className={"name"}>{a.name}</label>
+                <label className={"amount"}>
+                  {helper.showOrMask(
+                    props.global.privacyMode,
+                    a.convertedAmount.toFixed(2)
+                  )}{" "}
+                  {helper.getCurrency(global.globalCurrency)}
+                </label>
+              </div>
+            ))}
         </div>
       </div>
       <div className={"download-data"} onClick={exportData}>
