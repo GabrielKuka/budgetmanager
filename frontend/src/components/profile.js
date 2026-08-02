@@ -200,9 +200,7 @@ const Sidebar = (props) => {
     let active = true;
 
     async function computeTopAccounts() {
-      const accounts = (props.accounts || []).filter(
-        (a) => a.deleted !== true
-      );
+      const accounts = (props.accounts || []).filter((a) => a.deleted !== true);
       const conversions = accounts.map(async (a) => {
         let total = 0;
 
@@ -219,8 +217,7 @@ const Sidebar = (props) => {
 
         // Sum all holdings (market value), converted to the global currency
         for (const holding of a.holdings || []) {
-          const fromCurrency =
-            holding.security?.currency?.code || a.currency;
+          const fromCurrency = holding.security?.currency?.code || a.currency;
           const converted = await currencyService.convert(
             fromCurrency,
             global.globalCurrency,
