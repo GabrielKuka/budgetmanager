@@ -42,34 +42,28 @@ const Stats = () => {
 
   return (
     <div className={"stats-wrapper"}>
-      {global.incomes?.length > 0 &&
-        global.expenses?.length > 0 &&
-        global.expenseCategories?.length > 0 && (
-          <>
-            <div className={"chart-container"}>
-              {isLoadingStats ? (
-                <ChartLoading label="Loading monthly finances..." />
-              ) : (
-                <MonthlyFinancesSankeyChart
-                  data={profileStats?.monthly_finances_sankey}
-                />
-              )}
-            </div>
-            <div className={"chart-container wide-chart-container"}>
-              {isLoadingStats ? (
-                <ChartLoading label="Loading income vs expense..." />
-              ) : (
-                <IncomeVsExpenseChart
-                  height={300}
-                  data={profileStats?.income_vs_expense}
-                />
-              )}
-            </div>
-            <div className={"chart-container"} id="wealthOverTimeContainer">
-              <WealthOverTime height={520} />
-            </div>
-          </>
+      <div className={"chart-container"}>
+        {isLoadingStats ? (
+          <ChartLoading label="Loading monthly finances..." />
+        ) : (
+          <MonthlyFinancesSankeyChart
+            data={profileStats?.monthly_finances_sankey}
+          />
         )}
+      </div>
+      <div className={"chart-container wide-chart-container"}>
+        {isLoadingStats ? (
+          <ChartLoading label="Loading income vs expense..." />
+        ) : (
+          <IncomeVsExpenseChart
+            height={300}
+            data={profileStats?.income_vs_expense}
+          />
+        )}
+      </div>
+      <div className={"chart-container"} id="wealthOverTimeContainer">
+        <WealthOverTime height={520} />
+      </div>
     </div>
   );
 };
