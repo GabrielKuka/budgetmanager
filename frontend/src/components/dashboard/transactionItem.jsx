@@ -163,11 +163,15 @@ const TransactionItem = (props) => {
   }
 
   async function handleApplyDraft() {
-    showConfirm("Apply this draft? Balances will be updated.", async () => {
-      await transactionService.applyDraft(props.transaction.id);
-      await props.refreshTransactions();
-      showToast("Draft applied.");
-    });
+    showConfirm(
+      "Apply this draft? Balances will be updated.",
+      async () => {
+        await transactionService.applyDraft(props.transaction.id);
+        await props.refreshTransactions();
+        showToast("Draft applied.");
+      },
+      { variant: "info", confirmLabel: "Apply" }
+    );
     setShowKebab(false);
   }
 
@@ -383,40 +387,91 @@ const TransactionItem = (props) => {
           </span>
         </label>
       )}
-      <button className={"kebab-button"} onClick={toggleKebab}>
-        <img
-          src={`${process.env.PUBLIC_URL}/kebab_icon.png`}
-          alt="kebap-icon"
-        />
+      <button
+        className={"kebab-button" + (showKebab ? " kebab-button--open" : "")}
+        onClick={(event) => {
+          event.stopPropagation();
+          toggleKebab();
+        }}
+        aria-label="Transaction actions"
+        aria-expanded={showKebab}
+        aria-haspopup="menu"
+        aria-controls={`kebab-menu-${props.transaction.id}`}
+      >
+        <span className="kebab-button__dots" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
       </button>
       {showKebab && (
         <div
           ref={kebabMenu}
           className={"kebab-menu"}
           id={`kebab-menu-${props.transaction.id}`}
+          role="menu"
         >
-          <button onClick={handlePinToggle} id="pinToggleButton">
-            {props.transaction.pinned ? "Unpin" : "Pin"}
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              handlePinToggle();
+            }}
+            id="pinToggleButton"
+            role="menuitem"
+          >
+            <span className="menu-action-icon" aria-hidden="true">📌</span>
+            <span>{props.transaction.pinned ? "Unpin" : "Pin"}</span>
           </button>
-          <button onClick={handleDelete} id="deleteButton">
-            Delete
-          </button>
-          <button onClick={handleShowMore} id="showMoreButton">
-            Show more
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              handleShowMore(event);
+            }}
+            id="showMoreButton"
+            role="menuitem"
+          >
+            <span className="menu-action-icon" aria-hidden="true">↗</span>
+            <span>View details</span>
           </button>
           {props.transaction.is_draft && (
-            <button onClick={handleApplyDraft} id="applyDraftButton">
-              Apply Draft
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                handleApplyDraft();
+              }}
+              id="applyDraftButton"
+              role="menuitem"
+            >
+              <span className="menu-action-icon" aria-hidden="true">✓</span>
+              <span>Apply draft</span>
             </button>
           )}
           {(transactionType === "income" || transactionType === "expense") && (
             <button
-              onClick={handleRepeatTransaction}
+              onClick={(event) => {
+                event.stopPropagation();
+                handleRepeatTransaction();
+              }}
               id="repeatTransactionButton"
+              role="menuitem"
             >
-              Repeat Transaction
+              <span className="menu-action-icon" aria-hidden="true">↻</span>
+              <span>Repeat transaction</span>
             </button>
           )}
+          <div className="kebab-menu-divider" role="separator" />
+          <button
+            className="menu-action--danger"
+            onClick={(event) => {
+              event.stopPropagation();
+              handleDelete();
+            }}
+            id="deleteButton"
+            role="menuitem"
+          >
+            <span className="menu-action-icon" aria-hidden="true">⌫</span>
+            <span>Delete</span>
+          </button>
         </div>
       )}
     </div>

@@ -337,6 +337,8 @@ $type-sell: #2e8b57;
       gap: 10px;
 
       button {
+        width: 120px;
+        min-height: 40px;
         color: var(--text);
         padding: 8px 16px;
         border-radius: 6px;
