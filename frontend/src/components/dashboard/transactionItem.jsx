@@ -224,9 +224,7 @@ const TransactionItem = (props) => {
         <label className="new-transaction">NEW!</label>
       )}
       {props.transaction.is_draft && (
-        <label className="draft-badge">
-          DRAFT
-        </label>
+        <label className="draft-badge">DRAFT</label>
       )}
       <label id="date" data-label="Date">
         <span className="transaction-value">{props.transaction.date}</span>

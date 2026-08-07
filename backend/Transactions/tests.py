@@ -483,7 +483,6 @@ class TransactionsApiTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
-
     def test_draft_requires_manual_application_and_omits_schedule(self):
         self.client.credentials(
             HTTP_AUTHORIZATION=self._auth_header(raw=False)

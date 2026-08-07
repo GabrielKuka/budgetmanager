@@ -345,17 +345,19 @@ const TransactionPopup = ({
                 {typeMeta.dateLabel} {transaction.date}
               </span>
             </div>
-            {!isEditing && transaction.is_draft && (
-              <span className="draft-badge-popup">DRAFT</span>
-            )}
             {!isEditing && (
-              <button
-                className={`pin-badge${isPinned ? " pinned" : ""}`}
-                onClick={handlePinToggle}
-                title={isPinned ? "Unpin transaction" : "Pin transaction"}
-              >
-                {isPinned ? "📌 Pinned" : "📌 Pin"}
-              </button>
+              <div className="title-actions">
+                {transaction.is_draft && (
+                  <span className="draft-badge-popup">DRAFT</span>
+                )}
+                <button
+                  className={`pin-badge${isPinned ? " pinned" : ""}`}
+                  onClick={handlePinToggle}
+                  title={isPinned ? "Unpin transaction" : "Pin transaction"}
+                >
+                  {isPinned ? "📌 Pinned" : "📌 Pin"}
+                </button>
+              </div>
             )}
           </div>
           <button className="close-popup" onClick={closePopup}>
