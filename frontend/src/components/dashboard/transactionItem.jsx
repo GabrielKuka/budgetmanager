@@ -419,7 +419,9 @@ const TransactionItem = (props) => {
             id="pinToggleButton"
             role="menuitem"
           >
-            <span className="menu-action-icon" aria-hidden="true">📌</span>
+            <span className="menu-action-icon" aria-hidden="true">
+              📌
+            </span>
             <span>{props.transaction.pinned ? "Unpin" : "Pin"}</span>
           </button>
           <button
@@ -430,7 +432,9 @@ const TransactionItem = (props) => {
             id="showMoreButton"
             role="menuitem"
           >
-            <span className="menu-action-icon" aria-hidden="true">↗</span>
+            <span className="menu-action-icon" aria-hidden="true">
+              ↗
+            </span>
             <span>View details</span>
           </button>
           {props.transaction.is_draft && (
@@ -442,7 +446,9 @@ const TransactionItem = (props) => {
               id="applyDraftButton"
               role="menuitem"
             >
-              <span className="menu-action-icon" aria-hidden="true">✓</span>
+              <span className="menu-action-icon" aria-hidden="true">
+                ✓
+              </span>
               <span>Apply draft</span>
             </button>
           )}
@@ -455,7 +461,9 @@ const TransactionItem = (props) => {
               id="repeatTransactionButton"
               role="menuitem"
             >
-              <span className="menu-action-icon" aria-hidden="true">↻</span>
+              <span className="menu-action-icon" aria-hidden="true">
+                ↻
+              </span>
               <span>Repeat transaction</span>
             </button>
           )}
@@ -469,7 +477,9 @@ const TransactionItem = (props) => {
             id="deleteButton"
             role="menuitem"
           >
-            <span className="menu-action-icon" aria-hidden="true">⌫</span>
+            <span className="menu-action-icon" aria-hidden="true">
+              ⌫
+            </span>
             <span>Delete</span>
           </button>
         </div>
