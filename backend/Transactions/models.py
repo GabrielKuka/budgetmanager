@@ -46,7 +46,6 @@ class Transaction(models.Model):
     pinned = models.BooleanField(default=False)
     is_draft = models.BooleanField(default=False)
     draft_created = models.DateTimeField(null=True, blank=True)
-    scheduled_apply_at = models.DateTimeField(null=True, blank=True)
     applied_at = models.DateTimeField(null=True, blank=True)
 
     # Legacy flat fields kept for backward compatibility during staged migration.

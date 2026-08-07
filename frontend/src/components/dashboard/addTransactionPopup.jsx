@@ -23,7 +23,6 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
   const [tags, setTags] = useState([]);
   const [transactionType, setTransactionType] = useState("1");
   const [customRate, setCustomRate] = useState("");
-  const [scheduledDate, setScheduledDate] = useState("");
 
   const cashBalanceOptions = useMemo(() => {
     const options = [];
@@ -179,10 +178,6 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
       tags: tags.map((tag) => ({ name: tag })),
       is_draft: true,
     };
-
-    if (scheduledDate) {
-      payload.scheduled_apply_at = new Date(scheduledDate).toISOString();
-    }
 
     if (transactionType === "0") {
       payload.amount = values.amount;
@@ -615,16 +610,6 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
                     </Field>
                   )}
 
-                  <div className="scheduled-apply-row">
-                    <label>Auto-apply date (optional):</label>
-                    <input
-                      type="datetime-local"
-                      id="scheduled_apply_at"
-                      value={scheduledDate}
-                      onChange={(e) => setScheduledDate(e.target.value)}
-                    />
-                  </div>
-
                   <div id="submit_wrapper">
                     <button type="submit" id={"submit-button"}>
                       Add {TX_LABELS[transactionType]}
@@ -656,7 +641,6 @@ const AddTransactionPopup = ({ showPopup, refreshAccounts }) => {
                           await submitDraft(values);
                           setTags([]);
                           setCustomRate("");
-                          setScheduledDate("");
                           resetForm();
                           showPopup(false);
                         } finally {

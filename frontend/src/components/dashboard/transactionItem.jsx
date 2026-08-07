@@ -226,14 +226,6 @@ const TransactionItem = (props) => {
       {props.transaction.is_draft && (
         <label className="draft-badge">
           DRAFT
-          {props.transaction.scheduled_apply_at && (
-            <span className="draft-schedule">
-              &middot;{" "}
-              {new Date(
-                props.transaction.scheduled_apply_at
-              ).toLocaleDateString()}
-            </span>
-          )}
         </label>
       )}
       <label id="date" data-label="Date">

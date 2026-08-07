@@ -346,7 +346,6 @@ def add_transaction(request):
     tx_date = data["date"]
     tags = data["resolved_tags"]
     is_draft = data.get("is_draft", False)
-    scheduled_apply_at = data.get("scheduled_apply_at", None)
 
     try:
         with db_transaction.atomic():
@@ -355,7 +354,6 @@ def add_transaction(request):
                 draft_kwargs = {
                     "is_draft": True,
                     "draft_created": timezone.now(),
-                    "scheduled_apply_at": scheduled_apply_at,
                     "applied_at": None,
                 }
 
@@ -619,10 +617,7 @@ def apply_draft(request, pk):
 
             txn.is_draft = False
             txn.applied_at = timezone.now()
-            txn.scheduled_apply_at = None
-            txn.save(
-                update_fields=["is_draft", "applied_at", "scheduled_apply_at"]
-            )
+            txn.save(update_fields=["is_draft", "applied_at"])
 
         return Response(
             TransactionReadSerializer(txn).data,

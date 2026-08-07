@@ -484,6 +484,42 @@ class TransactionsApiTests(TestCase):
         self.assertEqual(response.status_code, 400)
 
 
+    def test_draft_requires_manual_application_and_omits_schedule(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION=self._auth_header(raw=False)
+        )
+        response = self.client.post(
+            "/transactions/add",
+            {
+                "type": 1,
+                "date": "2026-04-08",
+                "amount": "25",
+                "from_cash_balance": self.balance_eur.id,
+                "category": self.expense_category.id,
+                "is_draft": True,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertNotIn("scheduled_apply_at", response.data)
+
+        draft = Transaction.objects.get(pk=response.data["id"])
+        self.assertTrue(draft.is_draft)
+        self.balance_eur.refresh_from_db()
+        self.assertEqual(self.balance_eur.balance, Decimal("1000"))
+
+        response = self.client.put(
+            f"/transactions/apply/{draft.id}", {}, format="json"
+        )
+        self.assertEqual(response.status_code, 200)
+
+        draft.refresh_from_db()
+        self.assertFalse(draft.is_draft)
+        self.assertIsNotNone(draft.applied_at)
+        self.balance_eur.refresh_from_db()
+        self.assertEqual(self.balance_eur.balance, Decimal("975"))
+
+
 class SmokeCategoryMigrationTests(TransactionTestCase):
     reset_sequences = True
 

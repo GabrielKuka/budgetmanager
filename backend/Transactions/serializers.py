@@ -65,7 +65,6 @@ class TransactionReadSerializer(serializers.ModelSerializer):
             "pinned",
             "is_draft",
             "draft_created",
-            "scheduled_apply_at",
             "applied_at",
         )
 
@@ -278,9 +277,6 @@ class TransactionWriteSerializer(serializers.Serializer):
     )
 
     is_draft = serializers.BooleanField(required=False, default=False)
-    scheduled_apply_at = serializers.DateTimeField(
-        required=False, allow_null=True
-    )
 
     def _user(self):
         user = self.context.get("user")
@@ -760,9 +756,5 @@ class TransactionWriteSerializer(serializers.Serializer):
 
         is_draft = attrs.get("is_draft", False)
         normalized["is_draft"] = is_draft
-        if is_draft:
-            normalized["scheduled_apply_at"] = attrs.get(
-                "scheduled_apply_at", None
-            )
 
         return normalized
