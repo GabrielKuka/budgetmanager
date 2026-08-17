@@ -221,11 +221,19 @@ class TransactionReadSerializer(serializers.ModelSerializer):
 
     def get_tangible_asset_name(self, obj):
         detail = self._trade_detail(obj)
-        return detail.tangible_asset.name if detail and detail.tangible_asset_id else None
+        return (
+            detail.tangible_asset.name
+            if detail and detail.tangible_asset_id
+            else None
+        )
 
     def get_tangible_asset_type(self, obj):
         detail = self._trade_detail(obj)
-        return detail.tangible_asset.asset_type if detail and detail.tangible_asset_id else None
+        return (
+            detail.tangible_asset.asset_type
+            if detail and detail.tangible_asset_id
+            else None
+        )
 
     def get_fx_rate(self, obj):
         detail = self._transfer_detail(obj)

@@ -33,8 +33,11 @@ class TangibleAssetSerializer(serializers.ModelSerializer):
     )
     unit = UnitSerializer(read_only=True)
     unit_id = serializers.PrimaryKeyRelatedField(
-        source="unit", queryset=Unit.objects.filter(is_active=True),
-        write_only=True, required=False, allow_null=True
+        source="unit",
+        queryset=Unit.objects.filter(is_active=True),
+        write_only=True,
+        required=False,
+        allow_null=True,
     )
     latest_valuation = serializers.SerializerMethodField()
     current_value = serializers.SerializerMethodField()
@@ -48,27 +51,63 @@ class TangibleAssetSerializer(serializers.ModelSerializer):
     class Meta:
         model = TangibleAsset
         fields = (
-            "id", "name", "asset_type", "asset_type_display", "property_type",
-            "property_type_display", "address", "unit", "unit_id", "quantity",
-            "purity", "acquired_on", "acquisition_cost", "currency", "currency_id",
-            "notes", "status", "disposed_on", "disposal_reason", "latest_valuation",
-            "current_value", "created_on", "updated_on",
+            "id",
+            "name",
+            "asset_type",
+            "asset_type_display",
+            "property_type",
+            "property_type_display",
+            "address",
+            "unit",
+            "unit_id",
+            "quantity",
+            "purity",
+            "acquired_on",
+            "acquisition_cost",
+            "currency",
+            "currency_id",
+            "notes",
+            "status",
+            "disposed_on",
+            "disposal_reason",
+            "latest_valuation",
+            "current_value",
+            "created_on",
+            "updated_on",
         )
         read_only_fields = (
-            "id", "status", "disposed_on", "disposal_reason", "latest_valuation",
-            "current_value", "created_on", "updated_on",
+            "id",
+            "status",
+            "disposed_on",
+            "disposal_reason",
+            "latest_valuation",
+            "current_value",
+            "created_on",
+            "updated_on",
         )
 
     def get_latest_valuation(self, obj):
         valuation = next(
-            (row for row in obj.valuations.all() if row.date <= self.context["today"]),
+            (
+                row
+                for row in obj.valuations.all()
+                if row.date <= self.context["today"]
+            ),
             None,
         )
-        return TangibleAssetValuationSerializer(valuation).data if valuation else None
+        return (
+            TangibleAssetValuationSerializer(valuation).data
+            if valuation
+            else None
+        )
 
     def get_current_value(self, obj):
         valuation = next(
-            (row for row in obj.valuations.all() if row.date <= self.context["today"]),
+            (
+                row
+                for row in obj.valuations.all()
+                if row.date <= self.context["today"]
+            ),
             None,
         )
         return valuation.value if valuation else Decimal(obj.acquisition_cost)
@@ -80,7 +119,9 @@ class TangibleAssetSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Acquisition date, cost, and currency are immutable."
             )
-        candidate = instance or TangibleAsset(user=self.context["request"].user)
+        candidate = instance or TangibleAsset(
+            user=self.context["request"].user
+        )
         for field, value in attrs.items():
             setattr(candidate, field, value)
         candidate.full_clean()

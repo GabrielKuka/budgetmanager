@@ -1,25 +1,72 @@
 #!/usr/bin/env bash
-# Pre-commit hook: auto-format backend (Black) and frontend (Prettier)
-# Installed via: git config core.hooksPath .githooks
+# Format staged source files, then update the index before Git creates the commit.
 
-set -e
+set -euo pipefail
 
-echo "🔍 Running pre-commit formatters..."
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
 
-# ── Backend: Black ──
-if [ -d "backend" ]; then
-  echo "  🐍 Formatting backend with Black..."
-  cd backend
-  uv run black -l 79 . 2>&1 | sed 's/^/    /'
-  cd ..
+staged_files=()
+formatted_files=()
+backend_files=()
+frontend_files=()
+
+while IFS= read -r -d '' file; do
+  staged_files+=("$file")
+
+  case "$file" in
+    backend/*.py)
+      formatted_files+=("$file")
+      backend_files+=("${file#backend/}")
+      ;;
+    frontend/src/*.js|frontend/src/*.jsx|frontend/src/*.scss|frontend/src/*.css)
+      formatted_files+=("$file")
+      frontend_files+=("${file#frontend/}")
+      ;;
+  esac
+done < <(git diff --cached --name-only --diff-filter=ACMR -z)
+
+if ((${#backend_files[@]} == 0 && ${#frontend_files[@]} == 0)); then
+  exit 0
 fi
 
-# ── Frontend: Prettier ──
-if [ -d "frontend/src" ]; then
-  echo "  ✨ Formatting frontend with Prettier..."
-  cd frontend
-  npx prettier ./src/ --write 2>&1 | sed 's/^/    /'
-  cd ..
+# Re-staging a formatted file would also stage any unstaged hunks in that file.
+# Stop instead of committing more than the user selected with `git add -p`.
+partially_staged=()
+for file in "${staged_files[@]}"; do
+  case "$file" in
+    backend/*.py|frontend/src/*.js|frontend/src/*.jsx|frontend/src/*.scss|frontend/src/*.css)
+      if ! git diff --quiet -- "$file"; then
+        partially_staged+=("$file")
+      fi
+      ;;
+  esac
+done
+
+if ((${#partially_staged[@]} > 0)); then
+  echo "Cannot auto-format partially staged files:" >&2
+  printf '  %s\n' "${partially_staged[@]}" >&2
+  echo "Stage the complete files, or commit with --no-verify." >&2
+  exit 1
 fi
 
-echo "✅ Formatting complete."
+echo "Running pre-commit formatters..."
+
+if ((${#backend_files[@]} > 0)); then
+  echo "  Formatting staged backend files with Black..."
+  (
+    cd backend
+    uv run black -l 79 -- "${backend_files[@]}"
+  )
+fi
+
+if ((${#frontend_files[@]} > 0)); then
+  echo "  Formatting staged frontend files with Prettier..."
+  (
+    cd frontend
+    npx prettier --write -- "${frontend_files[@]}"
+  )
+fi
+
+git add -- "${formatted_files[@]}"
+echo "Formatting complete; formatted files re-staged."

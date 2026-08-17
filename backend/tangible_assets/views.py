@@ -41,9 +41,11 @@ def _date(value, field="date"):
 
 
 def _assets_queryset(user):
-    return TangibleAsset.objects.filter(user=user).select_related(
-        "currency", "unit"
-    ).prefetch_related("valuations")
+    return (
+        TangibleAsset.objects.filter(user=user)
+        .select_related("currency", "unit")
+        .prefetch_related("valuations")
+    )
 
 
 def _serializer_context(request):
@@ -66,11 +68,15 @@ def _summary(assets, currency):
             continue
         value = _asset_current_value(asset, today)
         try:
-            converted = convert_amount(value, asset.currency.code, currency, None)
+            converted = convert_amount(
+                value, asset.currency.code, currency, None
+            )
         except MissingExchangeRate:
             raise
         total += converted
-        totals[asset.asset_type] = totals.get(asset.asset_type, Decimal("0")) + converted
+        totals[asset.asset_type] = (
+            totals.get(asset.asset_type, Decimal("0")) + converted
+        )
     labels = dict(TangibleAsset.ASSET_TYPE_CHOICES)
     return {
         "currency": currency,
@@ -86,7 +92,9 @@ def _summary(assets, currency):
     }
 
 
-def _create_valuation(asset, value, valuation_date, source="acquisition", notes=""):
+def _create_valuation(
+    asset, value, valuation_date, source="acquisition", notes=""
+):
     valuation = TangibleAssetValuation(
         asset=asset,
         date=valuation_date,
@@ -100,9 +108,9 @@ def _create_valuation(asset, value, valuation_date, source="acquisition", notes=
 
 
 def _owned_cash_balance(user, cash_balance_id, lock=False):
-    queryset = CashBalance.objects.select_related("account", "currency").filter(
-        pk=cash_balance_id, account__user=user, account__deleted=False
-    )
+    queryset = CashBalance.objects.select_related(
+        "account", "currency"
+    ).filter(pk=cash_balance_id, account__user=user, account__deleted=False)
     if lock:
         queryset = queryset.select_for_update()
     balance = queryset.first()
@@ -115,7 +123,9 @@ def _owned_cash_balance(user, cash_balance_id, lock=False):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def units(request):
-    queryset = Unit.objects.filter(is_active=True).order_by("dimension", "name")
+    queryset = Unit.objects.filter(is_active=True).order_by(
+        "dimension", "name"
+    )
     return Response(UnitSerializer(queryset, many=True).data)
 
 
@@ -149,13 +159,19 @@ def asset_collection(request):
     current_value = payload.pop("current_value", None)
     valuation_date = payload.pop("valuation_date", None)
     valuation_notes = payload.pop("valuation_notes", "")
-    serializer = TangibleAssetSerializer(data=payload, context=_serializer_context(request))
+    serializer = TangibleAssetSerializer(
+        data=payload, context=_serializer_context(request)
+    )
     serializer.is_valid(raise_exception=True)
     with db_transaction.atomic():
         asset = serializer.save(user=request.user)
         _create_valuation(asset, asset.acquisition_cost, asset.acquired_on)
         if current_value not in (None, ""):
-            value_date = _date(valuation_date, "valuation_date") if valuation_date else timezone.localdate()
+            value_date = (
+                _date(valuation_date, "valuation_date")
+                if valuation_date
+                else timezone.localdate()
+            )
             if value_date == asset.acquired_on:
                 valuation = asset.valuations.get(date=value_date)
                 valuation.value = _decimal(current_value)
@@ -173,7 +189,9 @@ def asset_collection(request):
                 )
     asset = _assets_queryset(request.user).get(pk=asset.pk)
     return Response(
-        TangibleAssetSerializer(asset, context=_serializer_context(request)).data,
+        TangibleAssetSerializer(
+            asset, context=_serializer_context(request)
+        ).data,
         status=status.HTTP_201_CREATED,
     )
 
@@ -184,7 +202,11 @@ def asset_collection(request):
 def asset_detail(request, asset_id):
     asset = get_object_or_404(_assets_queryset(request.user), pk=asset_id)
     if request.method == "GET":
-        return Response(TangibleAssetSerializer(asset, context=_serializer_context(request)).data)
+        return Response(
+            TangibleAssetSerializer(
+                asset, context=_serializer_context(request)
+            ).data
+        )
     if request.method == "PATCH":
         serializer = TangibleAssetSerializer(
             asset,
@@ -194,11 +216,16 @@ def asset_detail(request, asset_id):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(TangibleAssetSerializer(asset, context=_serializer_context(request)).data)
+        return Response(
+            TangibleAssetSerializer(
+                asset, context=_serializer_context(request)
+            ).data
+        )
 
     if asset.trades.exists():
         return Response(
-            {"error": "Use undo-last-event for an asset with trades."}, status=409
+            {"error": "Use undo-last-event for an asset with trades."},
+            status=409,
         )
     asset.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
@@ -217,7 +244,8 @@ def purchase(request):
     payload["acquisition_cost"] = amount
     if not cash_balance_id or not tx_date or amount in (None, ""):
         return Response(
-            {"error": "date, amount, and from_cash_balance are required."}, status=400
+            {"error": "date, amount, and from_cash_balance are required."},
+            status=400,
         )
     amount = _decimal(amount)
     try:
@@ -225,21 +253,32 @@ def purchase(request):
     except ValueError as exc:
         return Response({"error": str(exc)}, status=400)
     if amount <= 0:
-        return Response({"error": "amount must be greater than zero."}, status=400)
+        return Response(
+            {"error": "amount must be greater than zero."}, status=400
+        )
 
     with db_transaction.atomic():
         try:
-            cash_balance = _owned_cash_balance(request.user, cash_balance_id, lock=True)
+            cash_balance = _owned_cash_balance(
+                request.user, cash_balance_id, lock=True
+            )
         except ValueError as exc:
             return Response({"error": str(exc)}, status=400)
         if cash_balance.balance < amount:
-            return Response({"error": "Insufficient cash balance."}, status=400)
+            return Response(
+                {"error": "Insufficient cash balance."}, status=400
+            )
         currency = payload.get("currency_id")
         if currency and int(currency) != cash_balance.currency_id:
-            return Response({"error": "Asset currency must match cash balance."}, status=400)
+            return Response(
+                {"error": "Asset currency must match cash balance."},
+                status=400,
+            )
         payload["currency_id"] = cash_balance.currency_id
         payload["acquired_on"] = tx_date
-        serializer = TangibleAssetSerializer(data=payload, context=_serializer_context(request))
+        serializer = TangibleAssetSerializer(
+            data=payload, context=_serializer_context(request)
+        )
         serializer.is_valid(raise_exception=True)
         asset = serializer.save(user=request.user)
         _create_valuation(asset, amount, tx_date)
@@ -260,7 +299,9 @@ def purchase(request):
         )
         detail.full_clean()
         detail.save()
-        CashBalance.objects.filter(pk=cash_balance.pk).update(balance=F("balance") - amount)
+        CashBalance.objects.filter(pk=cash_balance.pk).update(
+            balance=F("balance") - amount
+        )
     return Response({"id": asset.id, "transaction_id": txn.id}, status=201)
 
 
@@ -270,14 +311,22 @@ def purchase(request):
 def valuations(request, asset_id):
     asset = get_object_or_404(_assets_queryset(request.user), pk=asset_id)
     if request.method == "GET":
-        return Response(TangibleAssetValuationSerializer(asset.valuations.all(), many=True).data)
+        return Response(
+            TangibleAssetValuationSerializer(
+                asset.valuations.all(), many=True
+            ).data
+        )
     serializer = TangibleAssetValuationSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     with db_transaction.atomic():
-        valuation = TangibleAssetValuation(asset=asset, source="manual", **serializer.validated_data)
+        valuation = TangibleAssetValuation(
+            asset=asset, source="manual", **serializer.validated_data
+        )
         valuation.full_clean()
         valuation.save()
-    return Response(TangibleAssetValuationSerializer(valuation).data, status=201)
+    return Response(
+        TangibleAssetValuationSerializer(valuation).data, status=201
+    )
 
 
 @api_view(["DELETE"])
@@ -285,11 +334,17 @@ def valuations(request, asset_id):
 @permission_classes([IsAuthenticated])
 def valuation_detail(request, asset_id, valuation_id):
     asset = get_object_or_404(_assets_queryset(request.user), pk=asset_id)
-    valuation = get_object_or_404(TangibleAssetValuation, pk=valuation_id, asset=asset)
+    valuation = get_object_or_404(
+        TangibleAssetValuation, pk=valuation_id, asset=asset
+    )
     if asset.valuations.first().id != valuation.id:
-        return Response({"error": "Only latest valuation can be removed."}, status=409)
+        return Response(
+            {"error": "Only latest valuation can be removed."}, status=409
+        )
     if valuation.source == "acquisition":
-        return Response({"error": "Acquisition valuation cannot be removed."}, status=409)
+        return Response(
+            {"error": "Acquisition valuation cannot be removed."}, status=409
+        )
     valuation.delete()
     return Response(status=204)
 
@@ -298,28 +353,46 @@ def valuation_detail(request, asset_id, valuation_id):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def sell(request, asset_id):
-    asset = get_object_or_404(_assets_queryset(request.user), pk=asset_id, status="active")
+    asset = get_object_or_404(
+        _assets_queryset(request.user), pk=asset_id, status="active"
+    )
     tx_date = request.data.get("date")
     amount = request.data.get("amount")
     cash_balance_id = request.data.get("to_cash_balance")
     if not tx_date or amount in (None, "") or not cash_balance_id:
-        return Response({"error": "date, amount, and to_cash_balance are required."}, status=400)
+        return Response(
+            {"error": "date, amount, and to_cash_balance are required."},
+            status=400,
+        )
     amount = _decimal(amount)
     try:
         tx_date = _date(tx_date)
     except ValueError as exc:
         return Response({"error": str(exc)}, status=400)
     if amount <= 0:
-        return Response({"error": "amount must be greater than zero."}, status=400)
-    if tx_date < asset.acquired_on or asset.valuations.filter(date__gt=tx_date).exists():
-        return Response({"error": "Sale cannot precede an existing asset event."}, status=400)
+        return Response(
+            {"error": "amount must be greater than zero."}, status=400
+        )
+    if (
+        tx_date < asset.acquired_on
+        or asset.valuations.filter(date__gt=tx_date).exists()
+    ):
+        return Response(
+            {"error": "Sale cannot precede an existing asset event."},
+            status=400,
+        )
     with db_transaction.atomic():
         try:
-            cash_balance = _owned_cash_balance(request.user, cash_balance_id, lock=True)
+            cash_balance = _owned_cash_balance(
+                request.user, cash_balance_id, lock=True
+            )
         except ValueError as exc:
             return Response({"error": str(exc)}, status=400)
         if cash_balance.currency_id != asset.currency_id:
-            return Response({"error": "Sale currency must match asset currency."}, status=400)
+            return Response(
+                {"error": "Sale currency must match asset currency."},
+                status=400,
+            )
         txn = Transaction.objects.create(
             user=request.user,
             transaction_type="sell",
@@ -337,12 +410,21 @@ def sell(request, asset_id):
         )
         detail.full_clean()
         detail.save()
-        CashBalance.objects.filter(pk=cash_balance.pk).update(balance=F("balance") + amount)
+        CashBalance.objects.filter(pk=cash_balance.pk).update(
+            balance=F("balance") + amount
+        )
         asset.status = "sold"
         asset.disposed_on = tx_date
         asset.disposal_reason = ""
         asset.full_clean()
-        asset.save(update_fields=["status", "disposed_on", "disposal_reason", "updated_on"])
+        asset.save(
+            update_fields=[
+                "status",
+                "disposed_on",
+                "disposal_reason",
+                "updated_on",
+            ]
+        )
     return Response({"transaction_id": txn.id})
 
 
@@ -350,22 +432,40 @@ def sell(request, asset_id):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def dispose(request, asset_id):
-    asset = get_object_or_404(_assets_queryset(request.user), pk=asset_id, status="active")
+    asset = get_object_or_404(
+        _assets_queryset(request.user), pk=asset_id, status="active"
+    )
     disposal_date = request.data.get("date")
     try:
         disposal_date = _date(disposal_date)
     except ValueError as exc:
         return Response({"error": str(exc)}, status=400)
     if disposal_date < asset.acquired_on:
-        return Response({"error": "Valid disposition date is required."}, status=400)
+        return Response(
+            {"error": "Valid disposition date is required."}, status=400
+        )
     if asset.valuations.filter(date__gt=disposal_date).exists():
-        return Response({"error": "Disposition precedes an existing valuation."}, status=400)
+        return Response(
+            {"error": "Disposition precedes an existing valuation."},
+            status=400,
+        )
     asset.status = "disposed"
     asset.disposed_on = disposal_date
     asset.disposal_reason = request.data.get("reason", "")
     asset.full_clean()
-    asset.save(update_fields=["status", "disposed_on", "disposal_reason", "updated_on"])
-    return Response(TangibleAssetSerializer(asset, context=_serializer_context(request)).data)
+    asset.save(
+        update_fields=[
+            "status",
+            "disposed_on",
+            "disposal_reason",
+            "updated_on",
+        ]
+    )
+    return Response(
+        TangibleAssetSerializer(
+            asset, context=_serializer_context(request)
+        ).data
+    )
 
 
 @api_view(["POST"])
@@ -379,24 +479,50 @@ def undo_last_event(request, asset_id):
             asset.status = "active"
             asset.disposed_on = None
             asset.disposal_reason = ""
-            asset.save(update_fields=["status", "disposed_on", "disposal_reason", "updated_on"])
+            asset.save(
+                update_fields=[
+                    "status",
+                    "disposed_on",
+                    "disposal_reason",
+                    "updated_on",
+                ]
+            )
             return Response({"message": "Disposal undone."})
-        latest_trade = asset.trades.select_related("transaction", "cash_balance").order_by("-transaction__date", "-id").first()
+        latest_trade = (
+            asset.trades.select_related("transaction", "cash_balance")
+            .order_by("-transaction__date", "-id")
+            .first()
+        )
         if not latest_trade:
-            return Response({"error": "No lifecycle event to undo."}, status=409)
+            return Response(
+                {"error": "No lifecycle event to undo."}, status=409
+            )
         txn = latest_trade.transaction
         if asset.valuations.filter(date__gt=txn.date).exists():
-            return Response({"error": "Later valuation prevents undo."}, status=409)
+            return Response(
+                {"error": "Later valuation prevents undo."}, status=409
+            )
         if txn.transaction_type == "sell":
-            CashBalance.objects.filter(pk=latest_trade.cash_balance_id).update(balance=F("balance") - txn.amount)
+            CashBalance.objects.filter(pk=latest_trade.cash_balance_id).update(
+                balance=F("balance") - txn.amount
+            )
             asset.status = "active"
             asset.disposed_on = None
             asset.disposal_reason = ""
-            asset.save(update_fields=["status", "disposed_on", "disposal_reason", "updated_on"])
+            asset.save(
+                update_fields=[
+                    "status",
+                    "disposed_on",
+                    "disposal_reason",
+                    "updated_on",
+                ]
+            )
             txn.delete()
             return Response({"message": "Sale undone."})
         if txn.transaction_type == "buy":
-            CashBalance.objects.filter(pk=latest_trade.cash_balance_id).update(balance=F("balance") + txn.amount)
+            CashBalance.objects.filter(pk=latest_trade.cash_balance_id).update(
+                balance=F("balance") + txn.amount
+            )
             txn.delete()
             asset.delete()
             return Response({"message": "Purchase undone."})

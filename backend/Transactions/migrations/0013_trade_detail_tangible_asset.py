@@ -12,20 +12,42 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="securitytradedetail",
             name="transaction",
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name="trade_detail", to="Transactions.transaction"),
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="trade_detail",
+                to="Transactions.transaction",
+            ),
         ),
         migrations.AlterField(
             model_name="securitytradedetail",
             name="security",
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name="trades", to="Accounts.security"),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="trades",
+                to="Accounts.security",
+            ),
         ),
         migrations.AddField(
             model_name="securitytradedetail",
             name="tangible_asset",
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name="trades", to="tangible_assets.tangibleasset"),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="trades",
+                to="tangible_assets.tangibleasset",
+            ),
         ),
         migrations.AddConstraint(
             model_name="securitytradedetail",
-            constraint=models.CheckConstraint(check=(Q(security__isnull=False, tangible_asset__isnull=True) | Q(security__isnull=True, tangible_asset__isnull=False)), name="trade_detail_exactly_one_asset_target"),
+            constraint=models.CheckConstraint(
+                check=(
+                    Q(security__isnull=False, tangible_asset__isnull=True)
+                    | Q(security__isnull=True, tangible_asset__isnull=False)
+                ),
+                name="trade_detail_exactly_one_asset_target",
+            ),
         ),
     ]

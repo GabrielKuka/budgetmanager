@@ -269,8 +269,16 @@ def _delete_transaction_and_reverse(txn):
             _apply_cash_delta(detail.cash_balance, total)
             if detail.tangible_asset_id:
                 asset = detail.tangible_asset
-                if asset.valuations.filter(date__gt=txn.date).exists() or asset.trades.exclude(transaction=txn).filter(transaction__date__gt=txn.date).exists() or asset.status == "disposed":
-                    raise ValueError("Undo this asset purchase from the asset timeline first.")
+                if (
+                    asset.valuations.filter(date__gt=txn.date).exists()
+                    or asset.trades.exclude(transaction=txn)
+                    .filter(transaction__date__gt=txn.date)
+                    .exists()
+                    or asset.status == "disposed"
+                ):
+                    raise ValueError(
+                        "Undo this asset purchase from the asset timeline first."
+                    )
                 txn.delete()
                 asset.delete()
                 return
@@ -291,10 +299,14 @@ def _delete_transaction_and_reverse(txn):
             if detail.tangible_asset_id:
                 asset = detail.tangible_asset
                 if asset.status != "sold" or asset.disposed_on != txn.date:
-                    raise ValueError("Undo this asset sale from the asset timeline first.")
+                    raise ValueError(
+                        "Undo this asset sale from the asset timeline first."
+                    )
                 asset.status = "active"
                 asset.disposed_on = None
-                asset.save(update_fields=["status", "disposed_on", "updated_on"])
+                asset.save(
+                    update_fields=["status", "disposed_on", "updated_on"]
+                )
                 txn.delete()
                 return
             if detail.holding_id:

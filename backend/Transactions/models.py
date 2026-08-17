@@ -248,8 +248,14 @@ class SecurityTradeDetail(models.Model):
             ),
             models.CheckConstraint(
                 check=(
-                    (Q(security__isnull=False) & Q(tangible_asset__isnull=True))
-                    | (Q(security__isnull=True) & Q(tangible_asset__isnull=False))
+                    (
+                        Q(security__isnull=False)
+                        & Q(tangible_asset__isnull=True)
+                    )
+                    | (
+                        Q(security__isnull=True)
+                        & Q(tangible_asset__isnull=False)
+                    )
                 ),
                 name="trade_detail_exactly_one_asset_target",
             ),
@@ -265,12 +271,18 @@ class SecurityTradeDetail(models.Model):
                 }
             )
 
-        if self.security and self.holding and self.holding.security_id != self.security_id:
+        if (
+            self.security
+            and self.holding
+            and self.holding.security_id != self.security_id
+        ):
             raise ValidationError(
                 {"holding": "Holding security must match trade security."}
             )
         if self.security and not self.holding_id:
-            raise ValidationError({"holding": "Security trade requires a holding."})
+            raise ValidationError(
+                {"holding": "Security trade requires a holding."}
+            )
         if self.tangible_asset and self.holding_id:
             raise ValidationError(
                 {"holding": "Tangible trade cannot have a security holding."}

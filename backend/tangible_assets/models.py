@@ -119,9 +119,13 @@ class TangibleAsset(models.Model):
         if self.disposed_on and self.disposed_on < self.acquired_on:
             errors["disposed_on"] = "Disposition cannot predate acquisition."
         if self.status == "active" and self.disposed_on:
-            errors["disposed_on"] = "Active asset cannot have a disposition date."
+            errors["disposed_on"] = (
+                "Active asset cannot have a disposition date."
+            )
         if self.status != "active" and not self.disposed_on:
-            errors["disposed_on"] = "Inactive asset requires a disposition date."
+            errors["disposed_on"] = (
+                "Inactive asset requires a disposition date."
+            )
         if errors:
             raise ValidationError(errors)
 

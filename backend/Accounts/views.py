@@ -128,10 +128,18 @@ def _account_totals_payload(accounts, currency, tangible_assets=None):
 
     for asset in tangible_assets or []:
         valuation = next(
-            (value for value in asset.valuations.all() if value.date <= timezone.localdate()),
+            (
+                value
+                for value in asset.valuations.all()
+                if value.date <= timezone.localdate()
+            ),
             None,
         )
-        native_value = _to_decimal(valuation.value) if valuation else _to_decimal(asset.acquisition_cost)
+        native_value = (
+            _to_decimal(valuation.value)
+            if valuation
+            else _to_decimal(asset.acquisition_cost)
+        )
         converted_value = _convert_cached(
             native_value, asset.currency.code, currency, conversion_rates
         )
@@ -142,22 +150,46 @@ def _account_totals_payload(accounts, currency, tangible_assets=None):
         )
 
     investment_categories = [
-        {"asset_class": asset_class, "label": _security_asset_class_label(asset_class), "amount": _round_2(amount)}
-        for asset_class, amount in sorted(summary_holdings_by_asset_class.items())
+        {
+            "asset_class": asset_class,
+            "label": _security_asset_class_label(asset_class),
+            "amount": _round_2(amount),
+        }
+        for asset_class, amount in sorted(
+            summary_holdings_by_asset_class.items()
+        )
     ]
     tangible_categories = [
-        {"asset_type": asset_type, "label": dict(TangibleAsset.ASSET_TYPE_CHOICES).get(asset_type, asset_type), "amount": _round_2(amount)}
+        {
+            "asset_type": asset_type,
+            "label": dict(TangibleAsset.ASSET_TYPE_CHOICES).get(
+                asset_type, asset_type
+            ),
+            "amount": _round_2(amount),
+        }
         for asset_type, amount in sorted(summary_tangible_by_type.items())
     ]
     total_assets = summary_cash + summary_holdings + summary_tangible_assets
     categories = [
-        {"category": "cash", "label": "Cash", "amount": _round_2(summary_cash)},
+        {
+            "category": "cash",
+            "label": "Cash",
+            "amount": _round_2(summary_cash),
+        },
         *[
-            {"category": item["asset_class"], "label": item["label"], "amount": item["amount"]}
+            {
+                "category": item["asset_class"],
+                "label": item["label"],
+                "amount": item["amount"],
+            }
             for item in investment_categories
         ],
         *[
-            {"category": item["asset_type"], "label": item["label"], "amount": item["amount"]}
+            {
+                "category": item["asset_type"],
+                "label": item["label"],
+                "amount": item["amount"],
+            }
             for item in tangible_categories
         ],
     ]
@@ -174,9 +206,21 @@ def _account_totals_payload(accounts, currency, tangible_assets=None):
             "tangible_assets": _round_2(summary_tangible_assets),
             "tangible_assets_by_type": tangible_categories,
             "allocation_groups": [
-                {"category": "cash", "label": "Cash", "amount": _round_2(summary_cash)},
-                {"category": "investments", "label": "Investments", "amount": _round_2(summary_holdings)},
-                {"category": "tangible_assets", "label": "Tangible Assets", "amount": _round_2(summary_tangible_assets)},
+                {
+                    "category": "cash",
+                    "label": "Cash",
+                    "amount": _round_2(summary_cash),
+                },
+                {
+                    "category": "investments",
+                    "label": "Investments",
+                    "amount": _round_2(summary_holdings),
+                },
+                {
+                    "category": "tangible_assets",
+                    "label": "Tangible Assets",
+                    "amount": _round_2(summary_tangible_assets),
+                },
             ],
             "net_worth_by_category": categories,
             "total_assets": _round_2(total_assets),
@@ -1151,9 +1195,17 @@ def account_transactions(request, account_id):
         elif transaction.transaction_type in ("buy", "sell"):
             detail = transaction.trade_detail
             row["security"] = detail.security_id
-            row["ticker"] = detail.security.ticker if detail.security_id else detail.tangible_asset.name
+            row["ticker"] = (
+                detail.security.ticker
+                if detail.security_id
+                else detail.tangible_asset.name
+            )
             row["tangible_asset"] = detail.tangible_asset_id
-            row["tangible_asset_type"] = detail.tangible_asset.asset_type if detail.tangible_asset_id else None
+            row["tangible_asset_type"] = (
+                detail.tangible_asset.asset_type
+                if detail.tangible_asset_id
+                else None
+            )
             row["quantity"] = _round_2(detail.quantity)
             row["price_per_unit"] = _round_2(detail.price_per_unit)
             row["cash_balance"] = detail.cash_balance_id
