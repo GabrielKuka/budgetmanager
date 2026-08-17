@@ -33,6 +33,10 @@ class TransactionReadSerializer(serializers.ModelSerializer):
     holding = serializers.SerializerMethodField()
     quantity = serializers.SerializerMethodField()
     price_per_unit = serializers.SerializerMethodField()
+    asset_kind = serializers.SerializerMethodField()
+    tangible_asset = serializers.SerializerMethodField()
+    tangible_asset_name = serializers.SerializerMethodField()
+    tangible_asset_type = serializers.SerializerMethodField()
     fx_rate = serializers.SerializerMethodField()
 
     class Meta:
@@ -61,6 +65,10 @@ class TransactionReadSerializer(serializers.ModelSerializer):
             "holding",
             "quantity",
             "price_per_unit",
+            "asset_kind",
+            "tangible_asset",
+            "tangible_asset_name",
+            "tangible_asset_type",
             "fx_rate",
             "pinned",
             "is_draft",
@@ -77,8 +85,8 @@ class TransactionReadSerializer(serializers.ModelSerializer):
     def _transfer_detail(self, obj):
         return getattr(obj, "transfer_detail", None)
 
-    def _security_trade_detail(self, obj):
-        return getattr(obj, "security_trade_detail", None)
+    def _trade_detail(self, obj):
+        return getattr(obj, "trade_detail", None)
 
     def get_amount(self, obj):
         if obj.transaction_type == "income":
@@ -94,7 +102,7 @@ class TransactionReadSerializer(serializers.ModelSerializer):
             return float(detail.amount) if detail else None
 
         if obj.transaction_type in ("buy", "sell"):
-            detail = self._security_trade_detail(obj)
+            detail = self._trade_detail(obj)
             return float(detail.total_value) if detail else None
 
         return None
@@ -120,7 +128,7 @@ class TransactionReadSerializer(serializers.ModelSerializer):
             return detail.from_cash_balance.account_id if detail else None
 
         if obj.transaction_type == "buy":
-            detail = self._security_trade_detail(obj)
+            detail = self._trade_detail(obj)
             return detail.cash_balance.account_id if detail else None
 
         return None
@@ -135,7 +143,7 @@ class TransactionReadSerializer(serializers.ModelSerializer):
             return detail.to_cash_balance.account_id if detail else None
 
         if obj.transaction_type == "sell":
-            detail = self._security_trade_detail(obj)
+            detail = self._trade_detail(obj)
             return detail.cash_balance.account_id if detail else None
 
         return None
@@ -157,7 +165,7 @@ class TransactionReadSerializer(serializers.ModelSerializer):
             detail = self._transfer_detail(obj)
             return detail.from_cash_balance_id if detail else None
         if obj.transaction_type == "buy":
-            detail = self._security_trade_detail(obj)
+            detail = self._trade_detail(obj)
             return detail.cash_balance_id if detail else None
         return None
 
@@ -169,37 +177,55 @@ class TransactionReadSerializer(serializers.ModelSerializer):
             detail = self._transfer_detail(obj)
             return detail.to_cash_balance_id if detail else None
         if obj.transaction_type == "sell":
-            detail = self._security_trade_detail(obj)
+            detail = self._trade_detail(obj)
             return detail.cash_balance_id if detail else None
         return None
 
     def get_security(self, obj):
-        detail = self._security_trade_detail(obj)
+        detail = self._trade_detail(obj)
         return detail.security_id if detail else None
 
     def get_security_ticker(self, obj):
-        detail = self._security_trade_detail(obj)
+        detail = self._trade_detail(obj)
         if detail and detail.security_id:
             return detail.security.ticker
         return None
 
     def get_security_name(self, obj):
-        detail = self._security_trade_detail(obj)
+        detail = self._trade_detail(obj)
         if detail and detail.security_id:
             return detail.security.name
         return None
 
     def get_holding(self, obj):
-        detail = self._security_trade_detail(obj)
+        detail = self._trade_detail(obj)
         return detail.holding_id if detail else None
 
     def get_quantity(self, obj):
-        detail = self._security_trade_detail(obj)
+        detail = self._trade_detail(obj)
         return float(detail.quantity) if detail else None
 
     def get_price_per_unit(self, obj):
-        detail = self._security_trade_detail(obj)
+        detail = self._trade_detail(obj)
         return float(detail.price_per_unit) if detail else None
+
+    def get_asset_kind(self, obj):
+        detail = self._trade_detail(obj)
+        if not detail:
+            return None
+        return "security" if detail.security_id else "tangible"
+
+    def get_tangible_asset(self, obj):
+        detail = self._trade_detail(obj)
+        return detail.tangible_asset_id if detail else None
+
+    def get_tangible_asset_name(self, obj):
+        detail = self._trade_detail(obj)
+        return detail.tangible_asset.name if detail and detail.tangible_asset_id else None
+
+    def get_tangible_asset_type(self, obj):
+        detail = self._trade_detail(obj)
+        return detail.tangible_asset.asset_type if detail and detail.tangible_asset_id else None
 
     def get_fx_rate(self, obj):
         detail = self._transfer_detail(obj)

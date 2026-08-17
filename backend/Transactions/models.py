@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models import F, Q
 
 from Accounts.models import Account, CashBalance, Holding, Security
+from tangible_assets.models import TangibleAsset
 from tags.models import Tag
 
 
@@ -27,8 +28,8 @@ class Transaction(models.Model):
         ("income", "Income"),
         ("expense", "Expense"),
         ("transfer", "Transfer"),
-        ("buy", "Security purchase"),
-        ("sell", "Security sale"),
+        ("buy", "Asset purchase"),
+        ("sell", "Asset sale"),
     ]
 
     user = models.ForeignKey(
@@ -203,12 +204,14 @@ class SecurityTradeDetail(models.Model):
     transaction = models.OneToOneField(
         Transaction,
         on_delete=models.CASCADE,
-        related_name="security_trade_detail",
+        related_name="trade_detail",
     )
     security = models.ForeignKey(
         Security,
         on_delete=models.PROTECT,
         related_name="trades",
+        null=True,
+        blank=True,
     )
     holding = models.ForeignKey(
         Holding,
@@ -224,8 +227,16 @@ class SecurityTradeDetail(models.Model):
     )
     quantity = models.DecimalField(max_digits=19, decimal_places=8)
     price_per_unit = models.DecimalField(max_digits=19, decimal_places=8)
+    tangible_asset = models.ForeignKey(
+        TangibleAsset,
+        on_delete=models.PROTECT,
+        related_name="trades",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
+        db_table = "Transactions_securitytradedetail"
         constraints = [
             models.CheckConstraint(
                 check=Q(quantity__gt=0),
@@ -234,6 +245,13 @@ class SecurityTradeDetail(models.Model):
             models.CheckConstraint(
                 check=Q(price_per_unit__gt=0),
                 name="security_trade_ppu_gt_zero",
+            ),
+            models.CheckConstraint(
+                check=(
+                    (Q(security__isnull=False) & Q(tangible_asset__isnull=True))
+                    | (Q(security__isnull=True) & Q(tangible_asset__isnull=False))
+                ),
+                name="trade_detail_exactly_one_asset_target",
             ),
         ]
 
@@ -247,11 +265,22 @@ class SecurityTradeDetail(models.Model):
                 }
             )
 
-        if self.holding and self.holding.security_id != self.security_id:
+        if self.security and self.holding and self.holding.security_id != self.security_id:
             raise ValidationError(
                 {"holding": "Holding security must match trade security."}
+            )
+        if self.security and not self.holding_id:
+            raise ValidationError({"holding": "Security trade requires a holding."})
+        if self.tangible_asset and self.holding_id:
+            raise ValidationError(
+                {"holding": "Tangible trade cannot have a security holding."}
             )
 
     @property
     def total_value(self):
         return self.quantity * self.price_per_unit
+
+
+# New generic name. The historical model/table name stays stable so existing
+# installations keep every security trade row without a physical table rename.
+TradeDetail = SecurityTradeDetail

@@ -13,6 +13,7 @@ import ConfirmProvider from "./context/ConfirmContext";
 import SearchResults from "./components/search/searchresults";
 import AccountPage from "./components/accountPage";
 import ThemeProvider from "./context/ThemeContext";
+import Assets from "./components/assets";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/accounts" element={<Accounts />} />
               <Route path="/accounts/:id" element={<AccountPage />} />
+              <Route path="/assets" element={<Assets />} />
               <Route path="/searchresults" element={<SearchResults />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/login" element={<Login />} />

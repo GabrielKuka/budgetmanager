@@ -18,6 +18,7 @@ from rest_framework.response import Response
 
 from Currency.services import MissingExchangeRate, convert_amount
 from Transactions.models import Transaction
+from tangible_assets.models import TangibleAsset
 
 from .models import Account, CashBalance, Currency, Security
 from .serializers import AccountSerializer
@@ -71,7 +72,7 @@ def _convert_cached(amount, from_currency, to_currency, conversion_rates):
     return amount * conversion_rates[key]
 
 
-def _account_totals_payload(accounts, currency):
+def _account_totals_payload(accounts, currency, tangible_assets=None):
     currency = currency.upper()
     by_account = {}
     summary_cash = Decimal("0")
@@ -79,6 +80,8 @@ def _account_totals_payload(accounts, currency):
     summary_hard_cash = Decimal("0")
     summary_holdings = Decimal("0")
     summary_holdings_by_asset_class = {}
+    summary_tangible_assets = Decimal("0")
+    summary_tangible_by_type = {}
     conversion_rates = {}
 
     for account in accounts:
@@ -123,6 +126,41 @@ def _account_totals_payload(accounts, currency):
             "total": _round_2(total),
         }
 
+    for asset in tangible_assets or []:
+        valuation = next(
+            (value for value in asset.valuations.all() if value.date <= timezone.localdate()),
+            None,
+        )
+        native_value = _to_decimal(valuation.value) if valuation else _to_decimal(asset.acquisition_cost)
+        converted_value = _convert_cached(
+            native_value, asset.currency.code, currency, conversion_rates
+        )
+        summary_tangible_assets += converted_value
+        summary_tangible_by_type[asset.asset_type] = (
+            summary_tangible_by_type.get(asset.asset_type, Decimal("0"))
+            + converted_value
+        )
+
+    investment_categories = [
+        {"asset_class": asset_class, "label": _security_asset_class_label(asset_class), "amount": _round_2(amount)}
+        for asset_class, amount in sorted(summary_holdings_by_asset_class.items())
+    ]
+    tangible_categories = [
+        {"asset_type": asset_type, "label": dict(TangibleAsset.ASSET_TYPE_CHOICES).get(asset_type, asset_type), "amount": _round_2(amount)}
+        for asset_type, amount in sorted(summary_tangible_by_type.items())
+    ]
+    total_assets = summary_cash + summary_holdings + summary_tangible_assets
+    categories = [
+        {"category": "cash", "label": "Cash", "amount": _round_2(summary_cash)},
+        *[
+            {"category": item["asset_class"], "label": item["label"], "amount": item["amount"]}
+            for item in investment_categories
+        ],
+        *[
+            {"category": item["asset_type"], "label": item["label"], "amount": item["amount"]}
+            for item in tangible_categories
+        ],
+    ]
     return {
         "currency": currency,
         "summary": {
@@ -132,17 +170,17 @@ def _account_totals_payload(accounts, currency):
                 "hard_cash": _round_2(summary_hard_cash),
             },
             "investments": _round_2(summary_holdings),
-            "investments_by_asset_class": [
-                {
-                    "asset_class": asset_class,
-                    "label": _security_asset_class_label(asset_class),
-                    "amount": _round_2(amount),
-                }
-                for asset_class, amount in sorted(
-                    summary_holdings_by_asset_class.items()
-                )
+            "investments_by_asset_class": investment_categories,
+            "tangible_assets": _round_2(summary_tangible_assets),
+            "tangible_assets_by_type": tangible_categories,
+            "allocation_groups": [
+                {"category": "cash", "label": "Cash", "amount": _round_2(summary_cash)},
+                {"category": "investments", "label": "Investments", "amount": _round_2(summary_holdings)},
+                {"category": "tangible_assets", "label": "Tangible Assets", "amount": _round_2(summary_tangible_assets)},
             ],
-            "total_assets": _round_2(summary_cash + summary_holdings),
+            "net_worth_by_category": categories,
+            "total_assets": _round_2(total_assets),
+            "net_worth": _round_2(total_assets),
         },
         "accounts": by_account,
     }
@@ -235,7 +273,7 @@ def _account_activity_payload(user, account):
             )
             | Q(
                 transaction_type__in=("buy", "sell"),
-                security_trade_detail__cash_balance__account=account,
+                trade_detail__cash_balance__account=account,
             )
         )
         .distinct()
@@ -592,7 +630,7 @@ def account_totals(request):
     currency = request.GET.get("currency", "EUR")
     account_id = request.GET.get("account_id")
     accounts = (
-        Account.objects.filter(user=request.user)
+        Account.objects.filter(user=request.user, deleted=False)
         .prefetch_related(
             "cash_balances__currency",
             "holdings__security__currency",
@@ -604,7 +642,12 @@ def account_totals(request):
         accounts = accounts.filter(id=account_id)
 
     try:
-        payload = _account_totals_payload(accounts, currency)
+        tangible_assets = (
+            TangibleAsset.objects.filter(user=request.user, status="active")
+            .select_related("currency")
+            .prefetch_related("valuations")
+        )
+        payload = _account_totals_payload(accounts, currency, tangible_assets)
     except MissingExchangeRate as exc:
         return Response(
             {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
@@ -1034,7 +1077,7 @@ def account_transactions(request, account_id):
             )
             | Q(
                 transaction_type__in=("buy", "sell"),
-                security_trade_detail__cash_balance__account=account,
+                trade_detail__cash_balance__account=account,
             )
         )
         .distinct()
@@ -1049,9 +1092,10 @@ def account_transactions(request, account_id):
             "transfer_detail__from_cash_balance__currency",
             "transfer_detail__to_cash_balance__account",
             "transfer_detail__to_cash_balance__currency",
-            "security_trade_detail__security",
-            "security_trade_detail__cash_balance__account",
-            "security_trade_detail__cash_balance__currency",
+            "trade_detail__security",
+            "trade_detail__tangible_asset",
+            "trade_detail__cash_balance__account",
+            "trade_detail__cash_balance__currency",
         )
         .prefetch_related("tags")
         .order_by("-date", "-id")
@@ -1105,9 +1149,11 @@ def account_transactions(request, account_id):
             else:
                 row["amount"] = _round_2(detail.amount)
         elif transaction.transaction_type in ("buy", "sell"):
-            detail = transaction.security_trade_detail
+            detail = transaction.trade_detail
             row["security"] = detail.security_id
-            row["ticker"] = detail.security.ticker
+            row["ticker"] = detail.security.ticker if detail.security_id else detail.tangible_asset.name
+            row["tangible_asset"] = detail.tangible_asset_id
+            row["tangible_asset_type"] = detail.tangible_asset.asset_type if detail.tangible_asset_id else None
             row["quantity"] = _round_2(detail.quantity)
             row["price_per_unit"] = _round_2(detail.price_per_unit)
             row["cash_balance"] = detail.cash_balance_id

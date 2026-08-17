@@ -220,6 +220,9 @@ const LoggedInNavbar = () => {
         <button id="accounts" onClick={(e) => handlePage(e)}>
           Accounts
         </button>
+        <button id="assets" onClick={(e) => handlePage(e)}>
+          Assets
+        </button>
       </div>
       <div className="navbar-actions">
         <select

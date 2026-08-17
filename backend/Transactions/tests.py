@@ -546,17 +546,23 @@ class SmokeCategoryMigrationTests(TransactionTestCase):
             "Transactions", "ExpenseDetail"
         )
 
-        user = user_model.objects.create(
+        # The historical app state predates Users.created_on, while the test
+        # database schema already has its non-null column. Create through the
+        # current manager so its auto timestamp is populated.
+        current_user = User.objects.create_user(
             name="Migration User",
             email="migration@example.com",
             phone="+19999999999",
             password="pass1234",
         )
-        eur = currency_model.objects.create(
+        user = user_model.objects.get(pk=current_user.pk)
+        eur, _ = currency_model.objects.get_or_create(
             code="EUR",
-            name="Euro",
-            symbol="EUR",
-            currency_type="fiat",
+            defaults={
+                "name": "Euro",
+                "symbol": "EUR",
+                "currency_type": "fiat",
+            },
         )
         account = account_model.objects.create(
             user=user,

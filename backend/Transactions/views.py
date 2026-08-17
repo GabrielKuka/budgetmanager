@@ -33,7 +33,7 @@ from Currency.services import (
 from .models import (
     ExpenseDetail,
     IncomeDetail,
-    SecurityTradeDetail,
+    TradeDetail,
     Transaction,
     TransactionCategory,
     TransferDetail,
@@ -138,10 +138,11 @@ def _transaction_queryset(
             "transfer_detail__from_cash_balance__currency",
             "transfer_detail__to_cash_balance__account",
             "transfer_detail__to_cash_balance__currency",
-            "security_trade_detail__security",
-            "security_trade_detail__holding",
-            "security_trade_detail__cash_balance__account",
-            "security_trade_detail__cash_balance__currency",
+            "trade_detail__security",
+            "trade_detail__holding",
+            "trade_detail__tangible_asset",
+            "trade_detail__cash_balance__account",
+            "trade_detail__cash_balance__currency",
         )
         .prefetch_related("tags")
         .order_by("-pinned", "-date", "-id")
@@ -263,9 +264,16 @@ def _delete_transaction_and_reverse(txn):
             _apply_cash_delta(detail.to_cash_balance, -credited)
 
         elif txn.transaction_type == "buy":
-            detail = txn.security_trade_detail
+            detail = txn.trade_detail
             total = detail.total_value
             _apply_cash_delta(detail.cash_balance, total)
+            if detail.tangible_asset_id:
+                asset = detail.tangible_asset
+                if asset.valuations.filter(date__gt=txn.date).exists() or asset.trades.exclude(transaction=txn).filter(transaction__date__gt=txn.date).exists() or asset.status == "disposed":
+                    raise ValueError("Undo this asset purchase from the asset timeline first.")
+                txn.delete()
+                asset.delete()
+                return
             if detail.holding_id:
                 holding = Holding.objects.select_for_update().get(
                     pk=detail.holding_id
@@ -277,9 +285,18 @@ def _delete_transaction_and_reverse(txn):
                 )
 
         elif txn.transaction_type == "sell":
-            detail = txn.security_trade_detail
+            detail = txn.trade_detail
             total = detail.total_value
             _apply_cash_delta(detail.cash_balance, -total)
+            if detail.tangible_asset_id:
+                asset = detail.tangible_asset
+                if asset.status != "sold" or asset.disposed_on != txn.date:
+                    raise ValueError("Undo this asset sale from the asset timeline first.")
+                asset.status = "active"
+                asset.disposed_on = None
+                asset.save(update_fields=["status", "disposed_on", "updated_on"])
+                txn.delete()
+                return
             if detail.holding_id:
                 holding = Holding.objects.select_for_update().get(
                     pk=detail.holding_id
@@ -481,7 +498,7 @@ def add_transaction(request):
                     to_account=None,
                     **draft_kwargs,
                 )
-                SecurityTradeDetail.objects.create(
+                TradeDetail.objects.create(
                     transaction=txn,
                     security=security,
                     holding=holding,
@@ -518,7 +535,7 @@ def add_transaction(request):
                     to_account=to_cash_balance.account,
                     **draft_kwargs,
                 )
-                SecurityTradeDetail.objects.create(
+                TradeDetail.objects.create(
                     transaction=txn,
                     security=holding.security,
                     holding=holding,
@@ -557,8 +574,9 @@ def apply_draft(request, pk):
             "expense_detail__from_cash_balance",
             "transfer_detail__from_cash_balance",
             "transfer_detail__to_cash_balance",
-            "security_trade_detail__holding",
-            "security_trade_detail__cash_balance",
+            "trade_detail__holding",
+            "trade_detail__cash_balance",
+            "trade_detail__tangible_asset",
         ).get(pk=pk, user=request.user)
     except Transaction.DoesNotExist:
         return Response(
@@ -591,7 +609,7 @@ def apply_draft(request, pk):
                 _apply_cash_delta(detail.to_cash_balance, credited_amount)
 
             elif tx_type == "buy":
-                detail = txn.security_trade_detail
+                detail = txn.trade_detail
                 total = detail.total_value
                 _apply_cash_delta(detail.cash_balance, -total)
                 if detail.holding_id:
@@ -603,7 +621,7 @@ def apply_draft(request, pk):
                     )
 
             elif tx_type == "sell":
-                detail = txn.security_trade_detail
+                detail = txn.trade_detail
                 total = detail.total_value
                 _apply_cash_delta(detail.cash_balance, total)
                 if detail.holding_id:
@@ -646,8 +664,9 @@ def delete_transaction(request):
             "expense_detail__from_cash_balance",
             "transfer_detail__from_cash_balance",
             "transfer_detail__to_cash_balance",
-            "security_trade_detail__holding",
-            "security_trade_detail__cash_balance",
+            "trade_detail__holding",
+            "trade_detail__cash_balance",
+            "trade_detail__tangible_asset",
         ).get(pk=int(tx_id), user=request.user)
     except (ValueError, Transaction.DoesNotExist):
         return Response(
@@ -671,8 +690,9 @@ def delete_transaction_by_pk(request, pk):
             "expense_detail__from_cash_balance",
             "transfer_detail__from_cash_balance",
             "transfer_detail__to_cash_balance",
-            "security_trade_detail__holding",
-            "security_trade_detail__cash_balance",
+            "trade_detail__holding",
+            "trade_detail__cash_balance",
+            "trade_detail__tangible_asset",
         ).get(pk=pk, user=request.user)
     except Transaction.DoesNotExist:
         return Response(
@@ -867,7 +887,10 @@ def get_trades(request):
         from_date=from_date,
         to_date=to_date,
         include_drafts=include_drafts,
-    ).filter(transaction_type__in=["buy", "sell"])
+    ).filter(
+        transaction_type__in=["buy", "sell"],
+        trade_detail__security__isnull=False,
+    )
     return Response(TransactionReadSerializer(queryset, many=True).data)
 
 
@@ -882,7 +905,10 @@ def get_all_trades(request):
     )
     queryset = _transaction_queryset(
         request.user, include_drafts=include_drafts
-    ).filter(transaction_type__in=["buy", "sell"])
+    ).filter(
+        transaction_type__in=["buy", "sell"],
+        trade_detail__security__isnull=False,
+    )
     return Response(TransactionReadSerializer(queryset, many=True).data)
 
 
@@ -918,8 +944,10 @@ def search(request):
         .filter(
             Q(income_detail__category__category__iexact=query)
             | Q(expense_detail__category__category__iexact=query)
-            | Q(security_trade_detail__security__ticker__iexact=query)
-            | Q(security_trade_detail__security__name__icontains=query)
+            | Q(trade_detail__security__ticker__iexact=query)
+            | Q(trade_detail__security__name__icontains=query)
+            | Q(trade_detail__tangible_asset__name__icontains=query)
+            | Q(trade_detail__tangible_asset__asset_type__iexact=query)
             | Q(description__icontains=query)
             | Q(tags__name__iexact=query)
         )
@@ -940,9 +968,9 @@ def _transaction_currency_code(txn):
     if txn.transaction_type == "transfer" and hasattr(txn, "transfer_detail"):
         return txn.transfer_detail.from_cash_balance.currency.code
     if txn.transaction_type in ("buy", "sell") and hasattr(
-        txn, "security_trade_detail"
+        txn, "trade_detail"
     ):
-        return txn.security_trade_detail.cash_balance.currency.code
+        return txn.trade_detail.cash_balance.currency.code
     return "EUR"
 
 
@@ -954,9 +982,9 @@ def _transaction_amount(txn):
     if txn.transaction_type == "transfer" and hasattr(txn, "transfer_detail"):
         return _to_decimal(txn.transfer_detail.amount)
     if txn.transaction_type in ("buy", "sell") and hasattr(
-        txn, "security_trade_detail"
+        txn, "trade_detail"
     ):
-        return _to_decimal(txn.security_trade_detail.total_value)
+        return _to_decimal(txn.trade_detail.total_value)
     return Decimal("0")
 
 
@@ -1338,8 +1366,9 @@ def update_transaction(request, pk):
             "expense_detail__from_cash_balance",
             "transfer_detail__from_cash_balance",
             "transfer_detail__to_cash_balance",
-            "security_trade_detail__holding",
-            "security_trade_detail__cash_balance",
+            "trade_detail__holding",
+            "trade_detail__cash_balance",
+            "trade_detail__tangible_asset",
         ).get(pk=pk, user=request.user)
     except Transaction.DoesNotExist:
         return Response(

@@ -63,7 +63,7 @@ def build_portfolio_timeseries(user, timeframe, target_currency, mode="value"):
             is_draft=False,
             date__lte=end_date,
         )
-        .select_related("security_trade_detail__security")
+        .select_related("trade_detail__security")
         .order_by("date", "id")
     )
 
@@ -79,8 +79,8 @@ def build_portfolio_timeseries(user, timeframe, target_currency, mode="value"):
     all_trade_dates = set()
 
     for txn in trades:
-        detail = getattr(txn, "security_trade_detail", None)
-        if not detail:
+        detail = getattr(txn, "trade_detail", None)
+        if not detail or not detail.security_id:
             continue
         sec = detail.security
         qty = _to_decimal(detail.quantity)
