@@ -566,9 +566,9 @@ const AccountItem = ({
     }
     return marketValue - getHoldingAmount(holding);
   };
-  const sortedHoldings = [...(account.holdings || [])].sort(
-    (a, b) => getHoldingAmount(b) - getHoldingAmount(a)
-  );
+  const sortedHoldings = (account.holdings || [])
+    .filter((holding) => parseFloat(holding.quantity || 0) > 0)
+    .sort((a, b) => getHoldingAmount(b) - getHoldingAmount(a));
 
   useEffect(() => {
     let active = true;
