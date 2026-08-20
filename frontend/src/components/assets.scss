@@ -468,10 +468,9 @@
 .security-position-list__head,
 .security-position-list__row {
   display: grid;
-  grid-template-columns: minmax(190px, 1.5fr) minmax(110px, 0.9fr) 88px minmax(
-      120px,
-      1fr
-    ) minmax(115px, 1fr) minmax(125px, 1fr) 70px 118px;
+  grid-template-columns:
+    minmax(190px, 1.5fr) minmax(110px, 0.9fr) 88px minmax(120px, 1fr)
+    minmax(115px, 1fr) minmax(125px, 1fr) 70px 118px;
   align-items: center;
   gap: 12px;
   min-width: 980px;
