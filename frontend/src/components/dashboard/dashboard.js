@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { forwardRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGlobalContext } from "../../context/GlobalContext";
 import { Navigate } from "react-router-dom";
@@ -6,8 +6,13 @@ import "./dashboard.scss";
 import Expenses from "./expenses";
 import Incomes from "./incomes";
 import Transfers from "./transfers";
-import Trades from "./trades";
 import DatePicker from "react-datepicker";
+import {
+  SegmentedControl,
+  WorkspaceHero,
+  WorkspaceShell,
+} from "../core/workspace";
+import "./cashFlowWorkspace.scss";
 
 const Dashboard = () => {
   const global = useGlobalContext();
@@ -23,133 +28,92 @@ const Dashboard = () => {
 
   useEffect(() => {
     navigate(`/dashboard/${page}`);
-  }, [page]);
+  }, [page, navigate]);
 
   if (!global.authToken) {
     return <Navigate push to="/login" />;
   }
 
   return (
-    <div className={"dashboard-wrapper"}>
-      <Sidebar setPage={setPage} page={page} />
+    <WorkspaceShell className="dashboard-wrapper">
+      <WorkspaceHero
+        eyebrow="Cash flow workspace"
+        title="Dashboard"
+        description="Understand where money moves and manage every transaction from one place."
+        actions={<Sidebar setPage={setPage} page={page} />}
+      />
       {page === "expenses" && <Expenses />}
       {page === "incomes" && <Incomes />}
       {page === "transfers" && <Transfers />}
-      {page === "trades" && <Trades />}
-    </div>
+    </WorkspaceShell>
   );
 };
 
 const Sidebar = ({ page, setPage }) => {
-  const buttons = ["incomes", "expenses", "transfers", "trades"];
+  const buttons = ["incomes", "expenses", "transfers"];
   const global = useGlobalContext();
 
-  useEffect(() => {
-    if (page) {
-      const activeButtonStyle = document.getElementById(page).style;
-      activeButtonStyle.borderRight = "2px solid var(--brand)";
-    }
-  }, []);
-
-  function handlePage(e) {
-    const selected = e.target.id;
+  function handlePage(selected) {
     setPage(selected);
-
-    buttons.forEach((button) => {
-      const buttonStyle = document.getElementById(button).style;
-      if (selected == button) {
-        buttonStyle.borderRight = "2px solid var(--brand)";
-      } else {
-        buttonStyle.borderRight = "2px solid var(--surface-bg)";
-      }
-    });
   }
   return (
     <div className={"dashboard-wrapper__sidebar"}>
-      <input
-        className={"sidebar-icon"}
-        type="image"
-        id="incomes"
-        onClick={(e) => handlePage(e)}
-        src={process.env.PUBLIC_URL + "/income_icon.png"}
-        width={30}
-        height={30}
-        title="Incomes"
+      <SegmentedControl
+        className="dashboard-tabs"
+        label="Cash flow views"
+        value={page}
+        onChange={handlePage}
+        options={buttons.map((item) => ({
+          value: item,
+          label: item[0].toUpperCase() + item.slice(1),
+        }))}
       />
-      <input
-        className={"sidebar-icon"}
-        type="image"
-        id="expenses"
-        onClick={(e) => handlePage(e)}
-        src={process.env.PUBLIC_URL + "/expense_icon.png"}
-        width={30}
-        height={30}
-        title="Expenses"
-      />
-      <input
-        className={"sidebar-icon"}
-        type="image"
-        id="transfers"
-        onClick={(e) => handlePage(e)}
-        src={process.env.PUBLIC_URL + "/transfer_icon.png"}
-        width={30}
-        height={30}
-        title="Transfers"
-      />
-      <input
-        className={"sidebar-icon"}
-        type="image"
-        id="trades"
-        onClick={(e) => handlePage(e)}
-        src={process.env.PUBLIC_URL + "/trade_icon.png"}
-        width={30}
-        height={30}
-        title="Trades"
-      />
-      <DatePicker
-        className="datepicker"
-        selected={global.dateRange.from}
-        onChange={(date) => {
-          return global.setDateRange((prev) => ({
-            ...prev,
-            from: date,
-          }));
-        }}
-        showMonthDropdown
-        title={`FROM: ${global.dateRange.from.toDateString()}`}
-        dateFormat={"yyyy-MM-dd"}
-        customInput={
-          <img
-            src={process.env.PUBLIC_URL + "/from_icon.png"}
-            width={30}
-            height={30}
-          />
-        }
-        withPortal
-      />
-      <DatePicker
-        className="datepicker"
-        selected={global.dateRange.to}
-        title={`TO: ${global.dateRange.to.toDateString()}`}
-        onChange={(date) =>
-          global.setDateRange((prev) => ({
-            ...prev,
-            to: date,
-          }))
-        }
-        showMonthDropdown
-        dateFormat={"yyyy-MM-dd"}
-        customInput={
-          <img
-            src={process.env.PUBLIC_URL + "/to_icon.png"}
-            width={30}
-            height={30}
-          />
-        }
-        withPortal
-      />
+      <div className="dashboard-date-controls">
+        <DatePicker
+          className="datepicker"
+          selected={global.dateRange.from}
+          onChange={(date) => {
+            return global.setDateRange((prev) => ({
+              ...prev,
+              from: date,
+            }));
+          }}
+          showMonthDropdown
+          title={`FROM: ${global.dateRange.from.toDateString()}`}
+          dateFormat={"yyyy-MM-dd"}
+          customInput={<DateControl label="From" />}
+          withPortal
+        />
+        <DatePicker
+          className="datepicker"
+          selected={global.dateRange.to}
+          title={`TO: ${global.dateRange.to.toDateString()}`}
+          onChange={(date) =>
+            global.setDateRange((prev) => ({
+              ...prev,
+              to: date,
+            }))
+          }
+          showMonthDropdown
+          dateFormat={"yyyy-MM-dd"}
+          customInput={<DateControl label="To" />}
+          withPortal
+        />
+      </div>
     </div>
   );
 };
+
+const DateControl = forwardRef(({ label, value, onClick }, ref) => (
+  <button
+    type="button"
+    className="dashboard-date-button"
+    ref={ref}
+    onClick={onClick}
+  >
+    <span>{label}</span>
+    <b>{value}</b>
+  </button>
+));
 
 export default Dashboard;

@@ -1,0 +1,238 @@
+.transaction-composer {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: var(--text);
+}
+.transaction-composer__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 25, 29, 0.52);
+  backdrop-filter: blur(3px);
+}
+.transaction-composer__sheet {
+  position: relative;
+  width: min(640px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface-bg);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  animation: composer-in 0.18s ease-out;
+}
+.transaction-composer__sheet > header,
+.transaction-composer__sheet > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.transaction-composer__sheet > footer {
+  border-bottom: 0;
+  border-top: 1px solid var(--border);
+  gap: 10px;
+  justify-content: flex-end;
+}
+.transaction-composer__sheet h2 {
+  margin: 2px 0 0;
+  font-size: 1.35rem;
+}
+.eyebrow {
+  margin: 0;
+  color: var(--muted-text);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.icon-button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-alt-bg);
+  color: var(--text);
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.transaction-composer__body {
+  display: grid;
+  gap: 15px;
+  padding: 24px;
+}
+.transaction-composer label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted-text);
+  font-size: 0.83rem;
+  font-weight: 650;
+}
+.transaction-composer input,
+.transaction-composer select,
+.transaction-composer textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--input-border, var(--border));
+  border-radius: 10px;
+  padding: 11px 12px;
+  color: var(--input-text, var(--text));
+  background: var(--input-bg, var(--surface-bg));
+  font: inherit;
+}
+.transaction-composer input:focus,
+.transaction-composer select:focus,
+.transaction-composer textarea:focus {
+  outline: 2px solid color-mix(in srgb, var(--brand) 45%, transparent);
+  border-color: var(--brand);
+}
+.transaction-composer__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.transaction-composer__results {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.transaction-composer__results button {
+  display: flex;
+  gap: 9px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-alt-bg);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.transaction-composer__results button:last-child {
+  border: 0;
+}
+.transaction-composer__results span {
+  color: var(--muted-text);
+}
+.transaction-composer__tags {
+  display: flex;
+  gap: 8px;
+}
+.transaction-composer__tags input {
+  flex: 1;
+}
+.transaction-composer__tags button,
+.transaction-composer__chips span {
+  border: 1px solid var(--brand);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--brand);
+  font-weight: 700;
+}
+.transaction-composer__tags button {
+  padding: 0 13px;
+  white-space: nowrap;
+}
+.transaction-composer__chips {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: -6px;
+}
+.transaction-composer__chips span {
+  padding: 5px 8px;
+}
+.transaction-composer__chips button {
+  margin-left: 5px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.transaction-composer__error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.88rem;
+}
+.primary-button,
+.secondary-button {
+  border-radius: 10px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.primary-button {
+  border: 1px solid var(--brand);
+  background: var(--brand);
+  color: var(--brand-text, white);
+}
+.secondary-button {
+  border: 1px solid var(--border);
+  background: var(--surface-alt-bg);
+  color: var(--text);
+}
+.primary-button:disabled,
+.secondary-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+@keyframes composer-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .transaction-composer__sheet {
+    animation: none;
+  }
+}
+@media (max-width: 600px) {
+  .transaction-composer {
+    padding: 0;
+    align-items: end;
+  }
+  .transaction-composer__sheet {
+    max-height: 94vh;
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+  }
+  .transaction-composer__grid {
+    grid-template-columns: 1fr;
+  }
+  .transaction-composer__sheet > footer {
+    position: sticky;
+    bottom: 0;
+    flex-wrap: wrap;
+  }
+  .transaction-composer__sheet > footer .primary-button {
+    flex: 1;
+  }
+}
+/* Keep composer controls consistent with the workspace forms. */
+.transaction-composer :is(input, select, textarea) {
+  min-height: 44px;
+}
+@media (max-width: 600px) {
+  .transaction-composer {
+    align-items: center;
+    padding: 12px;
+  }
+  .transaction-composer__sheet {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    border-radius: var(--radius-lg);
+  }
+}
+.transaction-composer {
+  z-index: var(--layer-modal);
+}

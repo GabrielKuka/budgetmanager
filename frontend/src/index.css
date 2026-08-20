@@ -4,6 +4,23 @@ html {
 
 :root {
   --navbar-height: 65px;
+  --mobile-nav-height: 66px;
+  --workspace-max: 1440px;
+  --workspace-gutter: clamp(14px, 2.2vw, 30px);
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --control-height: 44px;
+  --layer-navbar: 100;
+  --layer-navigation: 120;
+  --layer-dropdown: 300;
+  --layer-overlay: 1000;
+  --layer-modal: 1010;
+  --layer-confirmation: 1100;
+  --layer-toast: 1200;
   --page-gutter: 20px;
   --page-top-offset: calc(var(--navbar-height) + 16px);
   --app-bg: #ffffff;
@@ -14,6 +31,11 @@ html {
   --border: #dadada;
   --soft-border: #eef2f4;
   --shadow: #dadada;
+  --elevation-sm: 0 3px 12px rgba(29, 55, 63, 0.08);
+  --elevation-md: 0 12px 32px rgba(29, 55, 63, 0.12);
+  --focus-ring: color-mix(in srgb, var(--brand) 42%, transparent);
+  --overlay: rgba(9, 24, 28, 0.55);
+  --warning: #c77700;
   --brand: #5f9ea0;
   --brand-hover: #4682b4;
   --brand-text: #ffffff;
@@ -31,6 +53,11 @@ html {
   --chart-label-text: #000000;
   --chart-tooltip-bg: #5f9ea0;
   --chart-tooltip-text: #ffffff;
+  --chart-series-1: #5f9ea0;
+  --chart-series-2: #4682b4;
+  --chart-series-3: #7f77c8;
+  --chart-series-4: #d49a3a;
+  --chart-series-5: #4f9f72;
   color-scheme: light;
 }
 
@@ -43,6 +70,10 @@ html {
   --border: #374151;
   --soft-border: #4b5563;
   --shadow: rgba(0, 0, 0, 0.35);
+  --elevation-sm: 0 4px 14px rgba(0, 0, 0, 0.22);
+  --elevation-md: 0 16px 38px rgba(0, 0, 0, 0.34);
+  --overlay: rgba(0, 0, 0, 0.68);
+  --warning: #fbbf24;
   --brand: #3f7f82;
   --brand-hover: #4d9497;
   --brand-text: #ffffff;
@@ -60,6 +91,11 @@ html {
   --chart-label-text: #f9fafb;
   --chart-tooltip-bg: #263244;
   --chart-tooltip-text: #ffffff;
+  --chart-series-1: #70b8ba;
+  --chart-series-2: #72a7d8;
+  --chart-series-3: #a59be5;
+  --chart-series-4: #f0b85c;
+  --chart-series-5: #70c995;
   color-scheme: dark;
 }
 
@@ -81,6 +117,29 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Shared logged-in workspace rhythm. Individual pages keep their data-specific layouts. */
+.accounts-wrapper,
+.profile-wrapper,
+.searchresults-wrapper,
+.stats-wrapper,
+.account-page-wrapper {
+  background: var(--app-bg);
+  color: var(--text);
+}
+.accounts-wrapper :is(button, input, select, textarea),
+.profile-wrapper :is(button, input, select, textarea),
+.searchresults-wrapper :is(button, input, select, textarea),
+.stats-wrapper :is(button, input, select, textarea) {
+  font: inherit;
+}
+.accounts-wrapper :is(input, select, textarea),
+.profile-wrapper :is(input, select, textarea),
+.searchresults-wrapper :is(input, select, textarea) {
+  border-color: var(--border);
+  background-color: var(--input-bg);
+  color: var(--input-text);
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
@@ -88,6 +147,11 @@ code {
 
 button {
   cursor: pointer;
+}
+
+:is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 input,
@@ -128,7 +192,7 @@ input[type="image"] {
 
 @media (max-width: 760px) {
   :root {
-    --navbar-height: 150px;
+    --navbar-height: 64px;
   }
 }
 

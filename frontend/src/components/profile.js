@@ -12,6 +12,7 @@ import * as XLSX from "xlsx";
 import { useGlobalContext } from "../context/GlobalContext";
 import currencyService from "../services/currencyService";
 import transactionService from "../services/transactionService/transactionService";
+import { WorkspaceHero, WorkspaceShell } from "./core/workspace";
 
 const Profile = () => {
   const global = useGlobalContext();
@@ -80,45 +81,52 @@ const Profile = () => {
   }
 
   return (
-    <div className={"profile-wrapper"}>
-      <Sidebar
-        userData={userData}
-        accounts={accounts}
-        expenses={expenses}
-        incomes={incomes}
-        transfers={transfers}
-        global={global}
+    <WorkspaceShell className="profile-page">
+      <WorkspaceHero
+        eyebrow="Personal workspace"
+        title="Profile"
+        description="Review your financial overview, preferences, recent activity, and exports."
       />
-      <div className={"profile-wrapper__board"}>
-        <Stats />
-
-        <RecentExpenses
+      <div className={"profile-wrapper"}>
+        <Sidebar
+          userData={userData}
+          accounts={accounts}
           expenses={expenses}
-          accounts={accounts}
-          categories={expenseCategories}
-          setTransactionPopup={setTransactionPopup}
-        />
-        <RecentIncomes
           incomes={incomes}
-          accounts={accounts}
-          categories={incomeCategories}
-          setTransactionPopup={setTransactionPopup}
-        />
-        <RecentTransfers
           transfers={transfers}
-          accounts={accounts}
-          setTransactionPopup={setTransactionPopup}
+          global={global}
         />
-        {transactionPopup && (
-          <TransactionPopup
-            transaction={transactionPopup}
-            showPopup={setTransactionPopup}
-            getAccountCurrency={getAccountCurrency}
-            refreshTransactions={global.updateTransactions}
+        <div className={"profile-wrapper__board"}>
+          <Stats />
+
+          <RecentExpenses
+            expenses={expenses}
+            accounts={accounts}
+            categories={expenseCategories}
+            setTransactionPopup={setTransactionPopup}
           />
-        )}
+          <RecentIncomes
+            incomes={incomes}
+            accounts={accounts}
+            categories={incomeCategories}
+            setTransactionPopup={setTransactionPopup}
+          />
+          <RecentTransfers
+            transfers={transfers}
+            accounts={accounts}
+            setTransactionPopup={setTransactionPopup}
+          />
+          {transactionPopup && (
+            <TransactionPopup
+              transaction={transactionPopup}
+              showPopup={setTransactionPopup}
+              getAccountCurrency={getAccountCurrency}
+              refreshTransactions={global.updateTransactions}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </WorkspaceShell>
   );
 };
 

@@ -2,7 +2,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from django.db import transaction as db_transaction
-from django.db.models import F
+from django.db.models import F, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -15,9 +15,10 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from Accounts.models import CashBalance, Currency
+from Accounts.models import Account, CashBalance, Currency, Security
 from Currency.services import MissingExchangeRate, convert_amount
 from Transactions.models import TradeDetail, Transaction
+from Transactions.serializers import TransactionReadSerializer
 
 from .models import TangibleAsset, TangibleAssetValuation, Unit
 from .serializers import (
@@ -117,6 +118,254 @@ def _owned_cash_balance(user, cash_balance_id, lock=False):
     if not balance:
         raise ValueError("Cash balance not found in an active account.")
     return balance
+
+
+def _converted(amount, source, target, rates):
+    if source == target:
+        return _decimal(amount)
+    key = (source, target)
+    if key not in rates:
+        rates[key] = convert_amount(Decimal("1"), source, target, None)
+    return _decimal(amount) * rates[key]
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def portfolio(request):
+    """Current security positions and tangible assets in one target currency."""
+    currency = request.GET.get("currency", "EUR").upper()
+    rates = {}
+    positions = {}
+    try:
+        accounts = Account.objects.filter(
+            user=request.user, deleted=False
+        ).prefetch_related(
+            "holdings__security__currency", "holdings__security__prices"
+        )
+        for account in accounts:
+            for holding in account.holdings.all():
+                if holding.quantity <= 0:
+                    continue
+                security = holding.security
+                latest = security.prices.first()
+                native_price = latest.price if latest else holding.average_cost
+                native_value = holding.quantity * native_price
+                native_cost = holding.quantity * holding.average_cost
+                item = positions.setdefault(
+                    security.id,
+                    {
+                        "id": f"security:{security.id}",
+                        "kind": "security",
+                        "security_id": security.id,
+                        "ticker": security.ticker,
+                        "name": security.name,
+                        "asset_class": security.asset_class,
+                        "asset_class_label": security.get_asset_class_display(),
+                        "security_currency": security.currency.code,
+                        "quantity": Decimal("0"),
+                        "cost_basis": Decimal("0"),
+                        "current_value": Decimal("0"),
+                        "latest_price": native_price,
+                        "holdings": [],
+                    },
+                )
+                item["quantity"] += holding.quantity
+                item["cost_basis"] += _converted(
+                    native_cost, security.currency.code, currency, rates
+                )
+                item["current_value"] += _converted(
+                    native_value, security.currency.code, currency, rates
+                )
+                item["holdings"].append(
+                    {
+                        "holding_id": holding.id,
+                        "account_id": account.id,
+                        "account_name": account.name,
+                        "quantity": float(holding.quantity),
+                        "currency": security.currency.code,
+                    }
+                )
+        security_positions = []
+        security_by_class = {}
+        investments = Decimal("0")
+        for item in positions.values():
+            item["quantity"] = float(item["quantity"])
+            item["cost_basis"] = float(item["cost_basis"])
+            item["current_value"] = float(item["current_value"])
+            item["latest_price"] = float(item["latest_price"])
+            item["unrealized_pnl"] = round(
+                item["current_value"] - item["cost_basis"], 2
+            )
+            investments += _decimal(item["current_value"])
+            security_by_class[item["asset_class"]] = security_by_class.get(
+                item["asset_class"], Decimal("0")
+            ) + _decimal(item["current_value"])
+            security_positions.append(item)
+        tangible = list(_assets_queryset(request.user).filter(status="active"))
+        tangible_payload = TangibleAssetSerializer(
+            tangible, many=True, context=_serializer_context(request)
+        ).data
+        tangible_total = Decimal("0")
+        tangible_by_type = {}
+        for asset, serialized in zip(tangible, tangible_payload):
+            value = _converted(
+                _asset_current_value(asset, timezone.localdate()),
+                asset.currency.code,
+                currency,
+                rates,
+            )
+            serialized["position_id"] = f"tangible:{asset.id}"
+            serialized["tangible_id"] = asset.id
+            serialized["kind"] = "tangible"
+            serialized["current_value_converted"] = float(value)
+            tangible_total += value
+            tangible_by_type[asset.asset_type] = (
+                tangible_by_type.get(asset.asset_type, Decimal("0")) + value
+            )
+        labels = dict(TangibleAsset.ASSET_TYPE_CHOICES)
+        return Response(
+            {
+                "currency": currency,
+                "summary": {
+                    "investments": float(investments),
+                    "tangible_assets": float(tangible_total),
+                    "total": float(investments + tangible_total),
+                },
+                "security_positions": sorted(
+                    security_positions,
+                    key=lambda item: item["current_value"],
+                    reverse=True,
+                ),
+                "tangible_assets": tangible_payload,
+                "allocation": {
+                    "groups": [
+                        {
+                            "key": "investments",
+                            "label": "Investments",
+                            "amount": float(investments),
+                        },
+                        {
+                            "key": "tangible_assets",
+                            "label": "Tangible Assets",
+                            "amount": float(tangible_total),
+                        },
+                    ],
+                    "security_asset_classes": [
+                        {
+                            "key": key,
+                            "label": dict(Security.ASSET_CLASS_CHOICES).get(
+                                key, key
+                            ),
+                            "amount": float(value),
+                        }
+                        for key, value in sorted(security_by_class.items())
+                    ],
+                    "tangible_types": [
+                        {
+                            "key": key,
+                            "label": labels.get(key, key),
+                            "amount": float(value),
+                        }
+                        for key, value in sorted(tangible_by_type.items())
+                    ],
+                },
+            }
+        )
+    except MissingExchangeRate as exc:
+        return Response(
+            {"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def activity(request):
+    kind = request.GET.get("kind", "all")
+    query = request.GET.get("query", "").strip()
+    include_drafts = request.GET.get("include_drafts", "false").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
+    queryset = (
+        Transaction.objects.filter(
+            user=request.user, transaction_type__in=("buy", "sell")
+        )
+        .select_related(
+            "trade_detail__security",
+            "trade_detail__tangible_asset",
+            "trade_detail__cash_balance__currency",
+        )
+        .order_by("-date", "-id")
+    )
+    if not include_drafts:
+        queryset = queryset.filter(is_draft=False)
+    if kind == "security":
+        queryset = queryset.filter(trade_detail__security__isnull=False)
+    elif kind == "tangible":
+        queryset = queryset.filter(trade_detail__tangible_asset__isnull=False)
+    if query:
+        queryset = queryset.filter(
+            Q(trade_detail__security__ticker__icontains=query)
+            | Q(trade_detail__security__name__icontains=query)
+            | Q(trade_detail__tangible_asset__name__icontains=query)
+            | Q(trade_detail__tangible_asset__asset_type__icontains=query)
+        )
+    from_date = request.GET.get("from_date")
+    to_date = request.GET.get("to_date")
+    if from_date:
+        queryset = queryset.filter(date__gte=from_date)
+    if to_date:
+        queryset = queryset.filter(date__lte=to_date)
+    try:
+        limit = min(max(int(request.GET.get("limit", 100)), 1), 250)
+        offset = max(int(request.GET.get("offset", 0)), 0)
+    except ValueError:
+        return Response(
+            {"error": "limit and offset must be whole numbers."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    total = queryset.count()
+    return Response(
+        {
+            "count": total,
+            "results": TransactionReadSerializer(
+                queryset[offset : offset + limit], many=True
+            ).data,
+        }
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def securities(request):
+    query = request.GET.get("query", "").strip()
+    queryset = Security.objects.all().select_related("currency")
+    if query:
+        queryset = queryset.filter(
+            Q(ticker__icontains=query) | Q(name__icontains=query)
+        )
+    queryset = queryset.order_by("ticker")[:25]
+    return Response(
+        [
+            {
+                "id": item.id,
+                "ticker": item.ticker,
+                "name": item.name,
+                "asset_class": item.asset_class,
+                "asset_class_label": item.get_asset_class_display(),
+                "currency": {
+                    "id": item.currency_id,
+                    "code": item.currency.code,
+                    "symbol": item.currency.symbol,
+                },
+            }
+            for item in queryset
+        ]
+    )
 
 
 @api_view(["GET"])

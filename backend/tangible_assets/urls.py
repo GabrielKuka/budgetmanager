@@ -4,6 +4,9 @@ from . import views
 
 
 urlpatterns = [
+    path("portfolio", views.portfolio, name="assets-portfolio"),
+    path("activity", views.activity, name="assets-activity"),
+    path("securities", views.securities, name="assets-securities"),
     path("", views.asset_collection, name="tangible-assets"),
     path("units", views.units, name="tangible-asset-units"),
     path("purchase", views.purchase, name="tangible-asset-purchase"),

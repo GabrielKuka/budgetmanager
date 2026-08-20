@@ -42,7 +42,7 @@ const Stats = () => {
 
   return (
     <div className={"stats-wrapper"}>
-      <div className={"chart-container"}>
+      <div className="chart-container wide-chart-container sankey-chart-card">
         {isLoadingStats ? (
           <ChartLoading label="Loading monthly finances..." />
         ) : (

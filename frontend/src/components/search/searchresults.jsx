@@ -7,6 +7,7 @@ import TransactionPopup from "../core/transaction_popup";
 import currencyService from "../../services/currencyService";
 import searchService from "../../services/searchService";
 import { useToast } from "../../context/ToastContext";
+import { WorkspaceHero, WorkspaceShell } from "../core/workspace";
 
 const SearchResults = () => {
   const global = useGlobalContext();
@@ -270,108 +271,191 @@ const SearchResults = () => {
   }
 
   return (
-    <div className={"searchresults-wrapper"}>
-      <div className={"searchresults-wrapper__header"}>
-        <label>Search results for: '{searchValue}'</label>
-        <p>
-          {searchResults?.length} total search results: {expenses?.length}{" "}
-          expenses, {incomes?.length} incomes and {transfers?.length} transfers.
-        </p>
-      </div>
-      {incomes?.length > 0 && (
-        <>
-          <div className={"searchresults-wrapper__incomes"}>
-            <div className={"header"}>
-              <label className={"header-label"}>INCOMES </label>
-              <div className={"sorting-section"}>
-                <label className={"sort-label"} htmlFor="sort-options">
-                  Sort by:
-                </label>
-                <select
-                  value={incomesSorting}
-                  id={"sort-options"}
-                  onChange={(e) => setIncomesSorting(e.target.value)}
-                >
-                  <option value="" disabled>
-                    -
-                  </option>
-                  <option value="date">Date</option>
-                  <option value="amount">Amount</option>
-                </select>
+    <WorkspaceShell className="search-page">
+      <WorkspaceHero
+        eyebrow="Global search"
+        title={`Results for “${searchValue || ""}”`}
+        description={`${searchResults?.length || 0} results · ${
+          expenses?.length || 0
+        } expenses · ${incomes?.length || 0} incomes · ${
+          transfers?.length || 0
+        } transfers`}
+      />
+      <div className={"searchresults-wrapper"}>
+        {incomes?.length > 0 && (
+          <>
+            <div className={"searchresults-wrapper__incomes"}>
+              <div className={"header"}>
+                <label className={"header-label"}>INCOMES </label>
+                <div className={"sorting-section"}>
+                  <label className={"sort-label"} htmlFor="sort-options">
+                    Sort by:
+                  </label>
+                  <select
+                    value={incomesSorting}
+                    id={"sort-options"}
+                    onChange={(e) => setIncomesSorting(e.target.value)}
+                  >
+                    <option value="" disabled>
+                      -
+                    </option>
+                    <option value="date">Date</option>
+                    <option value="amount">Amount</option>
+                  </select>
+                </div>
+                <div className={"line"}></div>
               </div>
-              <div className={"line"}></div>
-            </div>
-            <div className={"content"}>
-              <div className={"items"}>
-                {shownIncomes?.map((t) => (
-                  <TransactionItem
-                    key={t.id}
-                    transaction={t}
-                    setTransactionPopup={setTransactionPopup}
-                    getAccountCurrency={getAccountCurrency}
-                    global={global}
-                  />
-                ))}
-                <div className={"items-footer"}>
-                  {shownIncomes.length !== incomes.length &&
-                    incomes.length > 5 && (
+              <div className={"content"}>
+                <div className={"items"}>
+                  {shownIncomes?.map((t) => (
+                    <TransactionItem
+                      key={t.id}
+                      transaction={t}
+                      setTransactionPopup={setTransactionPopup}
+                      getAccountCurrency={getAccountCurrency}
+                      global={global}
+                    />
+                  ))}
+                  <div className={"items-footer"}>
+                    {shownIncomes.length !== incomes.length &&
+                      incomes.length > 5 && (
+                        <button
+                          onClick={() =>
+                            updateShownTransactions({
+                              which: "incomes",
+                              showOrHide: "show",
+                            })
+                          }
+                          className={"more-less-button"}
+                        >
+                          Show More
+                        </button>
+                      )}
+                    {shownIncomes.length > 5 && (
                       <button
                         onClick={() =>
                           updateShownTransactions({
                             which: "incomes",
-                            showOrHide: "show",
+                            showOrHide: "hide",
                           })
                         }
                         className={"more-less-button"}
                       >
-                        Show More
+                        Show Less
                       </button>
                     )}
-                  {shownIncomes.length > 5 && (
-                    <button
-                      onClick={() =>
-                        updateShownTransactions({
-                          which: "incomes",
-                          showOrHide: "hide",
-                        })
-                      }
-                      className={"more-less-button"}
-                    >
-                      Show Less
-                    </button>
-                  )}
-                  {shownIncomes.length !== incomes.length && (
-                    <button
-                      onClick={() => showAll("incomes")}
-                      id={"show-all-btn"}
-                    >
-                      Show All
-                    </button>
-                  )}
+                    {shownIncomes.length !== incomes.length && (
+                      <button
+                        onClick={() => showAll("incomes")}
+                        id={"show-all-btn"}
+                      >
+                        Show All
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <AggregationTable
+                  transactions={incomes}
+                  getAccountCurrency={getAccountCurrency}
+                />
+              </div>
+            </div>
+            <hr />
+          </>
+        )}
+        {expenses?.length > 0 && (
+          <>
+            <div className={"searchresults-wrapper__expenses"}>
+              <div className={"header"}>
+                <label className="header-label">EXPENSES</label>
+                <div className={"sorting-section"}>
+                  <label className={"sort-label"} htmlFor="sort-options">
+                    Sort by:
+                  </label>
+                  <select
+                    value={expensesSorting}
+                    id={"sort-options"}
+                    onChange={(e) => setExpensesSorting(e.target.value)}
+                  >
+                    <option value="" disabled>
+                      -
+                    </option>
+                    <option value="date">Date</option>
+                    <option value="amount">Amount</option>
+                  </select>
                 </div>
               </div>
-              <AggregationTable
-                transactions={incomes}
-                getAccountCurrency={getAccountCurrency}
-              />
+              <div className={"content"}>
+                <div className={"items"}>
+                  {shownExpenses?.map((t) => (
+                    <TransactionItem
+                      key={t.id}
+                      transaction={t}
+                      setTransactionPopup={setTransactionPopup}
+                      getAccountCurrency={getAccountCurrency}
+                      global={global}
+                    />
+                  ))}
+                  <div className={"items-footer"}>
+                    {shownExpenses?.length !== expenses?.length &&
+                      expenses?.length > 5 && (
+                        <button
+                          onClick={() =>
+                            updateShownTransactions({
+                              which: "expenses",
+                              showOrHide: "show",
+                            })
+                          }
+                          className={"more-less-button"}
+                        >
+                          Show More
+                        </button>
+                      )}
+                    {shownExpenses.length > 5 && (
+                      <button
+                        onClick={() =>
+                          updateShownTransactions({
+                            which: "expenses",
+                            showOrHide: "hide",
+                          })
+                        }
+                        className={"more-less-button"}
+                      >
+                        Show Less
+                      </button>
+                    )}
+                    {shownExpenses.length !== expenses.length && (
+                      <button
+                        onClick={() => showAll("expenses")}
+                        id={"show-all-btn"}
+                      >
+                        Show All
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <AggregationTable
+                  transactions={expenses}
+                  getAccountCurrency={getAccountCurrency}
+                />
+              </div>
             </div>
-          </div>
-          <hr />
-        </>
-      )}
-      {expenses?.length > 0 && (
-        <>
-          <div className={"searchresults-wrapper__expenses"}>
+            <hr />
+          </>
+        )}
+        {transfers?.length > 0 && (
+          <div className={"searchresults-wrapper__transfers"}>
             <div className={"header"}>
-              <label className="header-label">EXPENSES</label>
+              <label className={"header-label"}>TRANSFERS</label>
+
               <div className={"sorting-section"}>
                 <label className={"sort-label"} htmlFor="sort-options">
                   Sort by:
                 </label>
                 <select
-                  value={expensesSorting}
+                  value={transfersSorting}
                   id={"sort-options"}
-                  onChange={(e) => setExpensesSorting(e.target.value)}
+                  onChange={(e) => setTransfersSorting(e.target.value)}
                 >
                   <option value="" disabled>
                     -
@@ -383,7 +467,7 @@ const SearchResults = () => {
             </div>
             <div className={"content"}>
               <div className={"items"}>
-                {shownExpenses?.map((t) => (
+                {shownTransfers?.map((t) => (
                   <TransactionItem
                     key={t.id}
                     transaction={t}
@@ -393,12 +477,12 @@ const SearchResults = () => {
                   />
                 ))}
                 <div className={"items-footer"}>
-                  {shownExpenses?.length !== expenses?.length &&
-                    expenses?.length > 5 && (
+                  {shownTransfers.length !== transfers.length &&
+                    transfers.length > 5 && (
                       <button
                         onClick={() =>
                           updateShownTransactions({
-                            which: "expenses",
+                            which: "transfers",
                             showOrHide: "show",
                           })
                         }
@@ -407,11 +491,11 @@ const SearchResults = () => {
                         Show More
                       </button>
                     )}
-                  {shownExpenses.length > 5 && (
+                  {shownTransfers.length > 5 && (
                     <button
                       onClick={() =>
                         updateShownTransactions({
-                          which: "expenses",
+                          which: "transfers",
                           showOrHide: "hide",
                         })
                       }
@@ -420,9 +504,10 @@ const SearchResults = () => {
                       Show Less
                     </button>
                   )}
-                  {shownExpenses.length !== expenses.length && (
+
+                  {shownTransfers.length !== transfers.length && (
                     <button
-                      onClick={() => showAll("expenses")}
+                      onClick={() => showAll("transfers")}
                       id={"show-all-btn"}
                     >
                       Show All
@@ -431,104 +516,24 @@ const SearchResults = () => {
                 </div>
               </div>
               <AggregationTable
-                transactions={expenses}
+                transactions={transfers}
                 getAccountCurrency={getAccountCurrency}
               />
             </div>
           </div>
-          <hr />
-        </>
-      )}
-      {transfers?.length > 0 && (
-        <div className={"searchresults-wrapper__transfers"}>
-          <div className={"header"}>
-            <label className={"header-label"}>TRANSFERS</label>
+        )}
 
-            <div className={"sorting-section"}>
-              <label className={"sort-label"} htmlFor="sort-options">
-                Sort by:
-              </label>
-              <select
-                value={transfersSorting}
-                id={"sort-options"}
-                onChange={(e) => setTransfersSorting(e.target.value)}
-              >
-                <option value="" disabled>
-                  -
-                </option>
-                <option value="date">Date</option>
-                <option value="amount">Amount</option>
-              </select>
-            </div>
-          </div>
-          <div className={"content"}>
-            <div className={"items"}>
-              {shownTransfers?.map((t) => (
-                <TransactionItem
-                  key={t.id}
-                  transaction={t}
-                  setTransactionPopup={setTransactionPopup}
-                  getAccountCurrency={getAccountCurrency}
-                  global={global}
-                />
-              ))}
-              <div className={"items-footer"}>
-                {shownTransfers.length !== transfers.length &&
-                  transfers.length > 5 && (
-                    <button
-                      onClick={() =>
-                        updateShownTransactions({
-                          which: "transfers",
-                          showOrHide: "show",
-                        })
-                      }
-                      className={"more-less-button"}
-                    >
-                      Show More
-                    </button>
-                  )}
-                {shownTransfers.length > 5 && (
-                  <button
-                    onClick={() =>
-                      updateShownTransactions({
-                        which: "transfers",
-                        showOrHide: "hide",
-                      })
-                    }
-                    className={"more-less-button"}
-                  >
-                    Show Less
-                  </button>
-                )}
-
-                {shownTransfers.length !== transfers.length && (
-                  <button
-                    onClick={() => showAll("transfers")}
-                    id={"show-all-btn"}
-                  >
-                    Show All
-                  </button>
-                )}
-              </div>
-            </div>
-            <AggregationTable
-              transactions={transfers}
-              getAccountCurrency={getAccountCurrency}
-            />
-          </div>
-        </div>
-      )}
-
-      {transactionPopup && (
-        <TransactionPopup
-          transaction={transactionPopup}
-          showPopup={setTransactionPopup}
-          getAccountCurrency={getAccountCurrency}
-          refreshTransactions={global.updateTransactions}
-          refreshSearchResults={refreshSearchResults}
-        />
-      )}
-    </div>
+        {transactionPopup && (
+          <TransactionPopup
+            transaction={transactionPopup}
+            showPopup={setTransactionPopup}
+            getAccountCurrency={getAccountCurrency}
+            refreshTransactions={global.updateTransactions}
+            refreshSearchResults={refreshSearchResults}
+          />
+        )}
+      </div>
+    </WorkspaceShell>
   );
 };
 

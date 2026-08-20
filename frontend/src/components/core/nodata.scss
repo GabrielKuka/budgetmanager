@@ -14,3 +14,15 @@
     cursor: pointer;
   }
 }
+.no-data {
+  min-height: 180px;
+  margin: 0;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  border-radius: var(--radius-md);
+  background: var(--surface-bg);
+  box-shadow: var(--elevation-sm);
+  text-align: center;
+}

@@ -47,6 +47,9 @@ class TangibleAssetSerializer(serializers.ModelSerializer):
     property_type_display = serializers.CharField(
         source="get_property_type_display", read_only=True
     )
+    metal_type_display = serializers.CharField(
+        source="get_metal_type_display", read_only=True
+    )
 
     class Meta:
         model = TangibleAsset
@@ -57,6 +60,9 @@ class TangibleAssetSerializer(serializers.ModelSerializer):
             "asset_type_display",
             "property_type",
             "property_type_display",
+            "metal_type",
+            "metal_type_display",
+            "metal_name",
             "address",
             "unit",
             "unit_id",
@@ -124,5 +130,10 @@ class TangibleAssetSerializer(serializers.ModelSerializer):
         )
         for field, value in attrs.items():
             setattr(candidate, field, value)
+        if candidate.asset_type != "precious_metal":
+            candidate.metal_type = None
+            candidate.metal_name = ""
+            attrs["metal_type"] = None
+            attrs["metal_name"] = ""
         candidate.full_clean()
         return attrs

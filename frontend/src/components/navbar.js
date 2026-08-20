@@ -8,7 +8,7 @@ import TransactionPopup from "./core/transaction_popup";
 import { useToast } from "../context/ToastContext";
 import searchService from "../services/searchService";
 import { useConfirm } from "../context/ConfirmContext";
-import AddTransactionPopup from "./dashboard/addTransactionPopup";
+import TransactionComposer from "./core/transactionComposer";
 import { useThemeContext } from "../context/ThemeContext";
 
 const Navbar = () => {
@@ -32,25 +32,30 @@ const LoggedInNavbar = () => {
   const [searchResults, setSearchResults] = useState(null);
   const [searchValue, setSearchValue] = useState(null);
   const [suggestionBox, setSuggestionBox] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
   const [transactionPopup, setTransactionPopup] = useState(false);
-  const [addTransactionPopup, setAddTransactionPopup] = useState(false);
+  const [transactionComposer, setTransactionComposer] = useState(false);
+  const [utilityMenu, setUtilityMenu] = useState(false);
+  const searchInputRef = useRef(null);
+  const searchDebounceRef = useRef(null);
+  const searchRequestRef = useRef(0);
 
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
 
   useEffect(() => {
-    const possibleLocations = ["dashboard", "accounts"];
+    const possibleLocations = ["dashboard", "accounts", "assets"];
     const currentLocation = location.pathname.split("/")[1];
 
     possibleLocations.forEach((id) => {
       const btn = document.getElementById(id);
-      btn.style.fontWeight = "normal";
+      if (btn) btn.style.fontWeight = "normal";
     });
 
     if (possibleLocations.includes(currentLocation)) {
       const btn = document.getElementById(currentLocation);
-      btn.style.fontWeight = "bold";
+      if (btn) btn.style.fontWeight = "bold";
     }
   }, [location.pathname]);
 
@@ -62,9 +67,25 @@ const LoggedInNavbar = () => {
     }
   }, [searchResults]);
 
+  const visibleSearchResults = [...(searchResults || [])]
+    .sort((a, b) => (a.date > b.date ? -1 : 1))
+    .slice(0, 5);
+
+  function selectSuggestion(suggestion) {
+    clearTimeout(searchDebounceRef.current);
+    searchRequestRef.current += 1;
+    setSuggestionBox(false);
+    setActiveSuggestion(-1);
+    setSearchResults(null);
+    setSearchValue("");
+    setTransactionPopup(suggestion);
+  }
+
   useEffect(() => {
     setAccounts(global.accounts);
   }, [global.accounts]);
+
+  useEffect(() => () => clearTimeout(searchDebounceRef.current), []);
 
   function getAccountCurrency(id) {
     const account = accounts?.filter((a) => a.id === parseInt(id));
@@ -76,7 +97,7 @@ const LoggedInNavbar = () => {
   }
 
   function refreshSearchResults(id) {
-    setSearchResults(searchResults.filter((t) => t.id != id));
+    setSearchResults((current) => current?.filter((t) => t.id !== id) || []);
   }
 
   const handleLogout = () => {
@@ -99,22 +120,6 @@ const LoggedInNavbar = () => {
     navigate(selected);
   }
 
-  const updateDebounceSearch = debounceSearch((searchValue) => {
-    search(searchValue);
-  });
-
-  function debounceSearch(cb, delay = 500) {
-    let timeout;
-
-    return (...args) => {
-      clearTimeout(timeout);
-      setSuggestionBox(false);
-      timeout = setTimeout(() => {
-        cb(...args);
-      }, delay);
-    };
-  }
-
   async function search(searchValue) {
     if (
       !searchValue ||
@@ -126,8 +131,10 @@ const LoggedInNavbar = () => {
       return;
     }
     const query = searchValue.toLowerCase();
+    const requestId = ++searchRequestRef.current;
 
     const searchData = await searchService.search(query);
+    if (requestId !== searchRequestRef.current) return;
 
     const result = Object.values(searchData).flat();
     setSearchResults(result);
@@ -137,6 +144,12 @@ const LoggedInNavbar = () => {
   function changeGlobalCurrency(event) {
     global.changeGlobalCurrency(event.target.value);
   }
+
+  const goTo = (path) => {
+    navigate(path);
+    setUtilityMenu(false);
+  };
+  const activePath = location.pathname.split("/")[1] || "dashboard";
 
   return (
     <div className={"navbar-wrapper__loggedin"}>
@@ -155,17 +168,58 @@ const LoggedInNavbar = () => {
           className={"search-field"}
           placeholder="Search..."
           autoComplete="off"
+          ref={searchInputRef}
+          value={searchValue || ""}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={suggestionBox}
+          aria-controls="navbar-search-results"
+          aria-activedescendant={
+            activeSuggestion >= 0
+              ? `search-option-${activeSuggestion}`
+              : undefined
+          }
           onClick={(e) => {
             if (e.target.value === "") {
               setSuggestionBox(false);
             }
           }}
-          onChange={(e) => updateDebounceSearch(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            setSearchValue(value);
+            setActiveSuggestion(-1);
+            setSuggestionBox(false);
+            clearTimeout(searchDebounceRef.current);
+            searchDebounceRef.current = setTimeout(() => search(value), 500);
+          }}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && searchValue) {
-              const query = document.getElementById("search-field").value;
-              document.getElementById("search-field").value = "";
-              document.getElementById("search-field").blur();
+            if (e.key === "ArrowDown" && visibleSearchResults.length) {
+              e.preventDefault();
+              setSuggestionBox(true);
+              setActiveSuggestion((current) =>
+                Math.min(current + 1, visibleSearchResults.length - 1)
+              );
+            } else if (e.key === "ArrowUp" && visibleSearchResults.length) {
+              e.preventDefault();
+              setActiveSuggestion((current) => Math.max(current - 1, 0));
+            } else if (e.key === "Escape") {
+              clearTimeout(searchDebounceRef.current);
+              searchRequestRef.current += 1;
+              setSuggestionBox(false);
+              setActiveSuggestion(-1);
+            } else if (
+              e.key === "Enter" &&
+              activeSuggestion >= 0 &&
+              visibleSearchResults[activeSuggestion]
+            ) {
+              e.preventDefault();
+              selectSuggestion(visibleSearchResults[activeSuggestion]);
+            } else if (e.key === "Enter" && searchValue) {
+              const query = searchValue;
+              clearTimeout(searchDebounceRef.current);
+              searchRequestRef.current += 1;
+              setSearchValue("");
+              searchInputRef.current?.blur();
               setSearchParams({ q: query });
               navigate(`/searchResults?q=${query}`, {
                 state: {
@@ -197,19 +251,24 @@ const LoggedInNavbar = () => {
           }}
         />
         {suggestionBox && (
-          <div className={"suggestions-container"}>
-            {searchResults
-              ?.sort((a, b) => (a.date > b.date ? -1 : 1))
-              ?.slice(0, 5)
-              ?.map((s) => (
-                <SuggestionItem
-                  key={`${s.id}`}
-                  suggestion={s}
-                  getAccountCurrency={getAccountCurrency}
-                  setTransactionPopup={setTransactionPopup}
-                  global={global}
-                />
-              ))}
+          <div
+            id="navbar-search-results"
+            className="suggestions-container"
+            role="listbox"
+            aria-label="Search results"
+          >
+            {visibleSearchResults.map((s, index) => (
+              <SuggestionItem
+                key={`${s.id}`}
+                id={`search-option-${index}`}
+                suggestion={s}
+                getAccountCurrency={getAccountCurrency}
+                onSelect={() => selectSuggestion(s)}
+                active={activeSuggestion === index}
+                onActive={() => setActiveSuggestion(index)}
+                global={global}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -241,7 +300,7 @@ const LoggedInNavbar = () => {
           id="add_transaction_btn"
           value="+"
           title="Add a transaction"
-          onClick={() => setAddTransactionPopup(true)}
+          onClick={() => setTransactionComposer(true)}
         />
         <input
           id={"privacy_btn"}
@@ -282,7 +341,91 @@ const LoggedInNavbar = () => {
           alt="logout_icon"
           onClick={handleLogout}
         />
+        <button
+          type="button"
+          className="mobile-utility-button"
+          aria-label="Open utility menu"
+          aria-expanded={utilityMenu}
+          onClick={() => setUtilityMenu(!utilityMenu)}
+        >
+          •••
+        </button>
       </div>
+      {utilityMenu && (
+        <div className="mobile-utility-menu" role="menu">
+          <button
+            type="button"
+            role="menuitem"
+            onClick={global.togglePrivacyMode}
+          >
+            {global.privacyMode
+              ? "Disable privacy mode"
+              : "Enable privacy mode"}
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setConversionTool(true);
+              setUtilityMenu(false);
+            }}
+          >
+            Currency converter
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              toggleTheme();
+              setUtilityMenu(false);
+            }}
+          >
+            {isDarkMode ? "Use light theme" : "Use dark theme"}
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => goTo("/profile")}
+          >
+            Profile and settings
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            className="danger"
+            onClick={() => {
+              setUtilityMenu(false);
+              handleLogout();
+            }}
+          >
+            Log out
+          </button>
+        </div>
+      )}
+      <nav className="mobile-bottom-nav" aria-label="Primary navigation">
+        {[
+          {
+            path: "/dashboard",
+            key: "dashboard",
+            icon: "⌂",
+            label: "Dashboard",
+          },
+          { path: "/accounts", key: "accounts", icon: "▤", label: "Accounts" },
+          { path: "/assets", key: "assets", icon: "◇", label: "Assets" },
+          { path: "/profile", key: "profile", icon: "○", label: "Profile" },
+        ].map((item) => (
+          <button
+            type="button"
+            key={item.key}
+            className={activePath === item.key ? "is-active" : ""}
+            aria-current={activePath === item.key ? "page" : undefined}
+            onClick={() => goTo(item.path)}
+          >
+            <span aria-hidden="true">{item.icon}</span>
+            <small>{item.label}</small>
+          </button>
+        ))}
+      </nav>
       {conversionTool && (
         <ConversionTool closePopup={() => setConversionTool(false)} />
       )}
@@ -295,21 +438,20 @@ const LoggedInNavbar = () => {
           refreshSearchResults={refreshSearchResults}
         />
       )}
-      {addTransactionPopup && (
-        <AddTransactionPopup
-          getAccountCurrency={getAccountCurrency}
-          showPopup={setAddTransactionPopup}
-          refreshAccounts={global.updateAccounts}
-        />
+      {transactionComposer && (
+        <TransactionComposer onClose={() => setTransactionComposer(false)} />
       )}
     </div>
   );
 };
 
-const SuggestionItem = ({
+export const SuggestionItem = ({
+  id,
   suggestion,
   getAccountCurrency,
-  setTransactionPopup,
+  onSelect,
+  active,
+  onActive,
   global,
 }) => {
   const transactionType = suggestion["transaction_type"];
@@ -321,34 +463,21 @@ const SuggestionItem = ({
       : suggestion.to_account;
   const currency = helper.getCurrency(getAccountCurrency(account));
 
-  function suggestionTypeStyle() {
-    switch (transactionType) {
-      case "income":
-        return {
-          color: "green",
-          "border-color": "green",
-        };
-      case "expense":
-        return {
-          color: "red",
-          "border-color": "red",
-        };
-      default:
-        break;
-    }
-  }
-
   return (
-    <div
-      className={"suggestion-item"}
-      onClick={() => {
-        setTransactionPopup(suggestion);
-      }}
+    <button
+      type="button"
+      id={id}
+      role="option"
+      aria-selected={active}
+      className={`suggestion-item${active ? " is-active" : ""}`}
+      onMouseEnter={onActive}
+      onFocus={onActive}
+      onClick={onSelect}
     >
       <div className={"date"}>
         <label>Date: </label>
         <span>{suggestion.date}</span>
-        <span style={suggestionTypeStyle()} className={"suggestion-type"}>
+        <span className={`suggestion-type suggestion-type--${transactionType}`}>
           {transactionType}
         </span>
       </div>
@@ -379,8 +508,7 @@ const SuggestionItem = ({
           ))}
         </div>
       )}
-      <hr />
-    </div>
+    </button>
   );
 };
 

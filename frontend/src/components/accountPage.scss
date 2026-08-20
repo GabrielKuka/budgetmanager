@@ -6,8 +6,10 @@
 }
 
 .account-page-wrapper {
-  margin-top: var(--page-top-offset);
-  padding: 0 var(--page-gutter) 32px;
+  width: min(100%, var(--workspace-max));
+  margin: 0 auto;
+  padding: var(--page-top-offset) var(--workspace-gutter)
+    calc(32px + env(safe-area-inset-bottom));
   color: var(--text);
 
   .positive {
@@ -44,8 +46,11 @@
   gap: 12px;
   align-items: stretch;
   margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+  padding: clamp(18px, 2vw, 24px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--surface-bg), var(--surface-alt-bg));
+  box-shadow: var(--elevation-md);
 
   .account-kind {
     color: var(--muted-text);
@@ -81,7 +86,7 @@
   min-height: 70px;
   padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--surface-bg);
 
   span {
@@ -114,7 +119,8 @@
   section {
     padding: 14px;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--elevation-sm);
     background: var(--surface-bg);
   }
 
@@ -340,7 +346,9 @@
 
 @media (max-width: 760px) {
   .account-page-wrapper {
-    padding-bottom: 24px;
+    padding-bottom: calc(
+      var(--mobile-nav-height) + 24px + env(safe-area-inset-bottom)
+    );
   }
 
   .account-hero,

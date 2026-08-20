@@ -88,3 +88,87 @@
     }
   }
 }
+
+// Workspace shell: shared visual language with Assets.
+.dashboard-wrapper {
+  position: relative;
+  width: min(100%, var(--workspace-max));
+  height: auto;
+  min-height: 100vh;
+  margin: 0 auto;
+  overflow: visible;
+  background: var(--app-bg);
+}
+.dashboard-wrapper__sidebar {
+  position: static;
+  z-index: auto;
+  display: flex;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  overflow: visible;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.dashboard-date-controls {
+  display: flex;
+  gap: 7px;
+}
+.dashboard-date-button {
+  display: grid;
+  min-width: 108px;
+  min-height: 42px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-bg);
+  color: var(--text);
+  text-align: left;
+  box-shadow: var(--elevation-sm);
+}
+.dashboard-date-button span {
+  color: var(--muted-text);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.dashboard-date-button b {
+  font-size: 0.76rem;
+}
+@media (max-width: 900px) {
+  .dashboard-wrapper__sidebar {
+    flex-wrap: wrap;
+  }
+  .dashboard-date-controls {
+    width: 100%;
+  }
+  .dashboard-date-button {
+    flex: 1;
+  }
+}
+@media (max-width: 640px) {
+  .dashboard-wrapper__sidebar {
+    width: 100%;
+  }
+  .dashboard-tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+  .dashboard-tabs button {
+    flex: 1;
+    white-space: nowrap;
+  }
+  .dashboard-date-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .dashboard-date-button {
+    width: 100%;
+    min-width: 0;
+  }
+}

@@ -2,7 +2,6 @@ import accountService from "./accountService";
 import expenseService from "./expenseService";
 import incomeService from "./incomeService";
 import transferService from "./transferService";
-import tradeService from "./tradeService";
 import axios from "axios";
 import { BASE_URL, BACKEND_PORT } from "../../config";
 const ENDPOINT = `${BASE_URL}:${BACKEND_PORT}/transactions`;
@@ -100,19 +99,6 @@ async function deleteTransfer(payload) {
   return await transferService.deleteTransfer(payload);
 }
 
-// Trades
-async function getUserTrades(dateRange) {
-  return await tradeService.getUserTrades(dateRange);
-}
-
-async function getAllUserTrades() {
-  return await tradeService.getAllUserTrades();
-}
-
-async function deleteTrade(payload) {
-  return await tradeService.deleteTrade(payload);
-}
-
 async function togglePin(id) {
   const token = JSON.parse(localStorage.getItem("authToken"));
   const config = {
@@ -180,9 +166,6 @@ const transactionService = {
   getUserIncomes,
   getUserTransfers,
   addTransaction,
-  getUserTrades,
-  getAllUserTrades,
-  deleteTrade,
 };
 
 export default transactionService;

@@ -3,17 +3,11 @@ import { PieChart, Tooltip, Pie, Cell, ResponsiveContainer } from "recharts";
 import PieChartToolTip from "./pieChartToolTip";
 
 const COLORS = [
-  "#0088FE",
-  "#00C49F",
-  "#FFBB28",
-  "#800080",
-  "#FF6347",
-  "#8B0000",
-  "#FFB6C1",
-  "#7F00FF",
-  "#4B5563",
-  "#A52A2A",
-  "#006400",
+  "var(--chart-series-1)",
+  "var(--chart-series-2)",
+  "var(--chart-series-3)",
+  "var(--chart-series-4)",
+  "var(--chart-series-5)",
 ];
 
 const PercentExpensesPieChart = (props) => {
@@ -79,7 +73,7 @@ const PercentExpensesPieChart = (props) => {
             dataKey="value"
             cx="50%"
             cy="50%"
-            outerRadius={props.outerRadius || 95}
+            outerRadius={props.outerRadius || "72%"}
             labelLine={false}
             label={renderCustomizedLabel}
           >

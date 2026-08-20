@@ -3,14 +3,6 @@ import TransactionItem from "./transactionItem";
 import transactionService from "../../services/transactionService/transactionService";
 import "react-datepicker/dist/react-datepicker.css";
 import { Formik, Form, Field } from "formik";
-import {
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import "./incomes.scss";
 import NoDataCard from "../core/nodata";
 import { useToast } from "../../context/ToastContext";
@@ -22,10 +14,9 @@ import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
 import { validationSchemas } from "../../validationSchemas";
 import MonthPicker from "../core/MonthPicker";
-import BarChartToolTip from "../stats/barChartTooltip";
+import { InsightsPanel } from "../core/workspace";
+import CurrentCategoryBarChart from "../stats/currentExpensesBarChart";
 import PercentExpensesPieChart from "../stats/percentExpensesPie";
-
-const chartAxisTick = { fill: "var(--chart-axis)" };
 
 const Incomes = () => {
   const global = useGlobalContext();
@@ -238,7 +229,7 @@ const Sidebar = (props) => {
   }, [props.incomes, props.categories, global.globalCurrency]);
 
   return (
-    <div className={"incomes-wrapper__sidebar"}>
+    <InsightsPanel className="incomes-wrapper__sidebar" title="Income insights">
       <div className={"summary"}>
         <b>
           {helper.showOrMask(
@@ -277,7 +268,7 @@ const Sidebar = (props) => {
             </div>
           );
         })()}
-      <Chart data={incomesPerCategory} />
+      <CurrentCategoryBarChart data={incomesPerCategory} />
       {largestIncomes.length > 0 && (
         <div className="largest-list-card">
           <div className="chart-title">Largest incomes</div>
@@ -313,43 +304,10 @@ const Sidebar = (props) => {
           accountField="to_account"
           width={330}
           height={250}
-          outerRadius={112}
+          outerRadius="72%"
         />
       </div>
-    </div>
-  );
-};
-
-const Chart = (props) => {
-  const [yMaxValue, setYMaxValue] = useState(0);
-
-  useEffect(() => {
-    if (props.data?.length) {
-      setYMaxValue(Math.max(...props.data.map((o) => Number(o.amount) || 0)));
-    } else {
-      setYMaxValue(0);
-    }
-  }, [props.data]);
-
-  return (
-    <div className={"bar-chart"}>
-      <ResponsiveContainer width="100%" height={250}>
-        <BarChart margin={{ left: 0, right: 0 }} data={props.data} barSize={20}>
-          <XAxis dataKey="category" tick={chartAxisTick} />
-          <YAxis
-            type="number"
-            tickSize={2}
-            domain={[0, yMaxValue]}
-            tick={chartAxisTick}
-          />
-          <Tooltip
-            content={<BarChartToolTip />}
-            wrapperStyle={{ border: "none" }}
-          />
-          <Bar dataKey="amount" fill="#8884d8" />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+    </InsightsPanel>
   );
 };
 

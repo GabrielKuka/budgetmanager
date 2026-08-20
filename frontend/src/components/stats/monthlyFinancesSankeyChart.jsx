@@ -20,23 +20,35 @@ const MonthlyFinancesSankeyChart = (props) => {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={450}>
-      <Sankey
-        data={chartData}
-        linkCurvature={0.5}
-        nodePadding={30}
-        link={{ stroke: "var(--chart-grid)", opacity: 0.8 }}
-        node={<CustomNode />}
-        margin={{
-          left: 20,
-          right: 80,
-          top: 10,
-          bottom: 20,
-        }}
-      >
-        <Tooltip content={<CustomTooltip />} />
-      </Sankey>
-    </ResponsiveContainer>
+    <div
+      className="sankey-chart-viewport"
+      aria-label="Monthly income and expense flow"
+    >
+      <div className="sankey-chart-canvas">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          minWidth={1}
+          minHeight={1}
+        >
+          <Sankey
+            data={chartData}
+            linkCurvature={0.5}
+            nodePadding={30}
+            link={{ stroke: "var(--chart-grid)", opacity: 0.8 }}
+            node={<CustomNode />}
+            margin={{
+              left: 20,
+              right: 80,
+              top: 10,
+              bottom: 20,
+            }}
+          >
+            <Tooltip content={<CustomTooltip />} />
+          </Sankey>
+        </ResponsiveContainer>
+      </div>
+    </div>
   );
 };
 

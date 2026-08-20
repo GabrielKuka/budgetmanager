@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useConfirm } from "../../context/ConfirmContext";
 import { useGlobalContext } from "../../context/GlobalContext";
@@ -56,6 +57,8 @@ const TransactionPopup = ({
     transaction.to_cash_balance || ""
   );
   const [editTagInput, setEditTagInput] = useState("");
+  const dialogRef = useRef(null);
+  const openerRef = useRef(document.activeElement);
 
   const isTransfer = transactionType === "transfer";
   const isIncome = transactionType === "income";
@@ -65,18 +68,39 @@ const TransactionPopup = ({
   const canRepeat = isIncome || isExpense;
 
   useEffect(() => {
+    const opener = openerRef.current;
     function handleKeyDown(e) {
       if (e.key === "Escape") {
         if (isEditing) {
           handleCancelEdit();
         } else {
-          closePopup();
+          showPopup(false);
+        }
+      } else if (e.key === "Tab" && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll(
+          'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
         }
       }
     }
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isEditing]);
+    document.body.classList.add("modal-open");
+    dialogRef.current?.querySelector(".close-popup")?.focus();
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.classList.remove("modal-open");
+      opener?.focus?.();
+    };
+  }, [isEditing, showPopup]);
 
   const cashBalanceOptions = useMemo(() => {
     const options = [];
@@ -319,13 +343,17 @@ const TransactionPopup = ({
     ? getBalanceCurrency(editToCashBalance)
     : getBalanceCurrency(editFromCashBalance);
 
-  return (
+  return createPortal(
     <>
       <div
         className="overlay"
         onClick={isEditing ? undefined : closePopup}
       ></div>
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Transaction details"
         className={`transaction-popup-wrapper${
           transaction.is_draft ? " is-draft" : ""
         }`}
@@ -835,7 +863,8 @@ const TransactionPopup = ({
           )}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 };
 

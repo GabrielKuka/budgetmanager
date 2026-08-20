@@ -24,6 +24,7 @@ function App() {
             <Navbar />
             <Routes>
               <Route path="/dashboard/*" element={<Dashboard />} />
+              <Route path="/dashboard/trades" element={<NotFound />} />
               <Route path="/" element={<Dashboard />} />
               <Route path="/accounts" element={<Accounts />} />
               <Route path="/accounts/:id" element={<AccountPage />} />

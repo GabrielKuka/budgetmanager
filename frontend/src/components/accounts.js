@@ -1,4 +1,4 @@
-import { React, useState, useEffect } from "react";
+import { React, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field } from "formik";
 import transactionService from "../services/transactionService/transactionService";
@@ -11,6 +11,8 @@ import { useGlobalContext } from "../context/GlobalContext";
 import { validationSchemas } from "../validationSchemas";
 import accountService from "../services/transactionService/accountService";
 import currencyService from "../services/currencyService";
+import { createPortal } from "react-dom";
+import { MetricCard, WorkspaceHero, WorkspaceShell } from "./core/workspace";
 
 const Accounts = () => {
   const global = useGlobalContext();
@@ -18,6 +20,7 @@ const Accounts = () => {
   const [accounts, setAccounts] = useState(global.activeAccounts);
   const [accountTypeSelected, setAccountTypeSelected] = useState("active");
   const [accountTotalsData, setAccountTotalsData] = useState(null);
+  const [creatingAccount, setCreatingAccount] = useState(false);
 
   useEffect(() => {
     setAccounts(global.activeAccounts);
@@ -43,28 +46,76 @@ const Accounts = () => {
     };
   }, [global.accounts, global.globalCurrency]);
 
+  const summary = accountTotalsData?.summary || {};
+  const display = (value) =>
+    `${helper.showOrMask(
+      global.privacyMode,
+      helper.formatNumber(Number(value || 0))
+    )} ${helper.getCurrency(global.globalCurrency)}`;
   return (
-    <div className={"accounts-wrapper"}>
-      <Sidebar
-        totals={accountTotalsData}
-        refreshAccounts={global.updateAccounts}
+    <WorkspaceShell className="accounts-page">
+      <WorkspaceHero
+        eyebrow="Financial structure"
+        title="Accounts"
+        description="Manage cash, investment accounts, and the balances behind your portfolio."
+        metrics={
+          <>
+            <MetricCard label="Cash" value={display(summary.cash)} />
+            <MetricCard
+              label="Investments"
+              value={display(summary.investments)}
+            />
+            <MetricCard
+              label="Tangible assets"
+              value={display(summary.tangible_assets)}
+            />
+            <MetricCard
+              label="Net worth"
+              value={display(summary.net_worth ?? summary.total_assets)}
+              tone="positive"
+            />
+          </>
+        }
+        actions={
+          <button
+            className="workspace-primary-button"
+            onClick={() => setCreatingAccount(true)}
+          >
+            + Add account
+          </button>
+        }
       />
-      {!accounts?.length ? (
-        <NoDataCard
-          header={"No accounts found."}
-          label={"Add an account"}
-          focusOn={"name"}
-        />
-      ) : (
-        <AccountsList
-          accounts={accounts}
-          refreshAccounts={global.updateAccounts}
-          accountTypeSelected={accountTypeSelected}
-          setAccountTypeSelected={setAccountTypeSelected}
+      <div className={"accounts-wrapper"}>
+        <Sidebar
           totals={accountTotalsData}
+          refreshAccounts={global.updateAccounts}
         />
+        {!accounts?.length ? (
+          <NoDataCard
+            header={"No accounts found."}
+            label={"Add an account"}
+            focusOn={"name"}
+          />
+        ) : (
+          <AccountsList
+            accounts={accounts}
+            refreshAccounts={global.updateAccounts}
+            accountTypeSelected={accountTypeSelected}
+            setAccountTypeSelected={setAccountTypeSelected}
+            totals={accountTotalsData}
+          />
+        )}
+      </div>
+      {creatingAccount && (
+        <AccountModal onClose={() => setCreatingAccount(false)}>
+          <CreateAccount
+            refreshAccounts={global.updateAccounts}
+            onComplete={() => setCreatingAccount(false)}
+            onCancel={() => setCreatingAccount(false)}
+          />
+        </AccountModal>
       )}
-    </div>
+    </WorkspaceShell>
   );
 };
 
@@ -108,7 +159,6 @@ const Sidebar = ({ totals, refreshAccounts }) => {
 
   return (
     <div className={"accounts-wrapper__sidebar"}>
-      <CreateAccount refreshAccounts={refreshAccounts} />
       <div className={"accounts-info"}>
         <div className={"card-label"}>Summary</div>
         <div className="summary-section">
@@ -175,7 +225,7 @@ const Sidebar = ({ totals, refreshAccounts }) => {
   );
 };
 
-const CreateAccount = ({ refreshAccounts }) => {
+export const CreateAccount = ({ refreshAccounts, onComplete, onCancel }) => {
   const accountTypes = ["Bank Account", "Investment Account", "Hard Cash"];
   const currencies = ["EUR", "USD", "ALL", "BGN", "GBP"];
   const showToast = useToast();
@@ -205,119 +255,231 @@ const CreateAccount = ({ refreshAccounts }) => {
             await refreshAccounts();
             showToast("Account Created", "success");
             resetForm();
+            onComplete?.();
           } finally {
             setSubmitting(false);
           }
         }}
       >
         {({ values, errors, touched, setFieldValue }) => (
-          <Form className={"form"}>
-            <label onClick={() => document.getElementById("name").focus()}>
-              Add an account
-            </label>
-            <Field
-              type="text"
-              id="name"
-              name="name"
-              placeholder="Name of the account"
-            />
-            {values.cash_balances.map((row, index) => (
-              <div key={index} className="cash-balance-row">
-                <div className="cash-balance-inline-row">
-                  <Field
-                    as="select"
-                    name={`cash_balances[${index}].currency`}
-                    value={row.currency}
-                    className="cash-balance-currency"
-                  >
-                    <option value="" disabled hidden>
-                      CUR
-                    </option>
-                    {currencies.map((currencyCode) => (
-                      <option key={currencyCode} value={currencyCode}>
-                        {currencyCode}
-                      </option>
-                    ))}
-                  </Field>
-                  <Field
-                    type="text"
-                    name={`cash_balances[${index}].amount`}
-                    placeholder="Amount"
-                    value={row.amount}
-                    className="cash-balance-amount"
-                  />
-                  <div className="cash-balance-actions">
-                    {values.cash_balances.length > 1 && (
+          <Form className="form workspace-form account-form">
+            <div className="workspace-field">
+              <label htmlFor="name">Account name</label>
+              <Field
+                type="text"
+                id="name"
+                name="name"
+                placeholder="e.g. Main bank account"
+                autoFocus
+                aria-describedby={
+                  errors.name && touched.name ? "name-error" : undefined
+                }
+              />
+              {errors.name && touched.name ? (
+                <span id="name-error" className="workspace-field-error">
+                  {errors.name}
+                </span>
+              ) : null}
+            </div>
+            <fieldset className="account-balances-fieldset">
+              <legend>Opening cash balances</legend>
+              <p>Add each currency balance currently held by this account.</p>
+              {values.cash_balances.map((row, index) => (
+                <div key={index} className="cash-balance-row">
+                  <div className="cash-balance-inline-row">
+                    <div className="workspace-field">
+                      <label htmlFor={`balance-currency-${index}`}>
+                        Currency
+                      </label>
+                      <Field
+                        as="select"
+                        id={`balance-currency-${index}`}
+                        name={`cash_balances[${index}].currency`}
+                        value={row.currency}
+                        className="cash-balance-currency"
+                      >
+                        <option value="" disabled hidden>
+                          CUR
+                        </option>
+                        {currencies.map((currencyCode) => (
+                          <option key={currencyCode} value={currencyCode}>
+                            {currencyCode}
+                          </option>
+                        ))}
+                      </Field>
+                    </div>
+                    <div className="workspace-field">
+                      <label htmlFor={`balance-amount-${index}`}>Amount</label>
+                      <Field
+                        type="number"
+                        id={`balance-amount-${index}`}
+                        name={`cash_balances[${index}].amount`}
+                        placeholder="0.00"
+                        step="any"
+                        value={row.amount}
+                        className="cash-balance-amount"
+                      />
+                    </div>
+                    <div className="cash-balance-actions">
+                      {values.cash_balances.length > 1 && (
+                        <button
+                          type="button"
+                          title="Remove balance"
+                          aria-label="Remove balance"
+                          className="remove-balance-icon"
+                          onClick={() => {
+                            const nextRows = values.cash_balances.filter(
+                              (_, i) => i !== index
+                            );
+                            setFieldValue("cash_balances", nextRows);
+                          }}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {errors.cash_balances?.[index]?.currency &&
+                  touched.cash_balances?.[index]?.currency ? (
+                    <span className="workspace-field-error">
+                      {errors.cash_balances[index].currency}
+                    </span>
+                  ) : null}
+                  {errors.cash_balances?.[index]?.amount &&
+                  touched.cash_balances?.[index]?.amount ? (
+                    <span className="workspace-field-error">
+                      {errors.cash_balances[index].amount}
+                    </span>
+                  ) : null}
+
+                  {index === values.cash_balances.length - 1 && (
+                    <div className="cash-balance-actions">
                       <button
                         type="button"
-                        title="Remove balance"
-                        aria-label="Remove balance"
-                        className="remove-balance-icon"
                         onClick={() => {
-                          const nextRows = values.cash_balances.filter(
-                            (_, i) => i !== index
-                          );
+                          const nextRows = [
+                            ...values.cash_balances,
+                            { currency: "EUR", amount: "" },
+                          ];
                           setFieldValue("cash_balances", nextRows);
                         }}
                       >
-                        ✕
+                        + Add balance
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
-                {errors.cash_balances?.[index]?.currency &&
-                touched.cash_balances?.[index]?.currency ? (
-                  <span>{errors.cash_balances[index].currency}</span>
-                ) : null}
-                {errors.cash_balances?.[index]?.amount &&
-                touched.cash_balances?.[index]?.amount ? (
-                  <span>{errors.cash_balances[index].amount}</span>
-                ) : null}
-
-                {index === values.cash_balances.length - 1 && (
-                  <div className="cash-balance-actions">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const nextRows = [
-                          ...values.cash_balances,
-                          { currency: "EUR", amount: "" },
-                        ];
-                        setFieldValue("cash_balances", nextRows);
-                      }}
-                    >
-                      + Balance
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-            <Field as="select" name="type">
-              <option value="" disabled hidden>
-                Select account type
-              </option>
-              {accountTypes &&
-                accountTypes.map((type, index) => (
-                  <option key={index} value={index}>
-                    {type}
-                  </option>
-                ))}
-            </Field>
-            <button type="submit" id="submit-button">
-              Add Account
-            </button>
-            {errors.name && touched.name ? <span>{errors.name}</span> : null}
-            {errors.currency && touched.currency ? (
-              <span>{errors.currency}</span>
-            ) : null}
-            {errors.type && touched.type ? <span>{errors.type}</span> : null}
+              ))}
+            </fieldset>
+            <div className="workspace-field">
+              <label htmlFor="account-type">Account type</label>
+              <Field as="select" id="account-type" name="type">
+                <option value="" disabled hidden>
+                  Select account type
+                </option>
+                {accountTypes &&
+                  accountTypes.map((type, index) => (
+                    <option key={index} value={index}>
+                      {type}
+                    </option>
+                  ))}
+              </Field>
+              {errors.type && touched.type ? (
+                <span className="workspace-field-error">{errors.type}</span>
+              ) : null}
+            </div>
             {typeof errors.cash_balances === "string" ? (
-              <span>{errors.cash_balances}</span>
+              <span className="workspace-field-error">
+                {errors.cash_balances}
+              </span>
             ) : null}
+            <footer className="workspace-form-actions">
+              <button
+                type="button"
+                className="workspace-secondary-button"
+                onClick={onCancel}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                id="submit-button"
+                className="workspace-primary-button"
+              >
+                Add account
+              </button>
+            </footer>
           </Form>
         )}
       </Formik>
     </div>
+  );
+};
+
+export const AccountModal = ({ children, onClose }) => {
+  const closeRef = useRef(null);
+  const sheetRef = useRef(null);
+  const openerRef = useRef(document.activeElement);
+  useEffect(() => {
+    const opener = openerRef.current;
+    const close = (event) => {
+      if (event.key === "Escape") onClose();
+      if (event.key !== "Tab" || !sheetRef.current) return;
+      const focusable = sheetRef.current.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", close);
+    document.body.classList.add("modal-open");
+    closeRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", close);
+      document.body.classList.remove("modal-open");
+      opener?.focus?.();
+    };
+  }, [onClose]);
+  return createPortal(
+    <div
+      className="workspace-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-account-title"
+    >
+      <button
+        className="workspace-modal__backdrop"
+        aria-label="Close add account"
+        onClick={onClose}
+      />
+      <section ref={sheetRef} className="workspace-modal__sheet">
+        <header>
+          <div>
+            <p className="workspace-eyebrow">Accounts</p>
+            <h2 id="add-account-title">Add account</h2>
+          </div>
+          <button
+            ref={closeRef}
+            type="button"
+            className="workspace-icon-button"
+            aria-label="Close"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </header>
+        {children}
+      </section>
+    </div>,
+    document.body
   );
 };
 

@@ -49,6 +49,13 @@ class TangibleAsset(models.Model):
         ("sold", "Sold"),
         ("disposed", "Disposed"),
     ]
+    METAL_TYPE_CHOICES = [
+        ("gold", "Gold"),
+        ("silver", "Silver"),
+        ("platinum", "Platinum"),
+        ("palladium", "Palladium"),
+        ("other", "Other"),
+    ]
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -102,6 +109,13 @@ class TangibleAsset(models.Model):
         blank=True,
         validators=[MinValueValidator(0), MaxValueValidator(1)],
     )
+    metal_type = models.CharField(
+        max_length=20,
+        choices=METAL_TYPE_CHOICES,
+        null=True,
+        blank=True,
+    )
+    metal_name = models.CharField(max_length=100, blank=True, default="")
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 
@@ -116,6 +130,25 @@ class TangibleAsset(models.Model):
             errors["property_type"] = "Only real estate has a property type."
         if self.asset_type != "precious_metal" and self.purity is not None:
             errors["purity"] = "Purity is only available for precious metals."
+        if self.asset_type == "precious_metal":
+            # Legacy records predate metal classification. Preserve them until
+            # the user explicitly classifies the asset.
+            if not self.metal_type and not self.pk:
+                errors["metal_type"] = "Precious metals require a metal type."
+            if self.metal_type == "other" and not self.metal_name.strip():
+                errors["metal_name"] = "Other precious metals require a name."
+            if self.metal_type != "other" and self.metal_name:
+                errors["metal_name"] = (
+                    "Only other precious metals have a custom name."
+                )
+            if (not self.unit_id or self.unit.dimension != "mass") and (
+                not self.pk or self.metal_type
+            ):
+                errors["unit"] = "Precious metals require a mass unit."
+        elif self.metal_type or self.metal_name:
+            errors["metal_type"] = (
+                "Metal fields are only available for precious metals."
+            )
         if self.disposed_on and self.disposed_on < self.acquired_on:
             errors["disposed_on"] = "Disposition cannot predate acquisition."
         if self.status == "active" and self.disposed_on:

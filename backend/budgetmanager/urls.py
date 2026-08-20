@@ -16,6 +16,7 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
+from tangible_assets import views as asset_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -24,4 +25,11 @@ urlpatterns = [
     path("transactions/", include("Transactions.urls")),
     path("currencies/", include("Currency.urls")),
     path("tangible-assets/", include("tangible_assets.urls")),
+    # Portfolio workspace read APIs.  Keep tangible-assets/ for tangible
+    # lifecycle writes and backwards compatibility.
+    path("assets/portfolio", asset_views.portfolio, name="assets-portfolio"),
+    path("assets/activity", asset_views.activity, name="assets-activity"),
+    path(
+        "assets/securities", asset_views.securities, name="assets-securities"
+    ),
 ]

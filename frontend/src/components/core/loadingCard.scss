@@ -13,3 +13,13 @@
   @include flex(row, flex-start, center);
   gap: 10px;
 }
+.loading-card {
+  min-height: 160px;
+  margin: 0;
+  width: 100%;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--surface-bg);
+  box-shadow: var(--elevation-sm);
+  color: var(--muted-text);
+}

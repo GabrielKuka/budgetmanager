@@ -1,0 +1,415 @@
+:is(.incomes-wrapper, .expenses-wrapper, .transfers-wrapper) {
+  display: grid;
+  grid-template-columns: minmax(0, 9fr) minmax(280px, 3fr);
+  align-items: start;
+  gap: var(--space-5);
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0;
+}
+:is(
+    .incomes-wrapper__content,
+    .expenses-wrapper__content,
+    .transfers-wrapper__content
+  ) {
+  grid-column: 1;
+  grid-row: 1;
+  display: grid;
+  align-content: start;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+}
+:is(
+    .incomes-wrapper__sidebar,
+    .expenses-wrapper__sidebar,
+    .transfers-wrapper__sidebar
+  ) {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  padding: 0;
+  overflow: visible;
+}
+:is(
+    .incomes-wrapper__sidebar,
+    .expenses-wrapper__sidebar,
+    .transfers-wrapper__sidebar
+  )
+  .workspace-insights__content {
+  align-content: start;
+}
+:is(.incomes-wrapper__sidebar, .expenses-wrapper__sidebar)
+  :is(.summary, .mom-compare, .bar-chart, .pie-chart-card, .largest-list-card),
+.transfers-wrapper__sidebar .net-flow-card {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-bg);
+  box-shadow: var(--elevation-sm);
+}
+:is(.incomes-wrapper__sidebar, .expenses-wrapper__sidebar) .summary {
+  padding: 18px;
+  color: var(--text);
+  line-height: 1.45;
+}
+:is(.incomes-wrapper__sidebar, .expenses-wrapper__sidebar) .summary b {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--brand);
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
+  font-variant-numeric: tabular-nums;
+}
+:is(.incomes-wrapper__sidebar, .expenses-wrapper__sidebar) .summary small {
+  color: var(--muted-text);
+}
+:is(.incomes-wrapper__sidebar, .expenses-wrapper__sidebar) .mom-compare {
+  padding: 11px 15px;
+  color: var(--muted-text);
+  font-size: 0.82rem;
+}
+:is(.incomes-wrapper__sidebar, .expenses-wrapper__sidebar)
+  :is(.bar-chart, .pie-chart-card) {
+  min-height: 290px;
+  padding: 14px;
+  overflow: hidden;
+}
+:is(.incomes-wrapper__sidebar, .expenses-wrapper__sidebar) .largest-list-card {
+  padding: 15px;
+}
+:is(.incomes-wrapper__sidebar, .expenses-wrapper__sidebar) .chart-title,
+.transfers-wrapper__sidebar .chart-title {
+  display: block;
+  width: auto;
+  margin: 0 0 12px;
+  padding: 0;
+  background: transparent;
+  color: var(--brand);
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+:is(
+    .incomes-wrapper__incomes-list,
+    .expenses-wrapper__expenses-list,
+    .transfers-wrapper__transfers-list
+  ) {
+  display: flex;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 320px;
+  height: auto;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-bg);
+  box-shadow: var(--elevation-sm);
+}
+:is(
+    .incomes-wrapper__incomes-list,
+    .expenses-wrapper__expenses-list,
+    .transfers-wrapper__transfers-list
+  )
+  > .header {
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 18px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-alt-bg);
+  color: var(--muted-text);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+:is(
+    .incomes-wrapper__incomes-list,
+    .expenses-wrapper__expenses-list,
+    .transfers-wrapper__transfers-list
+  )
+  > .header
+  select {
+  min-height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 8px;
+  background: var(--input-bg);
+  color: var(--input-text);
+}
+:is(
+    .incomes-wrapper__incomes-list,
+    .expenses-wrapper__expenses-list,
+    .transfers-wrapper__transfers-list
+  )
+  > :is(.incomes, .expenses, .transfers) {
+  width: 100%;
+  min-height: 0;
+  overflow: visible;
+  padding: 0;
+}
+.month-picker {
+  width: 100%;
+  max-width: none;
+  min-height: 58px;
+  margin: 0 0 var(--space-4);
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-bg);
+  box-shadow: var(--elevation-sm);
+}
+.month-picker :is(.month-picker__select, .month-picker__search) {
+  height: var(--control-height);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+.month-picker__search {
+  flex: 1;
+  max-width: 320px;
+}
+.month-picker__reset,
+.month-picker__draft-toggle {
+  min-height: var(--control-height);
+  border-radius: 9px;
+  padding: 0 13px;
+}
+:is(.incomes-wrapper, .expenses-wrapper, .transfers-wrapper)
+  :is(.recharts-wrapper, .recharts-surface) {
+  max-width: 100%;
+}
+@media (max-width: 1199px) {
+  :is(.incomes-wrapper, .expenses-wrapper, .transfers-wrapper) {
+    grid-template-columns: 1fr;
+  }
+  :is(
+      .incomes-wrapper__content,
+      .expenses-wrapper__content,
+      .transfers-wrapper__content
+    ) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  :is(
+      .incomes-wrapper__sidebar,
+      .expenses-wrapper__sidebar,
+      .transfers-wrapper__sidebar
+    ) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  :is(
+      .incomes-wrapper__sidebar,
+      .expenses-wrapper__sidebar,
+      .transfers-wrapper__sidebar
+    )
+    .workspace-insights__content {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  :is(.incomes-wrapper__sidebar, .expenses-wrapper__sidebar) .summary {
+    grid-column: span 2;
+  }
+}
+@media (max-width: 900px) {
+  :is(.incomes-wrapper, .expenses-wrapper, .transfers-wrapper) {
+    display: grid;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    gap: var(--space-4);
+  }
+  :is(
+      .incomes-wrapper__content,
+      .expenses-wrapper__content,
+      .transfers-wrapper__content
+    ) {
+    order: initial;
+    width: 100%;
+  }
+  :is(
+      .incomes-wrapper__sidebar,
+      .expenses-wrapper__sidebar,
+      .transfers-wrapper__sidebar
+    ) {
+    display: block;
+    order: initial;
+    width: 100%;
+    padding: 0;
+  }
+  :is(
+      .incomes-wrapper__sidebar,
+      .expenses-wrapper__sidebar,
+      .transfers-wrapper__sidebar
+    )
+    .workspace-insights__content {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  :is(
+      .incomes-wrapper__incomes-list,
+      .expenses-wrapper__expenses-list,
+      .transfers-wrapper__transfers-list
+    ) {
+    order: initial;
+    width: 100%;
+    max-width: none;
+  }
+}
+@media (max-width: 640px) {
+  :is(.incomes-wrapper, .expenses-wrapper, .transfers-wrapper),
+  :is(
+      .incomes-wrapper__content,
+      .expenses-wrapper__content,
+      .transfers-wrapper__content
+    ),
+  :is(
+      .incomes-wrapper__sidebar,
+      .expenses-wrapper__sidebar,
+      .transfers-wrapper__sidebar
+    ),
+  :is(
+      .incomes-wrapper__incomes-list,
+      .expenses-wrapper__expenses-list,
+      .transfers-wrapper__transfers-list
+    ),
+  :is(
+      .incomes-wrapper__incomes-list,
+      .expenses-wrapper__expenses-list,
+      .transfers-wrapper__transfers-list
+    )
+    > :is(.incomes, .expenses, .transfers) {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    margin-right: 0;
+    margin-left: 0;
+  }
+  :is(.incomes-wrapper, .expenses-wrapper, .transfers-wrapper) {
+    gap: 12px;
+  }
+  .month-picker {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 12px;
+  }
+  .month-picker__label {
+    grid-column: 1/-1;
+  }
+  .month-picker__search {
+    grid-column: 1/-1;
+    width: 100%;
+    max-width: none;
+  }
+  .month-picker__reset,
+  .month-picker__draft-toggle {
+    margin: 0;
+    width: 100%;
+  }
+  :is(
+      .incomes-wrapper__sidebar,
+      .expenses-wrapper__sidebar,
+      .transfers-wrapper__sidebar
+    )
+    .workspace-insights__content {
+    grid-template-columns: 1fr;
+  }
+  :is(.incomes-wrapper__sidebar, .expenses-wrapper__sidebar) .summary {
+    grid-column: auto;
+  }
+  :is(
+      .incomes-wrapper__incomes-list,
+      .expenses-wrapper__expenses-list,
+      .transfers-wrapper__transfers-list
+    ) {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+  }
+  :is(
+      .incomes-wrapper__incomes-list,
+      .expenses-wrapper__expenses-list,
+      .transfers-wrapper__transfers-list
+    )
+    > .header {
+    display: grid;
+    width: 100%;
+    margin: 0 0 10px;
+    padding: 10px;
+    gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-bg);
+    box-shadow: var(--elevation-sm);
+  }
+  :is(.incomes-wrapper__incomes-list, .expenses-wrapper__expenses-list)
+    > .header {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .transfers-wrapper__transfers-list > .header {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  :is(
+      .incomes-wrapper__incomes-list,
+      .expenses-wrapper__expenses-list,
+      .transfers-wrapper__transfers-list
+    )
+    > .header
+    > div {
+    min-width: 0;
+    padding: 7px;
+    border-radius: 8px;
+    background: var(--surface-alt-bg);
+  }
+  :is(.incomes-wrapper__incomes-list, .expenses-wrapper__expenses-list)
+    > .header
+    > :nth-child(-n + 2) {
+    display: none;
+  }
+  .transfers-wrapper__transfers-list > .header > :nth-child(5) {
+    display: none;
+  }
+  :is(
+      .incomes-wrapper__incomes-list,
+      .expenses-wrapper__expenses-list,
+      .transfers-wrapper__transfers-list
+    )
+    > .header
+    select {
+    width: 100%;
+    min-width: 0;
+    margin-top: 5px;
+  }
+  :is(
+      .incomes-wrapper__incomes-list,
+      .expenses-wrapper__expenses-list,
+      .transfers-wrapper__transfers-list
+    )
+    > :is(.incomes, .expenses, .transfers) {
+    display: grid;
+    gap: 10px;
+    padding: 0;
+  }
+  :is(.incomes-wrapper, .expenses-wrapper, .transfers-wrapper)
+    .transaction-item {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
+  }
+}
+@media (max-width: 420px) {
+  :is(.incomes-wrapper__incomes-list, .expenses-wrapper__expenses-list)
+    > .header,
+  .transfers-wrapper__transfers-list > .header {
+    grid-template-columns: 1fr 1fr;
+  }
+}

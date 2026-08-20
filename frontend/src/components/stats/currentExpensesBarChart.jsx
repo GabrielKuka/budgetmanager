@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -12,51 +12,39 @@ import BarChartToolTip from "./barChartTooltip";
 
 const chartAxisTick = { fill: "var(--chart-axis)" };
 
-const CurrentExpensesBarChart = (props) => {
-  const [yMaxValue, setYMaxValue] = useState({});
-  const [expensesPerCategory, setExpensesPerCategory] = useState(null);
-
-  function getExpensesPerCategory() {
-    if (!props.categories) {
-      return;
-    }
-    const data = [];
-    for (const c of props.categories) {
-      const total = (props.expenses || [])
-        .filter((e) => e.category == c.id)
+const CurrentCategoryBarChart = ({
+  transactions,
+  categories,
+  data: suppliedData,
+  height = 250,
+  stats,
+}) => {
+  const categoryData = useMemo(() => {
+    if (suppliedData) return suppliedData;
+    if (!categories) return [];
+    return categories.map((category) => ({
+      category: category.category,
+      amount: (transactions || [])
+        .filter((transaction) => transaction.category === category.id)
         .reduce(
-          (sum, e) => sum + parseFloat(e.converted_amount ?? e.amount ?? 0),
+          (sum, transaction) =>
+            sum +
+            Number(transaction.converted_amount ?? transaction.amount ?? 0),
           0
-        );
-      data.push({
-        category: c.category,
-        amount: parseFloat(total).toFixed(2),
-      });
-    }
-
-    setExpensesPerCategory(data);
-  }
-
-  useEffect(() => {
-    getExpensesPerCategory();
-  }, []);
-
-  useEffect(() => {
-    getExpensesPerCategory();
-  }, [props.expenses, props.categories]);
-
-  useEffect(() => {
-    if (expensesPerCategory) {
-      setYMaxValue(Math.max(...expensesPerCategory?.map((o) => o.amount)));
-    }
-  }, [expensesPerCategory]);
+        ),
+    }));
+  }, [categories, suppliedData, transactions]);
+  const yMaxValue = Math.max(
+    0,
+    ...categoryData.map((row) => Number(row.amount) || 0)
+  );
 
   return (
     <div className={"bar-chart chart"}>
-      <ResponsiveContainer width="100%" height={props.height || 250}>
+      <ResponsiveContainer width="100%" height={height}>
         <BarChart
           margin={{ left: 0, right: 0 }}
-          data={expensesPerCategory}
+          data={categoryData}
           barSize={20}
         >
           <XAxis dataKey="category" tick={chartAxisTick} />
@@ -70,15 +58,19 @@ const CurrentExpensesBarChart = (props) => {
             content={<BarChartToolTip />}
             wrapperStyle={{ border: "none" }}
           />
-          <Bar dataKey="amount" fill="#8884d8" />
-          {props.stats && <Legend content={<CustomLenged />} />}
+          <Bar
+            dataKey="amount"
+            fill="var(--chart-series-1)"
+            radius={[6, 6, 0, 0]}
+          />
+          {stats && <Legend content={<CustomLenged />} />}
         </BarChart>
       </ResponsiveContainer>
     </div>
   );
 };
 
-export default CurrentExpensesBarChart;
+export default CurrentCategoryBarChart;
 
 const CustomLenged = () => {
   return (

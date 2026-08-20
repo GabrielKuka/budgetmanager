@@ -9,13 +9,14 @@ import { useConfirm } from "../../context/ConfirmContext";
 import { helper } from "../helper";
 import currencyService from "../../services/currencyService";
 import TransactionPopup from "../core/transaction_popup";
-import CurrentExpensesBarChart from "../stats/currentExpensesBarChart";
+import CurrentCategoryBarChart from "../stats/currentExpensesBarChart";
 import PercentExpensesPieChart from "../stats/percentExpensesPie";
 import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
 import { validationSchemas } from "../../validationSchemas";
 import TransactionItem from "./transactionItem";
 import MonthPicker from "../core/MonthPicker";
+import { InsightsPanel } from "../core/workspace";
 
 const Expenses = () => {
   const global = useGlobalContext();
@@ -233,7 +234,10 @@ const Sidebar = (props) => {
   }, [totalShownExpenses, global.globalCurrency]);
 
   return (
-    <div className={"expenses-wrapper__sidebar"}>
+    <InsightsPanel
+      className="expenses-wrapper__sidebar"
+      title="Expense insights"
+    >
       <div className={"summary"}>
         <b>
           {helper.showOrMask(
@@ -279,8 +283,8 @@ const Sidebar = (props) => {
             </div>
           );
         })()}
-      <CurrentExpensesBarChart
-        expenses={(props.expenses || []).filter((e) => !e.is_draft)}
+      <CurrentCategoryBarChart
+        transactions={(props.expenses || []).filter((e) => !e.is_draft)}
         categories={props.categories}
         getAccountCurrency={props.getAccountCurrency}
         getTransactionCurrency={props.getTransactionCurrency}
@@ -321,10 +325,10 @@ const Sidebar = (props) => {
           getTransactionCurrency={props.getTransactionCurrency}
           width={330}
           height={250}
-          outerRadius={112}
+          outerRadius="72%"
         />
       </div>
-    </div>
+    </InsightsPanel>
   );
 };
 

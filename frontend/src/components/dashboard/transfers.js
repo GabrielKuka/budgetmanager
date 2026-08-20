@@ -11,6 +11,7 @@ import currencyService from "../../services/currencyService";
 import { useGlobalContext } from "../../context/GlobalContext";
 import LoadingCard from "../core/LoadingCard";
 import MonthPicker from "../core/MonthPicker";
+import { InsightsPanel } from "../core/workspace";
 
 const Transfers = () => {
   const global = useGlobalContext();
@@ -140,7 +141,10 @@ const Sidebar = ({ transfers, accounts, getAccountCurrency }) => {
   }, [transfers, accounts, global.globalCurrency]);
 
   return (
-    <div className={"transfers-wrapper__sidebar"}>
+    <InsightsPanel
+      className="transfers-wrapper__sidebar"
+      title="Transfer insights"
+    >
       <div className="net-flow-card">
         <div className="chart-title">Net transfer flow</div>
         {netFlows.length === 0 ? (
@@ -166,7 +170,7 @@ const Sidebar = ({ transfers, accounts, getAccountCurrency }) => {
           </ul>
         )}
       </div>
-    </div>
+    </InsightsPanel>
   );
 };
 

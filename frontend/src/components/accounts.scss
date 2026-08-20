@@ -614,6 +614,217 @@
   }
 }
 
+.accounts-wrapper {
+  padding-top: 24px;
+  gap: 28px;
+}
+.accounts-wrapper__sidebar .add-account {
+  border-radius: 16px;
+  box-shadow: 0 8px 24px var(--shadow);
+}
+.accounts-wrapper :is(.account, .account-card, .accounts-list > div) {
+  border-radius: 14px;
+}
+
+.accounts-page {
+  padding-top: var(--page-top-offset);
+}
+.accounts-page .accounts-wrapper {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+.accounts-page .accounts-wrapper__sidebar {
+  flex: 0 0 320px;
+  top: calc(var(--navbar-height) + 16px);
+  padding: 0;
+}
+.accounts-page .accounts-info {
+  width: 100%;
+  border-radius: var(--radius-md);
+  border-color: var(--border);
+  box-shadow: var(--elevation-sm);
+}
+.accounts-page .accounts-wrapper__accounts-list {
+  flex: 1;
+  width: auto;
+  max-width: none;
+  border-radius: var(--radius-md);
+  border-color: var(--border);
+  box-shadow: var(--elevation-sm);
+}
+.workspace-primary-button {
+  min-height: var(--control-height);
+  padding: 0 15px;
+  border: 1px solid var(--brand);
+  border-radius: 10px;
+  background: var(--brand);
+  color: var(--brand-text);
+  font-weight: 800;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--brand) 26%, transparent);
+}
+.workspace-primary-button:hover {
+  background: var(--brand-hover);
+  transform: translateY(-1px);
+}
+.workspace-modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-modal);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.workspace-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--overlay);
+  backdrop-filter: blur(3px);
+}
+.workspace-modal__sheet {
+  position: relative;
+  width: min(560px, 100%);
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-bg);
+  box-shadow: var(--elevation-md);
+}
+.workspace-modal__sheet > header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-bg);
+}
+.workspace-modal__sheet h2 {
+  margin: 0;
+}
+.workspace-modal__sheet .add-account {
+  width: 100%;
+  padding: 22px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.workspace-icon-button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-alt-bg);
+  color: var(--text);
+  font-size: 1.5rem;
+}
+.modal-open {
+  overflow: hidden;
+}
+
+.workspace-form {
+  display: grid;
+  gap: 18px;
+  width: 100%;
+  color: var(--text);
+}
+.workspace-field {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+.workspace-field > label,
+.account-balances-fieldset legend {
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+}
+.workspace-form :is(input, select, textarea) {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--input-bg);
+  color: var(--input-text);
+}
+.workspace-field-error {
+  display: block;
+  color: var(--danger);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+.account-balances-fieldset {
+  display: grid;
+  gap: 13px;
+  min-width: 0;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-alt-bg);
+}
+.account-balances-fieldset > p {
+  margin: -4px 0 2px;
+  color: var(--muted-text);
+  font-size: 0.82rem;
+}
+.cash-balance-row {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+.cash-balance-inline-row {
+  display: grid;
+  grid-template-columns: minmax(100px, 0.7fr) minmax(140px, 1.3fr) 44px;
+  align-items: end;
+  gap: 10px;
+  width: 100%;
+}
+.cash-balance-actions {
+  display: flex;
+  gap: 8px;
+}
+.cash-balance-actions button,
+.workspace-secondary-button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--brand);
+  border-radius: 10px;
+  background: var(--surface-bg);
+  color: var(--brand);
+  font-weight: 750;
+}
+.cash-balance-actions .remove-balance-icon {
+  width: 44px;
+  padding: 0;
+  border-color: color-mix(in srgb, var(--danger) 50%, var(--border));
+  color: var(--danger);
+}
+.workspace-form-actions {
+  position: sticky;
+  bottom: -22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 2px -22px -22px;
+  padding: 16px 22px max(16px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--surface-bg);
+}
+
 @media (max-width: 1280px) {
   .accounts-wrapper {
     &__accounts-list {
@@ -762,6 +973,59 @@
         }
       }
     }
+  }
+}
+
+@media (max-width: 640px) {
+  .accounts-page .accounts-wrapper {
+    width: 100%;
+    min-width: 0;
+  }
+  .accounts-page .accounts-wrapper__sidebar {
+    order: 2;
+    width: 100%;
+    min-width: 0;
+  }
+  .accounts-page .accounts-wrapper__accounts-list {
+    order: 1;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+  }
+  .accounts-page .accounts-wrapper__accounts-list .accounts,
+  .accounts-page .account-item-wrapper,
+  .accounts-page .account-item,
+  .accounts-page .account-item-details {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+  .workspace-modal {
+    place-items: center;
+    padding: 12px;
+  }
+  .workspace-modal__sheet {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    border-radius: var(--radius-lg);
+  }
+  .workspace-modal__sheet .add-account {
+    padding: 18px;
+  }
+  .cash-balance-inline-row {
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr) 44px;
+  }
+  .workspace-form-actions {
+    bottom: -18px;
+    margin-right: -18px;
+    margin-bottom: -18px;
+    margin-left: -18px;
+    padding-right: 18px;
+    padding-left: 18px;
   }
 }
 

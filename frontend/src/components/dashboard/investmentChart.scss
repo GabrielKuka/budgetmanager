@@ -2,11 +2,11 @@
 
 .investment-chart {
   border: 1px solid var(--border);
-  box-shadow: 1px 1px 2px var(--shadow);
-  border-radius: 3px;
+  box-shadow: var(--elevation-sm);
+  border-radius: var(--radius-md);
   background-color: var(--surface-bg);
   width: 100%;
-  max-width: 980px;
+  max-width: none;
   @include flex(column, flex-start, stretch);
   padding: 16px;
 
@@ -46,7 +46,7 @@
     border: 1px solid var(--brand);
     background-color: var(--surface-bg);
     color: var(--brand);
-    border-radius: 3px;
+    border-radius: 8px;
     padding: 4px 10px;
     font-size: 12px;
     font-weight: 600;

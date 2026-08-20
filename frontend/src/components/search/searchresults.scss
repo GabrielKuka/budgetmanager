@@ -195,6 +195,96 @@
   }
 }
 
+.searchresults-wrapper {
+  padding-top: 24px;
+  gap: 24px;
+}
+.searchresults-wrapper__incomes .header .header-label,
+.searchresults-wrapper__expenses .header .header-label,
+.searchresults-wrapper__transfers .header .header-label {
+  border-radius: 10px;
+}
+.searchresults-wrapper .transaction-item {
+  border-radius: 12px !important;
+  box-shadow: 0 5px 18px var(--shadow) !important;
+}
+.search-page {
+  padding-top: var(--page-top-offset);
+}
+.search-page .searchresults-wrapper {
+  margin: 0;
+  padding: 0;
+  gap: var(--space-4);
+}
+.search-page
+  :is(
+    .searchresults-wrapper__incomes,
+    .searchresults-wrapper__expenses,
+    .searchresults-wrapper__transfers
+  ) {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-bg);
+  box-shadow: var(--elevation-sm);
+  overflow: hidden;
+}
+.search-page
+  :is(
+    .searchresults-wrapper__incomes,
+    .searchresults-wrapper__expenses,
+    .searchresults-wrapper__transfers
+  )
+  > .header {
+  min-height: 58px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-alt-bg);
+}
+.search-page
+  :is(
+    .searchresults-wrapper__incomes,
+    .searchresults-wrapper__expenses,
+    .searchresults-wrapper__transfers
+  )
+  .header-label {
+  padding: 0;
+  background: transparent;
+  color: var(--brand);
+  font-size: 1rem;
+}
+.search-page .content {
+  padding: 14px;
+}
+.search-page .aggs-card {
+  border-radius: var(--radius-md);
+  border-color: var(--border);
+  box-shadow: var(--elevation-sm);
+}
+@media (max-width: 640px) {
+  .search-page .content {
+    padding: 10px;
+  }
+  .search-page .items {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 10px !important;
+  }
+  .search-page .aggs-card {
+    width: 100%;
+  }
+  .search-page
+    :is(
+      .searchresults-wrapper__incomes,
+      .searchresults-wrapper__expenses,
+      .searchresults-wrapper__transfers
+    )
+    > .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 @media (max-width: 760px) {
   .searchresults-wrapper {
     gap: 22px;

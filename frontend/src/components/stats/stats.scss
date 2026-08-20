@@ -117,3 +117,72 @@
     }
   }
 }
+
+.stats-wrapper {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.stats-wrapper .chart-container {
+  border-radius: 16px;
+  box-shadow: 0 8px 24px var(--shadow);
+}
+.stats-wrapper .chart_label {
+  border-radius: 9px;
+}
+.stats-wrapper .wide-chart-container,
+#wealthOverTimeContainer {
+  grid-column: 1/-1;
+}
+.stats-wrapper .chart-container {
+  width: 100%;
+  min-width: 0;
+  min-height: 320px;
+  border: 1px solid var(--border);
+  background: var(--surface-bg);
+  box-shadow: var(--elevation-sm);
+}
+.stats-wrapper
+  .chart-container
+  :is(.recharts-responsive-container, .recharts-wrapper) {
+  min-width: 0;
+}
+.sankey-chart-viewport {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+.sankey-chart-canvas {
+  width: 100%;
+  min-width: 0;
+  height: 450px;
+}
+.stats-wrapper .chart-loading {
+  width: 100%;
+  min-height: 320px;
+}
+@media (max-width: 760px) {
+  .stats-wrapper {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .stats-wrapper .wide-chart-container,
+  #wealthOverTimeContainer {
+    grid-column: auto;
+  }
+  .stats-wrapper .chart-container {
+    min-height: 280px;
+    overflow-x: auto;
+  }
+}
+@media (max-width: 640px) {
+  .sankey-chart-canvas {
+    width: 680px;
+    min-width: 680px;
+    height: 430px;
+  }
+  .sankey-chart-card {
+    align-items: flex-start !important;
+  }
+}
