@@ -1033,6 +1033,9 @@ function SecurityTradeForm({ accounts, onComplete }) {
 
 function SecurityPanel({ position, currency, onClose, onSell }) {
   const closeRef = useRef(null);
+  const quantityLabel = ["stock", "etf"].includes(position.structure)
+    ? "shares"
+    : "units";
   useEffect(() => {
     closeRef.current?.focus();
     const key = (event) => event.key === "Escape" && onClose();
@@ -1102,7 +1105,8 @@ function SecurityPanel({ position, currency, onClose, onSell }) {
             <h3>Account holdings</h3>
             {position.holdings.map((holding) => (
               <p key={holding.holding_id}>
-                {holding.account_name}: {decimal(holding.quantity)} units
+                {holding.account_name}: {decimal(holding.quantity)}{" "}
+                {quantityLabel}
               </p>
             ))}
           </div>
@@ -1122,6 +1126,9 @@ function SecurityPanel({ position, currency, onClose, onSell }) {
 
 // eslint-disable-next-line no-unused-vars
 function SecuritySellForm({ position, accounts, onClose, onComplete }) {
+  const quantityLabel = ["stock", "etf"].includes(position.structure)
+    ? "shares"
+    : "units";
   const [form, setForm] = useState({
     date: today(),
     holding:
@@ -1168,7 +1175,8 @@ function SecuritySellForm({ position, accounts, onClose, onComplete }) {
             <option value="">Select account holding</option>
             {position.holdings.map((holding) => (
               <option key={holding.holding_id} value={holding.holding_id}>
-                {holding.account_name} — {decimal(holding.quantity)} units
+                {holding.account_name} — {decimal(holding.quantity)}{" "}
+                {quantityLabel}
               </option>
             ))}
           </select>

@@ -162,6 +162,7 @@ def portfolio(request):
                         "name": security.name,
                         "asset_class": security.asset_class,
                         "asset_class_label": security.get_asset_class_display(),
+                        "structure": security.structure,
                         "security_currency": security.currency.code,
                         "quantity": Decimal("0"),
                         "cost_basis": Decimal("0"),

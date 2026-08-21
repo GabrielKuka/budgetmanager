@@ -222,6 +222,9 @@ class UnifiedPortfolioReadTests(TestCase):
             response.data["security_positions"][0]["ticker"], "EXMP"
         )
         self.assertEqual(
+            response.data["security_positions"][0]["structure"], "stock"
+        )
+        self.assertEqual(
             response.data["security_positions"][0]["unrealized_pnl"], 100.0
         )
         self.assertEqual(len(response.data["tangible_assets"]), 1)
