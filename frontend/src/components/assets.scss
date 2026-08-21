@@ -439,6 +439,13 @@
   background: var(--surface-bg);
   animation: assetCardsIn 0.28s ease both;
 }
+.tangible-asset-list {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--surface-bg);
+  animation: assetCardsIn 0.28s ease both;
+}
 .security-position-list > header {
   display: flex;
   justify-content: space-between;
@@ -1177,11 +1184,88 @@
 .security-position-list.is-collapsed {
   animation: none;
 }
+.tangible-asset-list > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--soft-border);
+}
+.tangible-asset-list > header > div {
+  min-width: 0;
+}
+.tangible-asset-list h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.tangible-asset-list h2 span {
+  color: var(--muted-text);
+  font-size: 13px;
+}
+.tangible-asset-list > header > div > p:last-child {
+  margin: 5px 0 0;
+  color: var(--muted-text);
+  font-size: 12px;
+}
+.tangible-asset-list__toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-alt-bg);
+  color: var(--brand);
+  font-size: 0.78rem;
+  font-weight: 800;
+  transition: background-color 0.18s ease, border-color 0.18s ease,
+    transform 0.18s ease;
+}
+.tangible-asset-list__toggle:hover,
+.tangible-asset-list__toggle:focus-visible {
+  border-color: var(--brand);
+  background: var(--surface-bg);
+}
+.tangible-asset-list__toggle > span:last-child {
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+.tangible-asset-list.is-collapsed
+  .tangible-asset-list__toggle
+  > span:last-child {
+  transform: rotate(-90deg);
+}
+.tangible-asset-list.is-collapsed {
+  animation: none;
+}
+.tangible-asset-list__content {
+  display: grid;
+  gap: 14px;
+  padding: 14px 18px 18px;
+}
+.tangible-asset-list__empty {
+  margin: 0;
+  color: var(--muted-text);
+  font-size: 13px;
+}
 @media (max-width: 620px) {
   .security-position-list > header {
     align-items: stretch;
   }
   .security-position-list__toggle {
+    width: 100%;
+    justify-content: space-between;
+    min-height: 44px;
+  }
+  .tangible-asset-list > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .tangible-asset-list__toggle {
     width: 100%;
     justify-content: space-between;
     min-height: 44px;

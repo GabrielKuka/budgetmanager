@@ -188,7 +188,7 @@ export default function Assets() {
       ),
     [data]
   );
-  const assets = useMemo(
+  const tangibleAssets = useMemo(
     () =>
       (data?.assets || [])
         .filter((asset) => {
@@ -202,7 +202,6 @@ export default function Assets() {
             .toLowerCase();
           return (
             assetKind !== "security" &&
-            (status === "all" || asset.status === status) &&
             (type === "all" || asset.asset_type === type) &&
             haystack.includes(query.toLowerCase())
           );
@@ -215,7 +214,14 @@ export default function Assets() {
           if (sort === "name") return a.name.localeCompare(b.name);
           return b.acquired_on.localeCompare(a.acquired_on) || b.id - a.id;
         }),
-    [data, status, type, sort, query, assetKind]
+    [data, type, sort, query, assetKind]
+  );
+  const assets = useMemo(
+    () =>
+      tangibleAssets.filter(
+        (asset) => status === "all" || asset.status === status
+      ),
+    [tangibleAssets, status]
   );
   const securityPositions = useMemo(
     () =>
@@ -224,8 +230,6 @@ export default function Assets() {
           const haystack =
             `${position.ticker} ${position.name} ${position.asset_class_label}`.toLowerCase();
           return (
-            status !== "sold" &&
-            status !== "disposed" &&
             assetKind !== "tangible" &&
             haystack.includes(query.toLowerCase()) &&
             (type === "all" || position.asset_class === type)
@@ -238,7 +242,7 @@ export default function Assets() {
             ? b.unrealized_pnl - a.unrealized_pnl
             : b.current_value - a.current_value
         ),
-    [portfolio, assetKind, query, type, sort, status]
+    [portfolio, assetKind, query, type, sort]
   );
 
   const complete = async (message) => {
@@ -367,26 +371,6 @@ export default function Assets() {
       </nav>
       {workspaceTab === "portfolio" && (
         <section className="assets-toolbar" aria-label="Asset controls">
-          <div
-            className="assets-segments"
-            role="group"
-            aria-label="Asset status"
-          >
-            {["active", "sold", "disposed", "all"].map((item) => (
-              <button
-                key={item}
-                className={status === item ? "is-active" : ""}
-                onClick={() => setStatus(item)}
-              >
-                {titleCase(item)}{" "}
-                <span>
-                  {item === "all"
-                    ? data?.assets?.length || 0
-                    : counts[item] || 0}
-                </span>
-              </button>
-            ))}
-          </div>
           <div className="assets-toolbar__filters">
             <input
               aria-label="Search assets"
@@ -442,7 +426,7 @@ export default function Assets() {
       {workspaceTab === "portfolio" &&
         (loading ? (
           <div className="assets-state">Loading portfolio…</div>
-        ) : assets.length || securityPositions.length ? (
+        ) : tangibleAssets.length || securityPositions.length ? (
           <section className="assets-portfolio-content">
             {securityPositions.length > 0 && (
               <SecurityPositionList
@@ -461,28 +445,18 @@ export default function Assets() {
                 }}
               />
             )}
-            {assets.length > 0 && (
-              <section className="asset-card-grid">
-                {assets.map((asset) => (
-                  <AssetCard
-                    key={`tangible:${asset.id}`}
-                    asset={asset}
-                    displayCurrency={
-                      asset.status === "active"
-                        ? portfolio?.currency
-                        : asset.currency?.code
-                    }
-                    displayValue={
-                      asset.status === "active"
-                        ? asset.current_value_converted
-                        : asset.current_value
-                    }
-                    onOpen={() => setSelected(asset)}
-                    onDispose={() => dispose(asset)}
-                    onUndo={() => undo(asset)}
-                  />
-                ))}
-              </section>
+            {tangibleAssets.length > 0 && (
+              <TangibleAssetList
+                assets={assets}
+                counts={counts}
+                status={status}
+                totalCount={data?.assets?.length || 0}
+                portfolioCurrency={portfolio?.currency}
+                onStatusChange={setStatus}
+                onOpen={setSelected}
+                onDispose={dispose}
+                onUndo={undo}
+              />
             )}
           </section>
         ) : (
@@ -1121,6 +1095,95 @@ function SecurityPanel({ position, currency, onClose, onSell }) {
         </footer>
       </section>
     </aside>
+  );
+}
+
+function TangibleAssetList({
+  assets,
+  counts,
+  status,
+  totalCount,
+  portfolioCurrency,
+  onStatusChange,
+  onOpen,
+  onDispose,
+  onUndo,
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const panelId = "tangible-asset-list";
+  return (
+    <section
+      className={`tangible-asset-list${expanded ? "" : " is-collapsed"}`}
+      aria-label="Tangible assets"
+    >
+      <header>
+        <div>
+          <p className="eyebrow">Tangible assets</p>
+          <h2>
+            Current assets <span>{assets.length}</span>
+          </h2>
+          <p>Physical assets, property, and collectibles you own.</p>
+        </div>
+        <button
+          type="button"
+          className="tangible-asset-list__toggle"
+          aria-expanded={expanded}
+          aria-controls={panelId}
+          onClick={() => setExpanded((current) => !current)}
+        >
+          <span>{expanded ? "Hide assets" : "Show assets"}</span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+      </header>
+      {expanded && (
+        <div id={panelId} className="tangible-asset-list__content">
+          <div
+            className="assets-segments"
+            role="group"
+            aria-label="Tangible asset status"
+          >
+            {["active", "sold", "disposed", "all"].map((item) => (
+              <button
+                key={item}
+                className={status === item ? "is-active" : ""}
+                onClick={() => onStatusChange(item)}
+              >
+                {titleCase(item)}{" "}
+                <span>{item === "all" ? totalCount : counts[item] || 0}</span>
+              </button>
+            ))}
+          </div>
+          {assets.length > 0 ? (
+            <section className="asset-card-grid">
+              {assets.map((asset) => (
+                <AssetCard
+                  key={`tangible:${asset.id}`}
+                  asset={asset}
+                  displayCurrency={
+                    asset.status === "active"
+                      ? portfolioCurrency
+                      : asset.currency?.code
+                  }
+                  displayValue={
+                    asset.status === "active"
+                      ? asset.current_value_converted
+                      : asset.current_value
+                  }
+                  onOpen={() => onOpen(asset)}
+                  onDispose={() => onDispose(asset)}
+                  onUndo={() => onUndo(asset)}
+                />
+              ))}
+            </section>
+          ) : (
+            <p className="tangible-asset-list__empty">
+              No {status === "all" ? "" : `${status} `}tangible assets match
+              these filters.
+            </p>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 
