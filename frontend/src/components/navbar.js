@@ -141,7 +141,7 @@ const LoggedInNavbar = () => {
     const searchData = await searchService.search(query);
     if (requestId !== searchRequestRef.current) return;
 
-    const result = Object.values(searchData).flat();
+    const result = searchData.results || Object.values(searchData).flat();
     setSearchResults(result);
     setSearchValue(searchValue);
   }
@@ -243,16 +243,15 @@ const LoggedInNavbar = () => {
           type="image"
           src={process.env.PUBLIC_URL + "/search_icon.png"}
           alt="search_icon"
-          onFocus={() => {
+          onClick={(event) => {
+            event.preventDefault();
             if (!searchValue) {
               return;
             }
-            setSuggestionBox(!suggestionBox);
-            document.getElementById("search-field").value = "";
-
-            navigate(`/searchresults/${searchValue}`, {
-              state: { searchResults, searchValue },
-            });
+            const query = searchValue;
+            setSuggestionBox(false);
+            setSearchValue("");
+            navigate(`/searchresults?q=${encodeURIComponent(query)}`);
           }}
         />
         {suggestionBox && (

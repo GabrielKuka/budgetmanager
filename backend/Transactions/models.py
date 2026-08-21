@@ -92,6 +92,40 @@ class Transaction(models.Model):
         return f"{self.get_transaction_type_display()} - {self.date}"
 
 
+class SavedSearch(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="saved_transaction_searches",
+    )
+    name = models.CharField(max_length=100)
+    filters = models.JSONField(default=dict)
+    sort = models.CharField(max_length=32, default="date_desc")
+    grouping = models.CharField(max_length=32, default="none")
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name", "id"]
+        unique_together = ("user", "name")
+
+
+class SearchInsightDismissal(models.Model):
+    INSIGHT_TYPES = [("duplicate", "Duplicate"), ("recurring", "Recurring")]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="dismissed_transaction_insights",
+    )
+    insight_type = models.CharField(max_length=16, choices=INSIGHT_TYPES)
+    fingerprint = models.CharField(max_length=64)
+    dismissed_on = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "insight_type", "fingerprint")
+
+
 class IncomeDetail(models.Model):
     transaction = models.OneToOneField(
         Transaction,

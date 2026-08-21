@@ -518,6 +518,142 @@ class TransactionsApiTests(TestCase):
         self.balance_eur.refresh_from_db()
         self.assertEqual(self.balance_eur.balance, Decimal("975"))
 
+    def test_search_explorer_filters_summarizes_and_excludes_drafts(self):
+        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=True))
+        for amount, draft in (("120", False), ("40", True)):
+            response = self.client.post(
+                "/transactions/add",
+                {
+                    "type": 0,
+                    "date": "2026-05-01",
+                    "amount": amount,
+                    "to_cash_balance": self.balance_eur.id,
+                    "category": self.income_category.id,
+                    "description": "Monthly salary",
+                    "is_draft": draft,
+                },
+                format="json",
+            )
+            self.assertEqual(response.status_code, 201)
+        response = self.client.get(
+            "/transactions/search",
+            {"q": "main", "currency": "EUR", "page_size": 10},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["total"], 1)
+        self.assertEqual(
+            response.data["results"][0]["category_name"], "Salary"
+        )
+        self.assertEqual(
+            response.data["results"][0]["to_account_name"], "Main EUR"
+        )
+        self.assertEqual(response.data["summary"]["income"], 120.0)
+        self.assertIn("facets", response.data)
+        drafts = self.client.get(
+            "/transactions/search",
+            {"draft_status": "draft", "currency": "EUR"},
+        )
+        self.assertEqual(drafts.data["total"], 1)
+
+    def test_saved_search_bulk_pin_and_csv_are_user_scoped(self):
+        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=True))
+        created = self.client.post(
+            "/transactions/add",
+            {
+                "type": 1,
+                "date": "2026-05-01",
+                "amount": "25",
+                "from_cash_balance": self.balance_eur.id,
+                "category": self.expense_category.id,
+                "description": "Lunch",
+            },
+            format="json",
+        )
+        txn_id = created.data["id"]
+        saved = self.client.post(
+            "/transactions/saved-searches",
+            {
+                "name": "Lunches",
+                "filters": {"q": "lunch"},
+                "sort": "date_desc",
+                "grouping": "none",
+            },
+            format="json",
+        )
+        self.assertEqual(saved.status_code, 201)
+        bulk = self.client.post(
+            "/transactions/bulk",
+            {"ids": [txn_id], "action": "set_pinned", "pinned": True},
+            format="json",
+        )
+        self.assertEqual(bulk.status_code, 200)
+        self.assertTrue(Transaction.objects.get(pk=txn_id).pinned)
+        exported = self.client.post(
+            "/transactions/search/export",
+            {"ids": [txn_id], "currency": "EUR"},
+            format="json",
+        )
+        self.assertEqual(exported.status_code, 200)
+        self.assertEqual(exported["Content-Type"], "text/csv; charset=utf-8")
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Token {self.other_token.key}"
+        )
+        self.assertEqual(
+            self.client.get("/transactions/saved-searches").data, []
+        )
+        forbidden_bulk = self.client.post(
+            "/transactions/bulk",
+            {"ids": [txn_id], "action": "set_pinned", "pinned": False},
+            format="json",
+        )
+        self.assertEqual(forbidden_bulk.status_code, 400)
+
+    def test_search_insights_are_explainable_and_dismissible(self):
+        self.client.credentials(HTTP_AUTHORIZATION=self._auth_header(raw=True))
+        ids = []
+        for day in (
+            1,
+            2,
+            31,
+        ):
+            response = self.client.post(
+                "/transactions/add",
+                {
+                    "type": 1,
+                    "date": f"2026-{5 if day < 31 else 6:02d}-{day if day < 31 else 1:02d}",
+                    "amount": "20",
+                    "from_cash_balance": self.balance_eur.id,
+                    "category": self.expense_category.id,
+                    "description": "Video subscription",
+                },
+                format="json",
+            )
+            self.assertEqual(response.status_code, 201)
+            ids.append(response.data["id"])
+        response = self.client.get(
+            "/transactions/search/insights",
+            {"q": "subscription", "currency": "EUR"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["duplicates"])
+        insight = response.data["duplicates"][0]
+        dismissed = self.client.post(
+            "/transactions/search/insights/dismiss",
+            {"type": insight["type"], "fingerprint": insight["fingerprint"]},
+            format="json",
+        )
+        self.assertEqual(dismissed.status_code, 204)
+        refreshed = self.client.get(
+            "/transactions/search/insights",
+            {"q": "subscription", "currency": "EUR"},
+        )
+        self.assertFalse(
+            any(
+                item["fingerprint"] == insight["fingerprint"]
+                for item in refreshed.data["duplicates"]
+            )
+        )
+
 
 class SmokeCategoryMigrationTests(TransactionTestCase):
     reset_sequences = True
@@ -527,6 +663,14 @@ class SmokeCategoryMigrationTests(TransactionTestCase):
 
     def setUp(self):
         super().setUp()
+        # Later migrations removed these legacy models. Some SQLite test
+        # schemas retain their physical tables while the migration recorder is
+        # at the latest state, which prevents the backwards migration from
+        # recreating them. Normalize the disposable test schema first.
+        with connection.cursor() as cursor:
+            cursor.execute("DROP TABLE IF EXISTS Transactions_transfer")
+            cursor.execute("DROP TABLE IF EXISTS Transactions_income")
+            cursor.execute("DROP TABLE IF EXISTS Transactions_expense")
         self.executor = MigrationExecutor(connection)
         self.executor.migrate(self.migrate_from)
         old_apps = self.executor.loader.project_state(self.migrate_from).apps
@@ -618,6 +762,8 @@ class SmokeCategoryMigrationTests(TransactionTestCase):
             category=smoke_expense,
         ).id
 
+        # Refresh applied-migration state after the backwards migration.
+        self.executor = MigrationExecutor(connection)
         self.executor.migrate(self.migrate_to)
         self.apps = self.executor.loader.project_state(self.migrate_to).apps
 

@@ -1,802 +1,1119 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import "./searchresults.scss";
 import { useGlobalContext } from "../../context/GlobalContext";
-import { useLocation, useSearchParams } from "react-router-dom";
-import { helper } from "../helper";
-import TransactionPopup from "../core/transaction_popup";
-import currencyService from "../../services/currencyService";
-import searchService from "../../services/searchService";
 import { useToast } from "../../context/ToastContext";
-import { WorkspaceHero, WorkspaceShell } from "../core/workspace";
+import searchService from "../../services/searchService";
+import TransactionPopup from "../core/transaction_popup";
+import { helper } from "../helper";
+import {
+  EmptyState,
+  MetricCard,
+  StatusBadge,
+  Surface,
+  WorkspaceHero,
+  WorkspaceShell,
+} from "../core/workspace";
+
+const TYPES = ["income", "expense", "transfer", "buy", "sell"];
+const GROUP_LABELS = {
+  income: "Income",
+  expense: "Expenses",
+  transfer: "Transfers",
+  buy: "Buys",
+  sell: "Sells",
+};
+
+function splitParam(params, name) {
+  return (params.get(name) || "").split(",").filter(Boolean);
+}
+
+function errorMessage(error) {
+  return (
+    error?.response?.data?.error || error?.message || "The request failed."
+  );
+}
 
 const SearchResults = () => {
   const global = useGlobalContext();
   const showToast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [data, setData] = useState(null);
+  const [insights, setInsights] = useState(null);
+  const [savedSearches, setSavedSearches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [queryInput, setQueryInput] = useState(searchParams.get("q") || "");
+  const [suggestions, setSuggestions] = useState([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selected, setSelected] = useState([]);
+  const [popup, setPopup] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [bulkAction, setBulkAction] = useState("set_pinned");
+  const [bulkValue, setBulkValue] = useState("true");
 
-  const [searchParams] = useSearchParams();
-  const location = useLocation();
-
-  const accounts = global.accounts;
-  const [searchResults, setSearchResults] = useState();
-
-  const [transactionPopup, setTransactionPopup] = useState(false);
-  const [searchValue, setSearchValue] = useState(searchParams.get("q"));
-
-  const [incomes, setIncomes] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [transfers, setTransfers] = useState([]);
-
-  const [shownExpenses, setShownExpenses] = useState([]);
-  const [shownIncomes, setShownIncomes] = useState([]);
-  const [shownTransfers, setShownTransfers] = useState([]);
-
-  const [expensesSorting, setExpensesSorting] = useState("");
-  const [incomesSorting, setIncomesSorting] = useState("");
-  const [transfersSorting, setTransfersSorting] = useState("");
-
-  async function addConvertedAmounts(transactions) {
-    let convertedTransactions = [...transactions];
-    for (const c of convertedTransactions) {
-      const convertedAmount = await currencyService.convert(
-        getAccountCurrency("account" in c ? c.account : c.from_account),
-        global.globalCurrency,
-        c.amount
-      );
-      c["converted_amount"] = convertedAmount;
-    }
-    return convertedTransactions;
-  }
-
-  useEffect(() => {
-    const handleSorting = async () => {
-      if (expensesSorting === "") {
-        return;
-      }
-      let sortedExpenses = [];
-      if (expensesSorting === "amount") {
-        const convertedExpenses = await addConvertedAmounts(expenses);
-        sortedExpenses = [...convertedExpenses].sort(
-          (a, b) => b.converted_amount - a.converted_amount
-        );
-      }
-
-      if (expensesSorting === "date") {
-        sortedExpenses = [...expenses].sort(
-          (a, b) => new Date(b.created_on) - new Date(a.created_on)
-        );
-      }
-
-      // Pinned transactions always first
-      sortedExpenses.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
-      setExpenses(sortedExpenses);
+  const currency = global.globalCurrency || "EUR";
+  const paramsKey = searchParams.toString();
+  const apiParams = useMemo(() => {
+    const current = new URLSearchParams(paramsKey);
+    return {
+      ...Object.fromEntries(current.entries()),
+      currency,
+      page_size: current.get("page_size") || 25,
     };
+  }, [paramsKey, currency]);
 
-    handleSorting();
-  }, [expensesSorting]);
-
-  useEffect(() => {
-    const handleSorting = async () => {
-      if (incomesSorting === "") {
-        return;
-      }
-      let sortedIncomes = [];
-      if (incomesSorting === "amount") {
-        const convertedincomes = await addConvertedAmounts(incomes);
-        sortedIncomes = [...convertedincomes].sort(
-          (a, b) => b.converted_amount - a.converted_amount
-        );
-      }
-
-      if (incomesSorting === "date") {
-        sortedIncomes = [...incomes].sort(
-          (a, b) => new Date(b.created_on) - new Date(a.created_on)
-        );
-      }
-
-      // Pinned transactions always first
-      sortedIncomes.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
-      setIncomes(sortedIncomes);
-    };
-
-    handleSorting();
-  }, [incomesSorting]);
+  useEffect(
+    () => setQueryInput(new URLSearchParams(paramsKey).get("q") || ""),
+    [paramsKey]
+  );
 
   useEffect(() => {
-    const handleSorting = async () => {
-      if (transfersSorting === "") {
-        return;
-      }
-      let sortedTransfers = [];
-      if (transfersSorting === "amount") {
-        const convertedTransfers = await addConvertedAmounts(transfers);
-        sortedTransfers = [...convertedTransfers].sort(
-          (a, b) => b.converted_amount - a.converted_amount
-        );
-      }
-
-      if (transfersSorting === "date") {
-        sortedTransfers = [...transfers].sort(
-          (a, b) => new Date(b.created_on) - new Date(a.created_on)
-        );
-      }
-
-      // Pinned transactions always first
-      sortedTransfers.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
-      setTransfers(sortedTransfers);
-    };
-
-    handleSorting();
-  }, [transfersSorting]);
-
-  useEffect(() => {
-    async function updateSearch() {
-      const query = searchParams.get("q");
-      let results = location.state?.searchResults;
-      if (query !== "") {
-        if (results === "nothing") {
-          // Run the search request
-          showToast(`Searching for ${query}`);
-          const searchData = await searchService.search(query);
-          results = Object.values(searchData).flat();
-        }
-        setSearchResults(results);
-        setSearchValue(query);
-      }
-    }
-
-    updateSearch();
-  }, [location, searchParams.get("q")]);
-
-  useEffect(() => {
-    if (searchResults !== "nothing") {
-      setIncomesSorting("");
-      setExpensesSorting("");
-      setTransfersSorting("");
-
-      setTransactions();
-    }
-  }, [searchResults]);
-
-  useEffect(() => {
-    resetShownTransactions();
-  }, [incomes, expenses, transfers]);
-
-  function setTransactions() {
-    //const searchResults = location.state?.searchResults;
     if (
-      searchResults === null ||
-      searchResults === false ||
-      searchResults === undefined
+      queryInput.trim().length < 2 ||
+      queryInput === new URLSearchParams(paramsKey).get("q")
     ) {
-      return;
+      setSuggestions([]);
+      return undefined;
     }
-    const inc = searchResults
-      .filter((t) => t["transaction_type"] === "income")
-      .sort((a, b) => (a.date > b.date ? -1 : 1));
-    const exp = searchResults
-      .filter((t) => t["transaction_type"] === "expense")
-      .sort((a, b) => (a.date > b.date ? -1 : 1));
-    const tran = searchResults
-      .filter((t) => t["transaction_type"] === "transfer")
-      .sort((a, b) => (a.date > b.date ? -1 : 1));
+    const timer = setTimeout(() => {
+      searchService
+        .suggestions(queryInput.trim())
+        .then(setSuggestions)
+        .catch(() => setSuggestions([]));
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [queryInput, paramsKey]);
 
-    // Pinned transactions always first
-    inc.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
-    exp.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
-    tran.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError("");
+    Promise.all([
+      searchService.search(apiParams),
+      searchService.insights(apiParams),
+    ])
+      .then(([results, insightData]) => {
+        if (!active) return;
+        setData(results);
+        setInsights(insightData);
+        setSelected([]);
+      })
+      .catch((requestError) => active && setError(errorMessage(requestError)))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [apiParams, refreshKey]);
 
-    setIncomes(inc);
-    setExpenses(exp);
-    setTransfers(tran);
+  useEffect(() => {
+    searchService
+      .getSavedSearches()
+      .then(setSavedSearches)
+      .catch(() => {});
+  }, []);
+
+  function updateParams(changes, resetPage = true) {
+    const next = new URLSearchParams(searchParams);
+    Object.entries(changes).forEach(([key, value]) => {
+      if (
+        value === null ||
+        value === undefined ||
+        value === "" ||
+        (Array.isArray(value) && !value.length)
+      ) {
+        next.delete(key);
+      } else {
+        next.set(key, Array.isArray(value) ? value.join(",") : String(value));
+      }
+    });
+    if (resetPage) next.delete("page");
+    setSearchParams(next);
   }
 
-  function resetShownTransactions() {
-    if (incomes !== null) {
-      setShownIncomes(incomes.slice(0, 5));
-    }
+  function toggleListValue(name, value) {
+    const values = splitParam(searchParams, name);
+    const next = values.includes(String(value))
+      ? values.filter((item) => item !== String(value))
+      : [...values, String(value)];
+    updateParams({ [name]: next });
+  }
 
-    if (expenses !== null) {
-      setShownExpenses(expenses.slice(0, 5));
-    }
+  function setTypeTab(type) {
+    updateParams({ types: type === "all" ? null : type });
+  }
 
-    if (transfers !== null) {
-      setShownTransfers(transfers.slice(0, 5));
+  function chooseSuggestion(suggestion) {
+    const keys = {
+      account: "account_ids",
+      category: "category_ids",
+      tag: "tag_ids",
+    };
+    if (keys[suggestion.kind]) {
+      updateParams({ q: null, [keys[suggestion.kind]]: suggestion.id });
+      setQueryInput("");
+    } else {
+      updateParams({ q: suggestion.label.split(" · ")[0] });
+      setQueryInput(suggestion.label.split(" · ")[0]);
+    }
+    setSuggestions([]);
+  }
+
+  async function saveCurrentSearch() {
+    const name = window.prompt("Name this search");
+    if (!name?.trim()) return;
+    try {
+      const filters = Object.fromEntries(searchParams.entries());
+      delete filters.page;
+      const saved = await searchService.createSavedSearch({
+        name: name.trim(),
+        filters,
+        sort: searchParams.get("sort") || "date_desc",
+        grouping: searchParams.get("group_by") || "none",
+      });
+      setSavedSearches((current) =>
+        [...current, saved].sort((a, b) => a.name.localeCompare(b.name))
+      );
+      showToast("Search saved.", "success");
+    } catch (saveError) {
+      showToast(errorMessage(saveError), "error");
     }
   }
 
-  function updateShownTransactions({
-    which = "all",
-    showOrHide = "show",
-  } = {}) {
-    if (incomes !== null && (which === "all" || which === "incomes")) {
-      const inc = incomes.slice(
-        0,
-        showOrHide === "show"
-          ? shownIncomes.length + 5
-          : Math.max(5, shownIncomes.length - 5)
-      );
-      setShownIncomes(inc);
-    }
+  function loadSavedSearch(saved) {
+    const next = new URLSearchParams(saved.filters || {});
+    if (saved.sort && saved.sort !== "date_desc") next.set("sort", saved.sort);
+    if (saved.grouping && saved.grouping !== "none")
+      next.set("group_by", saved.grouping);
+    setSearchParams(next);
+  }
 
-    if (expenses !== null && (which === "all" || which === "expenses")) {
-      const exp = expenses.slice(
-        0,
-        showOrHide === "show"
-          ? shownExpenses.length + 5
-          : Math.max(5, shownExpenses.length - 5)
+  async function removeSavedSearch(saved) {
+    try {
+      await searchService.deleteSavedSearch(saved.id);
+      setSavedSearches((current) =>
+        current.filter((item) => item.id !== saved.id)
       );
-      setShownExpenses(exp);
+    } catch (deleteError) {
+      showToast(errorMessage(deleteError), "error");
     }
+  }
 
-    if (transfers !== null && (which === "all" || which === "transfers")) {
-      const tran = transfers.slice(
-        0,
-        showOrHide === "show"
-          ? shownTransfers.length + 5
-          : Math.max(5, shownTransfers.length - 5)
+  async function renameSavedSearch(saved) {
+    const name = window.prompt("Rename saved search", saved.name);
+    if (!name?.trim() || name.trim() === saved.name) return;
+    try {
+      const updated = await searchService.updateSavedSearch(saved.id, {
+        ...saved,
+        name: name.trim(),
+      });
+      setSavedSearches((current) =>
+        current
+          .map((item) => (item.id === saved.id ? updated : item))
+          .sort((a, b) => a.name.localeCompare(b.name))
       );
-      setShownTransfers(tran);
+    } catch (renameError) {
+      showToast(errorMessage(renameError), "error");
     }
+  }
+
+  async function runBulkAction() {
+    if (!selected.length) return;
+    const payload = { ids: selected, action: bulkAction };
+    if (bulkAction === "set_pinned") payload.pinned = bulkValue === "true";
+    if (bulkAction === "set_category") payload.category_id = Number(bulkValue);
+    if (bulkAction === "add_tags" || bulkAction === "remove_tags")
+      payload.tag_ids = [Number(bulkValue)];
+    try {
+      await searchService.bulkUpdate(payload);
+      showToast(`${selected.length} transactions updated.`, "success");
+      await global.updateTransactions();
+      setRefreshKey((value) => value + 1);
+    } catch (bulkError) {
+      showToast(errorMessage(bulkError), "error");
+    }
+  }
+
+  async function dismissInsight(item) {
+    await searchService.dismissInsight(item.type, item.fingerprint);
+    setInsights((current) => ({
+      ...current,
+      [item.type === "duplicate" ? "duplicates" : "recurring"]: current[
+        item.type === "duplicate" ? "duplicates" : "recurring"
+      ].filter((entry) => entry.fingerprint !== item.fingerprint),
+    }));
   }
 
   function getAccountCurrency(id) {
-    if (accounts !== null && accounts !== undefined) {
-      const account = accounts?.filter((a) => a.id === id);
-      if (account?.length === 1) {
-        return account[0].currency;
-      }
-
-      return "Not Found";
-    }
+    return (
+      global.accounts?.find((account) => account.id === Number(id))?.currency ||
+      "EUR"
+    );
   }
 
-  function refreshSearchResults(id) {
-    setSearchResults(() => searchResults.filter((t) => t.id != id));
-  }
-
-  function showAll(type) {
-    switch (type) {
-      case "expenses":
-        setShownExpenses(expenses);
-        break;
-      case "incomes":
-        setShownIncomes(incomes);
-        break;
-      case "transfers":
-        setShownTransfers(transfers);
-        break;
-      default:
-        return "";
-    }
-  }
+  const activeType =
+    splitParam(searchParams, "types").length === 1
+      ? splitParam(searchParams, "types")[0]
+      : "all";
+  const groupBy = searchParams.get("group_by") || "none";
+  const grouped = useMemo(
+    () => groupResults(data?.results || [], groupBy),
+    [data, groupBy]
+  );
+  const categories = [
+    ...(global.incomeCategories || []),
+    ...(global.expenseCategories || []),
+  ];
+  const tagOptions = data?.facets?.tags || [];
+  const activeChips = buildActiveChips(searchParams);
 
   return (
-    <WorkspaceShell className="search-page">
+    <WorkspaceShell className="search-page search-explorer">
       <WorkspaceHero
-        eyebrow="Global search"
-        title={`Results for “${searchValue || ""}”`}
-        description={`${searchResults?.length || 0} results · ${
-          expenses?.length || 0
-        } expenses · ${incomes?.length || 0} incomes · ${
-          transfers?.length || 0
-        } transfers`}
+        eyebrow="Transaction explorer"
+        title="Search your financial history"
+        description={`${data?.total || 0} matching transactions in ${currency}`}
+        actions={
+          <div className="search-hero-actions">
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((value) => !value)}
+              aria-expanded={filtersOpen}
+            >
+              Filters
+            </button>
+            <button type="button" onClick={saveCurrentSearch}>
+              Save search
+            </button>
+            <button
+              type="button"
+              onClick={() => searchService.exportCsv(apiParams, selected)}
+            >
+              Export CSV
+            </button>
+          </div>
+        }
       />
-      <div className={"searchresults-wrapper"}>
-        {incomes?.length > 0 && (
-          <>
-            <div className={"searchresults-wrapper__incomes"}>
-              <div className={"header"}>
-                <label className={"header-label"}>INCOMES </label>
-                <div className={"sorting-section"}>
-                  <label className={"sort-label"} htmlFor="sort-options">
-                    Sort by:
-                  </label>
-                  <select
-                    value={incomesSorting}
-                    id={"sort-options"}
-                    onChange={(e) => setIncomesSorting(e.target.value)}
-                  >
-                    <option value="" disabled>
-                      -
-                    </option>
-                    <option value="date">Date</option>
-                    <option value="amount">Amount</option>
-                  </select>
-                </div>
-                <div className={"line"}></div>
-              </div>
-              <div className={"content"}>
-                <div className={"items"}>
-                  {shownIncomes?.map((t) => (
-                    <TransactionItem
-                      key={t.id}
-                      transaction={t}
-                      setTransactionPopup={setTransactionPopup}
-                      getAccountCurrency={getAccountCurrency}
-                      global={global}
-                    />
-                  ))}
-                  <div className={"items-footer"}>
-                    {shownIncomes.length !== incomes.length &&
-                      incomes.length > 5 && (
-                        <button
-                          onClick={() =>
-                            updateShownTransactions({
-                              which: "incomes",
-                              showOrHide: "show",
-                            })
-                          }
-                          className={"more-less-button"}
-                        >
-                          Show More
-                        </button>
-                      )}
-                    {shownIncomes.length > 5 && (
-                      <button
-                        onClick={() =>
-                          updateShownTransactions({
-                            which: "incomes",
-                            showOrHide: "hide",
-                          })
-                        }
-                        className={"more-less-button"}
-                      >
-                        Show Less
-                      </button>
-                    )}
-                    {shownIncomes.length !== incomes.length && (
-                      <button
-                        onClick={() => showAll("incomes")}
-                        id={"show-all-btn"}
-                      >
-                        Show All
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <AggregationTable
-                  transactions={incomes}
-                  getAccountCurrency={getAccountCurrency}
-                />
-              </div>
-            </div>
-            <hr />
-          </>
-        )}
-        {expenses?.length > 0 && (
-          <>
-            <div className={"searchresults-wrapper__expenses"}>
-              <div className={"header"}>
-                <label className="header-label">EXPENSES</label>
-                <div className={"sorting-section"}>
-                  <label className={"sort-label"} htmlFor="sort-options">
-                    Sort by:
-                  </label>
-                  <select
-                    value={expensesSorting}
-                    id={"sort-options"}
-                    onChange={(e) => setExpensesSorting(e.target.value)}
-                  >
-                    <option value="" disabled>
-                      -
-                    </option>
-                    <option value="date">Date</option>
-                    <option value="amount">Amount</option>
-                  </select>
-                </div>
-              </div>
-              <div className={"content"}>
-                <div className={"items"}>
-                  {shownExpenses?.map((t) => (
-                    <TransactionItem
-                      key={t.id}
-                      transaction={t}
-                      setTransactionPopup={setTransactionPopup}
-                      getAccountCurrency={getAccountCurrency}
-                      global={global}
-                    />
-                  ))}
-                  <div className={"items-footer"}>
-                    {shownExpenses?.length !== expenses?.length &&
-                      expenses?.length > 5 && (
-                        <button
-                          onClick={() =>
-                            updateShownTransactions({
-                              which: "expenses",
-                              showOrHide: "show",
-                            })
-                          }
-                          className={"more-less-button"}
-                        >
-                          Show More
-                        </button>
-                      )}
-                    {shownExpenses.length > 5 && (
-                      <button
-                        onClick={() =>
-                          updateShownTransactions({
-                            which: "expenses",
-                            showOrHide: "hide",
-                          })
-                        }
-                        className={"more-less-button"}
-                      >
-                        Show Less
-                      </button>
-                    )}
-                    {shownExpenses.length !== expenses.length && (
-                      <button
-                        onClick={() => showAll("expenses")}
-                        id={"show-all-btn"}
-                      >
-                        Show All
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <AggregationTable
-                  transactions={expenses}
-                  getAccountCurrency={getAccountCurrency}
-                />
-              </div>
-            </div>
-            <hr />
-          </>
-        )}
-        {transfers?.length > 0 && (
-          <div className={"searchresults-wrapper__transfers"}>
-            <div className={"header"}>
-              <label className={"header-label"}>TRANSFERS</label>
 
-              <div className={"sorting-section"}>
-                <label className={"sort-label"} htmlFor="sort-options">
-                  Sort by:
-                </label>
-                <select
-                  value={transfersSorting}
-                  id={"sort-options"}
-                  onChange={(e) => setTransfersSorting(e.target.value)}
-                >
-                  <option value="" disabled>
-                    -
-                  </option>
-                  <option value="date">Date</option>
-                  <option value="amount">Amount</option>
-                </select>
-              </div>
-            </div>
-            <div className={"content"}>
-              <div className={"items"}>
-                {shownTransfers?.map((t) => (
-                  <TransactionItem
-                    key={t.id}
-                    transaction={t}
-                    setTransactionPopup={setTransactionPopup}
-                    getAccountCurrency={getAccountCurrency}
-                    global={global}
-                  />
-                ))}
-                <div className={"items-footer"}>
-                  {shownTransfers.length !== transfers.length &&
-                    transfers.length > 5 && (
-                      <button
-                        onClick={() =>
-                          updateShownTransactions({
-                            which: "transfers",
-                            showOrHide: "show",
-                          })
-                        }
-                        className={"more-less-button"}
-                      >
-                        Show More
-                      </button>
-                    )}
-                  {shownTransfers.length > 5 && (
-                    <button
-                      onClick={() =>
-                        updateShownTransactions({
-                          which: "transfers",
-                          showOrHide: "hide",
-                        })
-                      }
-                      className={"more-less-button"}
-                    >
-                      Show Less
-                    </button>
-                  )}
-
-                  {shownTransfers.length !== transfers.length && (
-                    <button
-                      onClick={() => showAll("transfers")}
-                      id={"show-all-btn"}
-                    >
-                      Show All
-                    </button>
-                  )}
-                </div>
-              </div>
-              <AggregationTable
-                transactions={transfers}
-                getAccountCurrency={getAccountCurrency}
-              />
-            </div>
+      <form
+        className="explorer-search"
+        onSubmit={(event) => {
+          event.preventDefault();
+          updateParams({ q: queryInput });
+        }}
+      >
+        <input
+          aria-label="Search transactions"
+          value={queryInput}
+          onChange={(event) => setQueryInput(event.target.value)}
+          placeholder="Description, account, category, tag, ticker…"
+        />
+        <button type="submit">Search</button>
+        {!!suggestions.length && (
+          <div
+            className="explorer-suggestions"
+            role="listbox"
+            aria-label="Search suggestions"
+          >
+            {suggestions.map((suggestion) => (
+              <button
+                type="button"
+                role="option"
+                aria-selected="false"
+                key={`${suggestion.kind}-${suggestion.id}`}
+                onClick={() => chooseSuggestion(suggestion)}
+              >
+                <small>{suggestion.kind}</small>
+                {suggestion.label}
+              </button>
+            ))}
           </div>
         )}
+      </form>
 
-        {transactionPopup && (
-          <TransactionPopup
-            transaction={transactionPopup}
-            showPopup={setTransactionPopup}
-            getAccountCurrency={getAccountCurrency}
-            refreshTransactions={global.updateTransactions}
-            refreshSearchResults={refreshSearchResults}
+      {!!activeChips.length && (
+        <div className="filter-chips" aria-label="Active filters">
+          {activeChips.map((chip) => (
+            <button
+              type="button"
+              key={chip.key}
+              onClick={() => updateParams({ [chip.key]: null })}
+            >
+              {chip.label} ×
+            </button>
+          ))}
+          <button
+            type="button"
+            className="clear"
+            onClick={() => setSearchParams({ q: searchParams.get("q") || "" })}
+          >
+            Clear filters
+          </button>
+        </div>
+      )}
+
+      <div className="explorer-layout">
+        <FilterSidebar
+          open={filtersOpen}
+          params={searchParams}
+          accounts={global.accounts || []}
+          categories={categories}
+          facets={data?.facets || {}}
+          updateParams={updateParams}
+          toggleListValue={toggleListValue}
+          savedSearches={savedSearches}
+          loadSavedSearch={loadSavedSearch}
+          renameSavedSearch={renameSavedSearch}
+          removeSavedSearch={removeSavedSearch}
+        />
+
+        <div className="explorer-main">
+          <Summary
+            summary={data?.summary}
+            comparison={data?.comparison}
+            currency={currency}
+            privacyMode={global.privacyMode}
           />
-        )}
+
+          <div
+            className="type-tabs"
+            role="tablist"
+            aria-label="Transaction type"
+          >
+            {["all", ...TYPES].map((type) => (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeType === type}
+                className={activeType === type ? "active" : ""}
+                key={type}
+                onClick={() => setTypeTab(type)}
+              >
+                {type === "all" ? "All" : GROUP_LABELS[type]}
+              </button>
+            ))}
+          </div>
+
+          <Surface className="result-toolbar">
+            <label>
+              Sort{" "}
+              <select
+                value={searchParams.get("sort") || "date_desc"}
+                onChange={(event) => updateParams({ sort: event.target.value })}
+              >
+                <option value="date_desc">Newest date</option>
+                <option value="date_asc">Oldest date</option>
+                <option value="amount_desc">Highest amount</option>
+                <option value="amount_asc">Lowest amount</option>
+                <option value="created_desc">Recently created</option>
+                <option value="relevance">Relevance</option>
+              </select>
+            </label>
+            <label>
+              Group{" "}
+              <select
+                value={groupBy}
+                onChange={(event) =>
+                  updateParams({ group_by: event.target.value }, false)
+                }
+              >
+                <option value="none">None</option>
+                <option value="type">Type</option>
+                <option value="account">Account</option>
+                <option value="category">Category</option>
+                <option value="month">Month</option>
+              </select>
+            </label>
+            {!!data?.results?.length && (
+              <label className="select-page">
+                <input
+                  type="checkbox"
+                  checked={selected.length === data.results.length}
+                  onChange={(event) =>
+                    setSelected(
+                      event.target.checked
+                        ? data.results.map((row) => row.id)
+                        : []
+                    )
+                  }
+                />{" "}
+                Select page
+              </label>
+            )}
+          </Surface>
+
+          {!!selected.length && (
+            <BulkBar
+              count={selected.length}
+              action={bulkAction}
+              setAction={(action) => {
+                setBulkAction(action);
+                setBulkValue(action === "set_pinned" ? "true" : "");
+              }}
+              value={bulkValue}
+              setValue={setBulkValue}
+              categories={categories}
+              tags={tagOptions}
+              run={runBulkAction}
+              clear={() => setSelected([])}
+            />
+          )}
+
+          {loading && (
+            <Surface className="search-state" aria-live="polite">
+              Loading transactions and insights…
+            </Surface>
+          )}
+          {!loading && error && (
+            <EmptyState
+              title="Search unavailable"
+              description={error}
+              action={
+                <button
+                  type="button"
+                  onClick={() => setRefreshKey((value) => value + 1)}
+                >
+                  Try again
+                </button>
+              }
+            />
+          )}
+          {!loading && !error && !data?.results?.length && (
+            <EmptyState
+              title="No matching transactions"
+              description="Try a wider date range, remove a filter, or search for an account, tag, or category."
+            />
+          )}
+          {!loading &&
+            !error &&
+            Object.entries(grouped).map(([label, rows]) => (
+              <section className="result-group" key={label}>
+                {groupBy !== "none" && (
+                  <h2>
+                    {label} <span>{rows.length}</span>
+                  </h2>
+                )}
+                <div className="transaction-results">
+                  {rows.map((transaction) => (
+                    <TransactionRow
+                      key={transaction.id}
+                      transaction={transaction}
+                      currency={currency}
+                      privacyMode={global.privacyMode}
+                      selected={selected.includes(transaction.id)}
+                      toggleSelected={() =>
+                        setSelected((current) =>
+                          current.includes(transaction.id)
+                            ? current.filter((id) => id !== transaction.id)
+                            : [...current, transaction.id]
+                        )
+                      }
+                      open={() => setPopup(transaction)}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+
+          {!loading && !error && data && (
+            <Pagination
+              page={data.page}
+              pages={data.pages}
+              setPage={(page) => updateParams({ page }, false)}
+            />
+          )}
+          {!loading && !error && (
+            <Analytics
+              breakdowns={data?.breakdowns}
+              insights={insights}
+              currency={currency}
+              onDismiss={dismissInsight}
+              onOpen={setPopup}
+              updateParams={updateParams}
+            />
+          )}
+        </div>
       </div>
+
+      {popup && (
+        <TransactionPopup
+          transaction={popup}
+          showPopup={setPopup}
+          getAccountCurrency={getAccountCurrency}
+          refreshTransactions={async () => {
+            await global.updateTransactions();
+            setRefreshKey((value) => value + 1);
+          }}
+          refreshSearchResults={() => setRefreshKey((value) => value + 1)}
+        />
+      )}
     </WorkspaceShell>
   );
 };
 
-const AggregationTable = ({ transactions, getAccountCurrency }) => {
-  const global = useGlobalContext();
-  const [aggs, setAggs] = useState({ sum: 0, mean: 0, median: 0 });
-
-  async function processTransactions() {
-    async function getConvertedAmounts() {
-      // Get the converted amounts
-      let promises = transactions?.map(async (t) => {
-        return await currencyService.convert(
-          getAccountCurrency("account" in t ? t.account : t.from_account),
-          global.globalCurrency,
-          t.amount
-        );
-      });
-      if (!promises) {
-        return [];
-      }
-      let amounts = await Promise.all(promises);
-
-      return amounts.map((num) => Number(num));
-    }
-    let amounts = await getConvertedAmounts();
-    //amounts = transactions?.map((o) => o.amount);
-
-    // Get Min and Max
-    const minAmount = Math.min(...amounts);
-    const maxAmount = Math.max(...amounts);
-
-    // Get num of transactions
-    const numberOfTransactions = amounts.length;
-
-    // Calculate Sum
-    const sum = amounts?.reduce((sum, val) => sum + val, 0);
-
-    // Calculate Mean
-    const mean = sum / amounts?.length;
-
-    // Calculate Median
-    const sortedAmounts = [...amounts].sort((a, b) => a - b);
-    const middleIndex = Math.floor(sortedAmounts.length / 2);
-    const median =
-      sortedAmounts.length % 2 === 0
-        ? (sortedAmounts[middleIndex - 1] + sortedAmounts[middleIndex]) / 2
-        : sortedAmounts[middleIndex];
-
-    // Calculate timeframe
-    const dates = transactions.map((t) => new Date(t.created_on));
-    const minDate = new Date(Math.min(...dates));
-    const maxDate = new Date(Math.max(...dates));
-
-    // difference in days
-    const diffTime = Math.abs(maxDate - minDate);
-    const daysDiff = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    // difference in months
-    const yearDiff = maxDate.getFullYear() - minDate.getFullYear();
-    let monthDiff = maxDate.getMonth() - minDate.getMonth();
-    monthDiff = yearDiff * 12 + monthDiff;
-
-    let difference = 0;
-    difference = daysDiff > 90 ? monthDiff + " months" : daysDiff + " days";
-
-    const maxDateStr = maxDate.toDateString().split(" ").slice(1).join(" ");
-    const minDateStr = minDate.toDateString().split(" ").slice(1).join(" ");
-
-    setAggs({
-      sum,
-      mean,
-      median,
-      minAmount,
-      maxAmount,
-      numberOfTransactions,
-      minDateStr,
-      maxDateStr,
-      difference,
-    });
-  }
-
-  useEffect(() => {
-    if (typeof transactions === "undefined" || transactions?.length == 0) {
-      return;
-    }
-    processTransactions();
-  }, [transactions, global.globalCurrency]);
-  return (
-    <div className={"aggs-card"}>
-      <label>Summary</label>
-      <table className={"aggs-table"}>
-        <tbody>
-          <tr>
-            <td className={"measurement"}>Total: </td>
-            <td>
-              {" "}
-              {helper.showOrMask(
-                global.privacyMode,
-                helper.formatNumber(aggs["sum"])
-              )}{" "}
-              {helper.getCurrency(global.globalCurrency)}{" "}
-            </td>
-          </tr>
-          <tr>
-            <td className={"measurement"}>Mean: </td>
-            <td>
-              {" "}
-              {helper.showOrMask(
-                global.privacyMode,
-                helper.formatNumber(aggs["mean"])
-              )}{" "}
-              {helper.getCurrency(global.globalCurrency)}{" "}
-            </td>
-          </tr>
-          <tr>
-            <td className={"measurement"}>Median: </td>
-            <td>
-              {" "}
-              {helper.showOrMask(
-                global.privacyMode,
-                helper.formatNumber(aggs["median"])
-              )}{" "}
-              {helper.getCurrency(global.globalCurrency)}{" "}
-            </td>
-          </tr>
-          <tr>
-            <td className={"measurement"}>Min | Max: </td>
-            <td>
-              {" "}
-              {helper.showOrMask(
-                global.privacyMode,
-                helper.formatNumber(aggs["minAmount"])
-              )}{" "}
-              {helper.getCurrency(global.globalCurrency)}
-              {" | "}
-              {helper.showOrMask(
-                global.privacyMode,
-                helper.formatNumber(aggs["maxAmount"])
-              )}{" "}
-              {helper.getCurrency(global.globalCurrency)}{" "}
-            </td>
-          </tr>
-          <tr>
-            <td className={"measurement"}># of transactions: </td>
-            <td> {aggs["numberOfTransactions"]}</td>
-          </tr>
-          {aggs["minDateStr"] !== aggs["maxDateStr"] && (
-            <tr>
-              <td className={"measurement"}>Timeframe:</td>
-              <td>
-                {aggs["minDateStr"]} - {aggs["maxDateStr"]} (
-                {aggs["difference"]})
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+function FilterSidebar({
+  open,
+  params,
+  accounts,
+  categories,
+  facets,
+  updateParams,
+  toggleListValue,
+  savedSearches,
+  loadSavedSearch,
+  renameSavedSearch,
+  removeSavedSearch,
+}) {
+  const chosenAccounts = splitParam(params, "account_ids");
+  const chosenBalances = splitParam(params, "cash_balance_ids");
+  const chosenCategories = splitParam(params, "category_ids");
+  const chosenTags = splitParam(params, "tag_ids");
+  const chosenCurrencies = splitParam(params, "currencies");
+  const balances = accounts.flatMap((account) =>
+    (account.cash_balances || []).map((balance) => ({
+      id: balance.id,
+      label: `${account.name} · ${balance.currency?.code || ""}`,
+    }))
   );
-};
-
-const TransactionItem = ({
-  transaction,
-  getAccountCurrency,
-  setTransactionPopup,
-  global,
-}) => {
-  const account =
-    transaction?.transaction_type === "expense" ||
-    transaction?.transaction_type === "transfer"
-      ? transaction.from_account
-      : transaction.to_account;
-  const currency = helper.getCurrency(getAccountCurrency(account));
-  const [type, setType] = useState("");
-
-  useEffect(() => {
-    setType(transaction?.transaction_type);
-  }, [transaction]);
-
   return (
-    <div
-      className={"transaction-item"}
-      onClick={() => setTransactionPopup(transaction)}
+    <aside
+      className={`filter-sidebar ${open ? "open" : ""}`}
+      aria-label="Search filters"
     >
-      {transaction?.pinned && <span className="pinned-indicator">📌</span>}
-      <div>
-        {type === "expense" && (
-          <>
-            <img
-              alt="transaction-type"
-              src={process.env.PUBLIC_URL + "/expense_arrow.png"}
-              width="18"
-              height="18"
+      <Surface>
+        <h2>Filters</h2>
+        <label>
+          From{" "}
+          <input
+            type="date"
+            value={params.get("from_date") || ""}
+            onChange={(event) =>
+              updateParams({ from_date: event.target.value })
+            }
+          />
+        </label>
+        <label>
+          To{" "}
+          <input
+            type="date"
+            value={params.get("to_date") || ""}
+            onChange={(event) => updateParams({ to_date: event.target.value })}
+          />
+        </label>
+        <div className="amount-filter">
+          <label>
+            Min amount{" "}
+            <input
+              type="number"
+              step="0.01"
+              value={params.get("min_amount") || ""}
+              onChange={(event) =>
+                updateParams({ min_amount: event.target.value })
+              }
             />
-            Spent{" "}
-            {helper.showOrMask(
-              global.privacyMode,
-              helper.formatNumber(transaction.amount)
-            )}{" "}
-            {helper.getCurrency(getAccountCurrency(transaction.from_account))}{" "}
-            on {transaction.date} from{" "}
-            {helper.getAccountName(global.accounts, transaction.from_account)}.
-          </>
+          </label>
+          <label>
+            Max amount{" "}
+            <input
+              type="number"
+              step="0.01"
+              value={params.get("max_amount") || ""}
+              onChange={(event) =>
+                updateParams({ max_amount: event.target.value })
+              }
+            />
+          </label>
+        </div>
+        <label>
+          Status{" "}
+          <select
+            value={params.get("draft_status") || "applied"}
+            onChange={(event) =>
+              updateParams({
+                draft_status:
+                  event.target.value === "applied" ? null : event.target.value,
+              })
+            }
+          >
+            <option value="applied">Applied</option>
+            <option value="draft">Drafts</option>
+            <option value="all">All</option>
+          </select>
+        </label>
+        <label>
+          Pinned{" "}
+          <select
+            value={params.get("pinned") || ""}
+            onChange={(event) => updateParams({ pinned: event.target.value })}
+          >
+            <option value="">Any</option>
+            <option value="true">Pinned</option>
+            <option value="false">Not pinned</option>
+          </select>
+        </label>
+        <FilterChecks
+          title="Accounts"
+          items={accounts.map((item) => ({ id: item.id, label: item.name }))}
+          selected={chosenAccounts}
+          toggle={(id) => toggleListValue("account_ids", id)}
+        />
+        <FilterChecks
+          title="Cash balances"
+          items={balances}
+          selected={chosenBalances}
+          toggle={(id) => toggleListValue("cash_balance_ids", id)}
+        />
+        <FilterChecks
+          title="Categories"
+          items={categories.map((item) => ({
+            id: item.id,
+            label: item.category,
+          }))}
+          selected={chosenCategories}
+          toggle={(id) => toggleListValue("category_ids", id)}
+        />
+        <FilterChecks
+          title="Tags"
+          items={facets.tags || []}
+          selected={chosenTags}
+          toggle={(id) => toggleListValue("tag_ids", id)}
+        />
+        <FilterChecks
+          title="Original currencies"
+          items={facets.currencies || []}
+          selected={chosenCurrencies}
+          toggle={(id) => toggleListValue("currencies", id)}
+        />
+      </Surface>
+      <Surface className="saved-searches">
+        <h2>Saved searches</h2>
+        {savedSearches.length ? (
+          savedSearches.map((saved) => (
+            <div key={saved.id}>
+              <button type="button" onClick={() => loadSavedSearch(saved)}>
+                {saved.name}
+              </button>
+              <button
+                type="button"
+                aria-label={`Rename ${saved.name}`}
+                onClick={() => renameSavedSearch(saved)}
+              >
+                ✎
+              </button>
+              <button
+                type="button"
+                aria-label={`Delete ${saved.name}`}
+                onClick={() => removeSavedSearch(saved)}
+              >
+                ×
+              </button>
+            </div>
+          ))
+        ) : (
+          <p>No saved searches yet.</p>
         )}
+      </Surface>
+    </aside>
+  );
+}
 
-        {type === "income" && (
-          <>
-            <img
-              alt="transaction-type"
-              src={process.env.PUBLIC_URL + "/income_arrow.png"}
-              width="18"
-              height="18"
-            />
-            Earned{" "}
-            {helper.showOrMask(
-              global.privacyMode,
-              helper.formatNumber(transaction.amount)
-            )}{" "}
-            {helper.getCurrency(getAccountCurrency(transaction.to_account))} on{" "}
-            {transaction.date} into{" "}
-            {helper.getAccountName(global.accounts, transaction.to_account)}.
-          </>
-        )}
-        {type === "transfer" && (
-          <>
-            <img
-              alt="transaction-type"
-              src={process.env.PUBLIC_URL + "/transfer_arrow.png"}
-              width="18"
-              height="18"
-            />
-            Transfered{" "}
-            {helper.showOrMask(
-              global.privacyMode,
-              helper.formatNumber(transaction.amount)
-            )}{" "}
-            {helper.getCurrency(getAccountCurrency(transaction.from_account))}{" "}
-            from{" "}
-            {helper.getAccountName(global.accounts, transaction.from_account)}{" "}
-            to {helper.getAccountName(global.accounts, transaction.to_account)}{" "}
-            on {transaction.date}.
-          </>
-        )}
-      </div>
-      {transaction.description?.length > 0 && (
-        <div className={"description"}>
-          <label>Description: </label>
-          <span>
-            <i>{transaction.description}</i>
-          </span>
-        </div>
-      )}
-      {transaction.tags?.length > 0 && (
-        <div className={"tags"}>
-          {transaction?.tags?.map((tag) => (
-            <span key={tag.name} className={"tag"}>
-              {tag.name}
-            </span>
-          ))}
-        </div>
-      )}
+function FilterChecks({ title, items, selected, toggle }) {
+  if (!items.length) return null;
+  return (
+    <fieldset>
+      <legend>{title}</legend>
+      {items.map((item) => (
+        <label key={item.id}>
+          <input
+            type="checkbox"
+            checked={selected.includes(String(item.id))}
+            onChange={() => toggle(item.id)}
+          />{" "}
+          {item.label}
+          {item.count != null && <small>{item.count}</small>}
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
+function Summary({ summary, comparison, currency, privacyMode }) {
+  const money = (value) =>
+    `${helper.showOrMask(
+      privacyMode,
+      helper.formatNumber(value || 0)
+    )} ${helper.getCurrency(currency)}`;
+  const delta = comparison
+    ? (summary?.net_cash_flow || 0) - (comparison.summary?.net_cash_flow || 0)
+    : null;
+  return (
+    <div className="search-summary">
+      <MetricCard
+        label="Income"
+        value={money(summary?.income)}
+        tone="positive"
+      />
+      <MetricCard
+        label="Expenses"
+        value={money(summary?.expenses)}
+        tone="negative"
+      />
+      <MetricCard
+        label="Net cash flow"
+        value={money(summary?.net_cash_flow)}
+        detail={
+          delta == null
+            ? "Choose a date range to compare"
+            : `${delta >= 0 ? "+" : ""}${helper.formatNumber(
+                delta
+              )} vs previous period`
+        }
+      />
+      <MetricCard
+        label="Transfers / trades"
+        value={`${money(summary?.transfers)} / ${money(summary?.trade_value)}`}
+        detail={`${summary?.count || 0} total matches`}
+      />
     </div>
   );
-};
+}
 
+function TransactionRow({
+  transaction,
+  currency,
+  privacyMode,
+  selected,
+  toggleSelected,
+  open,
+}) {
+  const original = `${helper.showOrMask(
+    privacyMode,
+    helper.formatNumber(transaction.amount)
+  )} ${helper.getCurrency(transaction.currency)}`;
+  const converted = `${helper.showOrMask(
+    privacyMode,
+    helper.formatNumber(transaction.converted_amount)
+  )} ${helper.getCurrency(currency)}`;
+  const accountPath =
+    transaction.transaction_type === "transfer"
+      ? `${transaction.from_account_name} → ${transaction.to_account_name}`
+      : transaction.from_account_name || transaction.to_account_name;
+  const asset = transaction.security_ticker || transaction.tangible_asset_name;
+  return (
+    <article className={`explorer-row type-${transaction.transaction_type}`}>
+      <input
+        aria-label={`Select transaction ${transaction.id}`}
+        type="checkbox"
+        checked={selected}
+        onChange={toggleSelected}
+        onClick={(event) => event.stopPropagation()}
+      />
+      <button type="button" className="row-main" onClick={open}>
+        <span className="row-type">
+          {GROUP_LABELS[transaction.transaction_type] ||
+            transaction.transaction_type}
+        </span>
+        <span className="row-copy">
+          <strong>
+            {transaction.description ||
+              transaction.category_name ||
+              asset ||
+              "No description"}
+          </strong>
+          <small>
+            {transaction.date} · {accountPath || "No account"}
+            {transaction.category_name ? ` · ${transaction.category_name}` : ""}
+          </small>
+          <span>
+            {transaction.tags?.map((tag) => (
+              <em key={tag.id}>{tag.name}</em>
+            ))}
+          </span>
+        </span>
+        <span className="row-amount">
+          <strong>{original}</strong>
+          {transaction.currency !== currency && <small>{converted}</small>}
+        </span>
+        <span className="row-status">
+          {transaction.pinned && <StatusBadge>📌 Pinned</StatusBadge>}
+          {transaction.is_draft && (
+            <StatusBadge tone="warning">Draft</StatusBadge>
+          )}
+          {asset && <StatusBadge>{asset}</StatusBadge>}
+        </span>
+      </button>
+    </article>
+  );
+}
+
+function BulkBar({
+  count,
+  action,
+  setAction,
+  value,
+  setValue,
+  categories,
+  tags,
+  run,
+  clear,
+}) {
+  return (
+    <Surface className="bulk-bar">
+      <strong>{count} selected</strong>
+      <select
+        aria-label="Bulk action"
+        value={action}
+        onChange={(event) => setAction(event.target.value)}
+      >
+        <option value="set_pinned">Pin status</option>
+        <option value="add_tags">Add tag</option>
+        <option value="remove_tags">Remove tag</option>
+        <option value="set_category">Set category</option>
+        <option value="apply_drafts">Apply drafts</option>
+      </select>
+      {action === "set_pinned" && (
+        <select
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+        >
+          <option value="true">Pin</option>
+          <option value="false">Unpin</option>
+        </select>
+      )}
+      {action === "set_category" && (
+        <select
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+        >
+          <option value="">Choose category</option>
+          {categories.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.category}
+            </option>
+          ))}
+        </select>
+      )}
+      {(action === "add_tags" || action === "remove_tags") && (
+        <select
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+        >
+          <option value="">Choose tag</option>
+          {tags.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+      )}
+      <button
+        type="button"
+        disabled={action !== "apply_drafts" && value === ""}
+        onClick={run}
+      >
+        Apply
+      </button>
+      <button type="button" onClick={clear}>
+        Clear
+      </button>
+    </Surface>
+  );
+}
+
+function Pagination({ page, pages, setPage }) {
+  if (pages <= 1) return null;
+  return (
+    <nav className="search-pagination" aria-label="Search pages">
+      <button
+        type="button"
+        disabled={page <= 1}
+        onClick={() => setPage(page - 1)}
+      >
+        Previous
+      </button>
+      <span>
+        Page {page} of {pages}
+      </span>
+      <button
+        type="button"
+        disabled={page >= pages}
+        onClick={() => setPage(page + 1)}
+      >
+        Next
+      </button>
+    </nav>
+  );
+}
+
+function Analytics({
+  breakdowns,
+  insights,
+  currency,
+  onDismiss,
+  onOpen,
+  updateParams,
+}) {
+  if (!breakdowns && !insights) return null;
+  return (
+    <section className="search-analytics">
+      <h2>Analysis and review</h2>
+      <div className="analytics-grid">
+        <Surface className="chart-card">
+          <h3>Cash flow by month</h3>
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={breakdowns?.monthly || []}>
+              <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="4 4" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line dataKey="income" stroke="var(--chart-series-1)" />
+              <Line dataKey="expenses" stroke="var(--chart-series-4)" />
+            </LineChart>
+          </ResponsiveContainer>
+        </Surface>
+        <Surface className="chart-card">
+          <h3>Expense categories</h3>
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart
+              data={(breakdowns?.categories || []).slice(0, 8)}
+              layout="vertical"
+            >
+              <XAxis type="number" />
+              <YAxis type="category" dataKey="label" width={90} />
+              <Tooltip formatter={(value) => `${value} ${currency}`} />
+              <Bar
+                dataKey="value"
+                fill="var(--chart-series-2)"
+                onClick={(entry) => {
+                  const facet = entry?.payload;
+                  if (facet?.id) updateParams({ category_ids: facet.id });
+                }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </Surface>
+        <Surface className="chart-card">
+          <h3>Activity by account</h3>
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart
+              data={(breakdowns?.accounts || []).slice(0, 8)}
+              layout="vertical"
+            >
+              <XAxis type="number" />
+              <YAxis type="category" dataKey="label" width={90} />
+              <Tooltip formatter={(value) => `${value} ${currency}`} />
+              <Bar
+                dataKey="value"
+                fill="var(--chart-series-3)"
+                onClick={(entry) => {
+                  const facet = entry?.payload;
+                  if (facet?.id) updateParams({ account_ids: facet.id });
+                }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </Surface>
+      </div>
+      <div className="insight-grid">
+        <InsightList
+          title="Possible duplicates"
+          items={insights?.duplicates || []}
+          onDismiss={onDismiss}
+          onOpen={onOpen}
+        />
+        <InsightList
+          title="Recurring patterns"
+          items={insights?.recurring || []}
+          onDismiss={onDismiss}
+          onOpen={onOpen}
+        />
+        <Surface>
+          <h3>Needs attention</h3>
+          <p>
+            {insights?.uncategorized_transaction_ids?.length || 0} uncategorized
+            transactions
+          </p>
+          <p>
+            {insights?.unusually_large_expense_ids?.length || 0} unusually large
+            expenses
+          </p>
+        </Surface>
+      </div>
+    </section>
+  );
+}
+
+function InsightList({ title, items, onDismiss, onOpen }) {
+  return (
+    <Surface>
+      <h3>{title}</h3>
+      {items.length ? (
+        items.map((item) => (
+          <div className="insight-item" key={item.fingerprint}>
+            <p>{item.reason}</p>
+            <button type="button" onClick={() => onOpen(item.transactions[0])}>
+              Inspect
+            </button>
+            <button type="button" onClick={() => onDismiss(item)}>
+              Dismiss
+            </button>
+          </div>
+        ))
+      ) : (
+        <p>Nothing to review.</p>
+      )}
+    </Surface>
+  );
+}
+
+function groupResults(rows, groupBy) {
+  if (groupBy === "none") return { Results: rows };
+  return rows.reduce((groups, row) => {
+    let key = "Other";
+    if (groupBy === "type")
+      key = GROUP_LABELS[row.transaction_type] || row.transaction_type;
+    if (groupBy === "account")
+      key = row.from_account_name || row.to_account_name || "No account";
+    if (groupBy === "category") key = row.category_name || "Uncategorized";
+    if (groupBy === "month") key = String(row.date).slice(0, 7);
+    groups[key] = [...(groups[key] || []), row];
+    return groups;
+  }, {});
+}
+
+function buildActiveChips(params) {
+  const labels = {
+    q: "Search",
+    types: "Type",
+    account_ids: "Account",
+    cash_balance_ids: "Cash balance",
+    category_ids: "Category",
+    tag_ids: "Tag",
+    currencies: "Currency",
+    from_date: "From",
+    to_date: "To",
+    min_amount: "Minimum",
+    max_amount: "Maximum",
+    draft_status: "Status",
+    pinned: "Pinned",
+  };
+  return Object.entries(labels)
+    .filter(([key]) => params.get(key))
+    .map(([key, label]) => ({ key, label: `${label}: ${params.get(key)}` }));
+}
+
+export { TransactionRow, buildActiveChips, groupResults };
 export default SearchResults;
