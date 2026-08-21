@@ -184,6 +184,7 @@ const GlobalProvider = ({ children }) => {
           throw new Error(e.response.data);
         }
       }
+      throw new Error("Unable to log in. Please check your connection.");
     }
   };
 

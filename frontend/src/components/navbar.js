@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useGlobalContext } from "../context/GlobalContext";
-import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useSearchParams,
+  useLocation,
+} from "react-router-dom";
 import "./navbar.scss";
 import ConversionTool from "./core/conversiontool";
 import { helper } from "./helper";
@@ -513,9 +518,22 @@ export const SuggestionItem = ({
 };
 
 const LoggedOutNavbar = () => {
+  const { isDarkMode, toggleTheme } = useThemeContext();
   return (
     <div className="navbar-wrapper__loggedout">
-      <label>BudgetManager</label>
+      <Link className="auth-navbar__brand" to="/login">
+        <span aria-hidden="true">B</span>
+        BudgetManager
+      </Link>
+      <button
+        type="button"
+        className="auth-navbar__theme-toggle"
+        aria-label={isDarkMode ? "Use light theme" : "Use dark theme"}
+        title={isDarkMode ? "Use light theme" : "Use dark theme"}
+        onClick={toggleTheme}
+      >
+        {isDarkMode ? <SunIcon /> : <MoonIcon />}
+      </button>
     </div>
   );
 };

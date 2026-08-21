@@ -1,87 +1,98 @@
-import React from "react";
-import { useGlobalContext } from "../../context/GlobalContext";
+import { useState } from "react";
+import { Formik, Form } from "formik";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { Formik, Form, Field } from "formik";
-import "./register.scss";
+import { useGlobalContext } from "../../context/GlobalContext";
+import { useToast } from "../../context/ToastContext";
 import { validationSchemas } from "../../validationSchemas";
+import { AuthLayout, PasswordField, SubmitButton, TextField } from "./auth";
 
 const Register = () => {
   const global = useGlobalContext();
   const navigate = useNavigate();
+  const showToast = useToast();
+  const [showPassword, setShowPassword] = useState(false);
 
   if (global.authToken) {
     return <Navigate push to="/dashboard" />;
   }
 
   return (
-    <div className={"register-wrapper"}>
+    <AuthLayout
+      eyebrow="Get started"
+      title="Create your account"
+      description="Start with a clearer view of your money. It only takes a moment."
+    >
       <Formik
-        initialValues={{
-          name: "",
-          phone: "",
-          email: "",
-          password: "",
-        }}
+        initialValues={{ name: "", email: "", phone: "", password: "" }}
         validateOnChange={false}
-        validateOnBlur={false}
+        validateOnBlur
         validationSchema={validationSchemas.registerFormSchema}
-        onSubmit={(values, { setSubmitting, resetForm, validateForm }) => {
-          validateForm().then(async () => {
-            resetForm();
-            setSubmitting(false);
+        onSubmit={async (values, { setStatus, setSubmitting, resetForm }) => {
+          setStatus(null);
+          try {
             const response = await global.registerUser(values);
-
-            if (response.status === 201) {
-              navigate("/login");
-            } else {
-              alert("Something went wrong.");
+            if (response.status !== 201) {
+              throw new Error(
+                "Unable to create your account. Please try again."
+              );
             }
-          });
+            resetForm();
+            showToast("Account created. Please log in.", "success");
+            navigate("/login");
+          } catch (error) {
+            const message =
+              error.response?.data?.email?.[0] ||
+              error.response?.data?.detail ||
+              error.message ||
+              "Unable to create your account. Please try again.";
+            setStatus(message);
+            showToast(message, "error");
+          } finally {
+            setSubmitting(false);
+          }
         }}
       >
-        {({ errors, touched }) => (
-          <Form className={"register-wrapper__form"}>
-            <label>Register</label>
-            <Field
-              type="text"
+        {({ errors, touched, isSubmitting, status }) => (
+          <Form className="auth-form" noValidate>
+            {status && (
+              <p className="auth-form__error" role="alert">
+                {status}
+              </p>
+            )}
+            <TextField
               name="name"
-              className={"field_name"}
-              placeholder="Full name"
+              label="Full name"
+              autoComplete="name"
+              error={touched.name && errors.name}
             />
-            <Field
-              type="email"
+            <TextField
               name="email"
-              className={"field_email"}
-              placeholder="Email"
+              label="Email address"
+              type="email"
+              autoComplete="email"
+              error={touched.email && errors.email}
             />
-            <Field
-              type="text"
+            <TextField
               name="phone"
-              className={"field_phone"}
-              placeholder="Phone number"
+              label="Phone number"
+              type="tel"
+              autoComplete="tel"
+              error={touched.phone && errors.phone}
             />
-            <Field
-              type="password"
-              name="password"
-              className={"field_password"}
-              placeholder="Password"
+            <PasswordField
+              showPassword={showPassword}
+              onToggle={() => setShowPassword((current) => !current)}
+              autoComplete="new-password"
+              error={touched.password && errors.password}
             />
-            <button type="submit" id="submit-button">
-              Register
-            </button>
-            {errors.name && touched.name ? <span>{errors.name}</span> : null}
-            {errors.email && touched.email ? <span>{errors.email}</span> : null}
-            {errors.phone && touched.phone ? <span>{errors.phone}</span> : null}
-            {errors.password && touched.password ? (
-              <span>{errors.password}</span>
-            ) : null}
-            <Link to="/login" id="login-link">
-              Already have an account? Log in.
-            </Link>
+            <SubmitButton loading={isSubmitting}>Create account</SubmitButton>
+            <p className="auth-form__switch">
+              Already have an account? <Link to="/login">Log in</Link>
+            </p>
           </Form>
         )}
       </Formik>
-    </div>
+    </AuthLayout>
   );
 };
 

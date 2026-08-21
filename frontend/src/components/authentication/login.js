@@ -1,118 +1,77 @@
-import { useState, useEffect, useRef, React } from "react";
-import { Formik, Form, Field } from "formik";
-import { useGlobalContext } from "../../context/GlobalContext";
+import { useState } from "react";
+import { Formik, Form } from "formik";
 import { Navigate, Link } from "react-router-dom";
+import { useGlobalContext } from "../../context/GlobalContext";
 import { useToast } from "../../context/ToastContext";
-import "./login.scss";
 import { validationSchemas } from "../../validationSchemas";
+import { AuthLayout, PasswordField, SubmitButton, TextField } from "./auth";
 
 const Login = () => {
   const global = useGlobalContext();
   const showToast = useToast();
+  const [showPassword, setShowPassword] = useState(false);
 
   if (global.authToken) {
     return <Navigate push to="/dashboard" />;
   }
 
   return (
-    <div className={"login-wrapper"}>
-      <AutoScrollContainer />
+    <AuthLayout
+      eyebrow="Sign in"
+      title="Welcome back"
+      description="Pick up where you left off and keep your financial picture in focus."
+    >
       <Formik
-        validateOnBlur={false}
-        validateOnChange={false}
-        validationSchema={validationSchemas.loginFormSchema}
         initialValues={{ email: "", password: "" }}
-        onSubmit={(values, { setSubmitting, resetForm, validateForm }) => {
-          validateForm().then(async () => {
-            const payload = { email: values.email, password: values.password };
-            resetForm();
+        validateOnChange={false}
+        validateOnBlur
+        validationSchema={validationSchemas.loginFormSchema}
+        onSubmit={async (values, { setStatus, setSubmitting }) => {
+          setStatus(null);
+          try {
+            await global.loginUser({
+              email: values.email,
+              password: values.password,
+            });
+          } catch (error) {
+            const message =
+              error.message || "Unable to log in. Please try again.";
+            setStatus(message);
+            showToast(message, "error");
+          } finally {
             setSubmitting(false);
-            try {
-              await global.loginUser(payload);
-            } catch (error) {
-              showToast(error.message, "error");
-            }
-          });
+          }
         }}
       >
-        {({ errors, touched, isSubmitting }) => (
-          <div id="login-wrapper">
-            <Form className={"form"}>
-              <label>Login</label>
-              <Field
-                type="text"
-                name="email"
-                className={"field_email"}
-                placeholder="Email"
-              />
-              <Field
-                type="password"
-                name="password"
-                className={"field_password"}
-                placeholder="Password"
-              />
-              <button type="submit" id="submit-button">
-                {isSubmitting ? "Logging in.." : "Log in"}
-              </button>
-              {errors.email && touched.email ? (
-                <span>{errors.email}</span>
-              ) : null}
-              {errors.password && touched.password ? (
-                <span>{errors.password}</span>
-              ) : null}
-              <Link to="/register" id={"register-link"}>
-                New? Register an account here.
-              </Link>
-            </Form>
-          </div>
+        {({ errors, touched, isSubmitting, status }) => (
+          <Form className="auth-form" noValidate>
+            {status && (
+              <p className="auth-form__error" role="alert">
+                {status}
+              </p>
+            )}
+            <TextField
+              name="email"
+              label="Email address"
+              type="email"
+              autoComplete="email"
+              error={touched.email && errors.email}
+            />
+            <PasswordField
+              showPassword={showPassword}
+              onToggle={() => setShowPassword((current) => !current)}
+              autoComplete="current-password"
+              error={touched.password && errors.password}
+            />
+            <SubmitButton loading={isSubmitting}>Log in</SubmitButton>
+            <p className="auth-form__switch">
+              New to BudgetManager?{" "}
+              <Link to="/register">Create an account</Link>
+            </p>
+          </Form>
         )}
       </Formik>
-    </div>
-  );
-};
-
-const AutoScrollContainer = () => {
-  const [index, setIndex] = useState(0);
-  const sentencesRef = useRef(null);
-  const sentences = [
-    "Manage your incomes, expenses and bank transfers.",
-    "Experience a different way of looking at your finances.",
-    "Bring your spending under control.",
-    "Explore investment opportunities.",
-    "Visualize your net worth!",
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prevIndex) => {
-        if (prevIndex === sentences.length - 1) return 0;
-        return prevIndex + 1;
-      });
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, [sentences.length]);
-
-  useEffect(() => {
-    if (sentencesRef.current) {
-      const sentenceHeight =
-        sentencesRef.current.firstElementChild?.clientHeight || 600;
-      sentencesRef.current.style.transform = `translateY(-${
-        index * sentenceHeight
-      }px)`;
-    }
-  }, [index]);
-
-  return (
-    <div id="left-side-wrapper">
-      <div className="sentences" ref={sentencesRef}>
-        {sentences.map((text, i) => (
-          <div className="sentence" key={i}>
-            {text}
-          </div>
-        ))}
-      </div>
-    </div>
+    </AuthLayout>
   );
 };
 
